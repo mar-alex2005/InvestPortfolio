@@ -1,0 +1,74 @@
+﻿@using Core = Invest.WebApp.Core
+@{
+    ViewData["Title"] = "Home Page";
+    var core = Core.Instance;
+}
+
+<style>
+    #chartdiv {
+        width: 100%;
+        height: 600px;
+    }
+</style>
+
+<!-- Resources -->
+<script src="/lib/amcharts4/core.js"></script>
+<script src="/lib/amcharts4/charts.js"></script>
+<script src="/lib/amcharts4/themes/animated.js"></script>
+
+
+<!-- Chart code -->
+<script>
+    am4core.ready(function () {
+
+        // Themes begin
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+
+        // Create chart instance
+        var chart = am4core.create("chartdiv", am4charts.PieChart);
+
+        ax.send("Post", "/Home/StockChartData", null, function () {
+            var list = eval(JSON.parse(this.responseText));
+            var data = [];
+
+            for (var i = 0; i < list.length; i++) {
+                //console.log("ss1", list[i]);
+                data.push({ ticker: list[i].ticker, summa: list[i].data.sumBalance });
+            }
+            console.log("data1", data);
+
+            chart.data = data;
+
+            // Add data
+            //chart.data = [{
+            //    "country": "Lithuania",
+            //    "litres": 501.9
+            //}, {
+            //    "country": "Czechia",
+            //    "litres": 301.9
+            //}, {
+            //    "country": "Ireland",
+            //    "litres": 201.1
+            //}
+            //];
+
+            // Add and configure Series
+            var pieSeries = chart.series.push(new am4charts.PieSeries());
+            pieSeries.dataFields.value = "summa";
+            pieSeries.dataFields.category = "ticker";
+            pieSeries.slices.template.stroke = am4core.color("#fff");
+            pieSeries.slices.template.strokeOpacity = 1;
+
+            // This creates initial animation
+            pieSeries.hiddenState.properties.opacity = 1;
+            pieSeries.hiddenState.properties.endAngle = -90;
+            pieSeries.hiddenState.properties.startAngle = -90;
+
+            chart.hiddenState.properties.radius = am4core.percent(0);
+
+        });
+    });
+</script>
+
+<div id="chartdiv"></div>
