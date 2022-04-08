@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+<script>
+    $(document).ready(function () {
+        //console.log("Объектная модель готова к использованию!");
+        let h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divTickerList")) - 10;
+        $("#divTickerList").height(h);
+    });
+</script>
+
+<div id="divMain" style="overflow-y: scroll; padding:0; padding-top: 0; vertical-align: top;">
+    <table class="tbl-1">
+    <tr>
+        <td class="td-1">
+            <div id="divTickerList" class="div-ticker">
+                @{ Html.RenderPartial("TickerList"); }
+            </div>
+        </td>
+        <td class="td-2">
+            <div id="divGrid" style="margin:0; padding:0;">
+                @{ Html.RenderPartial("OperationList"); }
+            </div>
+        </td>
+    </tr>
+    </table>
+</div>

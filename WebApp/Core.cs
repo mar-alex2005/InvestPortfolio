@@ -145,7 +145,7 @@ namespace Invest.WebApp
             Instance.LoadCurrencyRates(Currency.Usd);
             Instance.LoadCurrencyRates(Currency.Eur);
 
-            Instance.LoadBaseData("wwwroot\\data.json");
+            Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
 
 			//load broker reports by year (since 2019)
 			for(var year = _startOperationDate.Year; year <= DateTime.Today.Year; year++)

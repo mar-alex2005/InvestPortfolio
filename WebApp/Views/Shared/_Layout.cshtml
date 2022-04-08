@@ -1,0 +1,105 @@
+﻿@*@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet*@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - InvApp</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/lib/fontello/css/fontello.css" />
+    <link rel="stylesheet" href="~/css/fonts/fontello/css/fontello.css" />
+    <link rel="stylesheet" href="~/css/Common.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/dx.common.css" />
+    <link rel="stylesheet" href="~/css/dx.light.css" />
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/js/settings-core.js" asp-append-version="true"></script>
+    <script src="~/js/core.js" asp-append-version="true"></script>
+    <script src="~/js/common.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="~/js/cldr.js" asp-append-version="true"></script>
+    <script src="~/js/cldr/event.js" asp-append-version="true"></script>
+    <script src="~/js/cldr/supplemental.js" asp-append-version="true"></script>
+    <script src="~/js/cldr/unresolved.js" asp-append-version="true"></script>
+
+    <script src="~/js/globalize.js" asp-append-version="true"></script>
+    <script src="~/js/globalize/message.js" asp-append-version="true"></script>
+    <script src="~/js/globalize/number.js" asp-append-version="true"></script>
+    <script src="~/js/globalize/currency.js" asp-append-version="true"></script>
+    @*<script src="~/js/globalize/date.js" asp-append-version="true"></script>*@
+
+    <script src="~/js/dx.all.js" asp-append-version="true"></script>
+
+    <script src="~/js/aspnet/dx.aspnet.data.js" asp-append-version="true"></script>
+    <script src="~/js/aspnet/dx.aspnet.mvc.js" asp-append-version="true"></script>
+
+    <script src="~/js/underscore.js" asp-append-version="true"></script>
+
+    <script src="~/lib/amcharts4/core.js"></script>
+    <script src="~/lib/amcharts4/charts.js"></script>
+    <script src="~/lib/amcharts4/themes/animated.js"></script>
+
+    @*@Html.Raw(JavaScriptSnippet.FullScript)*@
+    <style>
+        .span-menu1 {
+            color: #777;
+        }
+
+        .span-menu {
+            color: #777;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            init();
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand" onclick="">InvApp</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav" style="padding-top:12px; color: #777;">
+                    <li><span class="span-menu" onclick="openStocks()">Stocks</span></li>
+                    <li><span class="span-menu" onclick="openTickers('T')">Tickers</span></li>
+                    <li><span class="span-menu"><span class="span-menu1" onclick="openPortfolio(null, '')">Portfolio</span> [
+                        <span class="span-menu1" onclick="openPortfolio(4)">usd</span>&nbsp;
+                        <span class="span-menu1" onclick="openPortfolio(8)">rur</span>&nbsp;
+                        <span class="span-menu1" onclick="openPortfolio(1)">Iis</span>&nbsp;
+                        <span class="span-menu1" onclick="openPortfolio(2)">VBr</span>&nbsp;
+                        <span class="span-menu1" onclick="openPortfolio(16)">BlueRu</span>&nbsp;
+                        <span class="span-menu1" onclick="openPortfolio(32)">BlueUs</span>&nbsp;
+                        ]
+                    </span></li>
+                    <li></li>
+                    <li></li>
+                    <li><span class="span-menu"><span class="span-menu1" onclick="openProfit(null, '')">Profit</span> [
+                        <span class="span-menu1" onclick="openProfit(16)">BlueRu</span>&nbsp;
+                        <span class="span-menu1" onclick="openProfit(32)">BlueUs</span>&nbsp;
+                    ]
+                    </span></li>   
+
+                    <li><span class="span-menu" onclick="openCache()">Cache</span></li>
+                    <li><span class="span-menu" onclick="openDivs()">Divs</span></li>
+                    <li><span class="span-menu" onclick="openBonds()">Bonds</span></li>
+                    <li><span class="span-menu" onclick="openHist()">Hist</span></li>
+                    <li><span class="span-menu" onclick="loadPrices()">Refresh prices</span></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="body-content">
+        @RenderBody()
+    </div>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

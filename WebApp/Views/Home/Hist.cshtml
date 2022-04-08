@@ -1,0 +1,39 @@
+﻿@model InvApp.Controllers.HistViewModel
+@using InvApp.Entities
+@using Core = Invest.WebApp.Core
+@{
+    Layout = null;
+    ViewData["Title"] = "Home Page";
+    var core = Core.Instance;    
+}
+
+<table class="tbl-cache-main">
+<tr>
+    <td>
+        <div style="overflow-y: scroll; height: 630px;">
+            <table class="tbl-hist" style="border: 1px solid silver">
+            <tr>
+                <th>Date</th>
+                <th>StockSum</th>
+                <th>CurStockSum</th>
+                <th>Profit, sum</th>
+                <th>Profit, %</th>
+            </tr>
+            @{foreach (var item in Model.Items)
+                {
+                <tr>
+                    <td>@string.Format("{0:dd.MM.yyyy, ddd}", item.Date)</td>
+                    <td style="text-align:right; color: black;">@Core.GetSum(item.StockSum)</td>
+                    <td style="text-align:right; color: cornflowerblue;">@Core.GetSum(item.CurStockSum)</td>
+                    <td style="text-align:right; @(item.Profit > 0 ? "color:limegreen" : "color:red")">@Core.GetSumWithZnak(item.Profit)</td>
+                    <td style="text-align:right; @(item.ProfitPercent > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(item.ProfitPercent)</td>
+                </tr>}
+            }
+            </table>
+        </div>
+    </td>
+    <td>
+        <div id="chartHistProfit" style="height: 350px; width: 700px;"></div>
+    </td>
+</tr>
+</table>

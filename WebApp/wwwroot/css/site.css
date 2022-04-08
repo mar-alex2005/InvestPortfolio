@@ -1,0 +1,1421 @@
+﻿body {
+    padding-top: 50px;
+}
+
+.body-content {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+
+div {
+    padding: 0;
+    margin: 0;
+}
+
+/* Set widths on the form inputs since otherwise they're 100% wide */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+.span-menu {
+    padding: 16px;
+    color: white;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+table TD {
+    padding: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+    vertical-align: top;
+	vertical-align: top;
+}
+
+
+/*********************************************************************************/
+
+.tbl-1  {
+    border: 0;
+    border-spacing: 0;
+    border-collapse: collapse;
+    padding: 0;
+    margin: 0;
+}
+.tbl-1 TD {
+	padding: 3px;
+	vertical-align: top;
+	text-align: left;
+}
+
+.tbl-1 .td-1 {
+    padding-top: 5px;
+}
+
+.tbl-1 .td-2 {
+	padding-top: 5px;
+}
+
+/* ============================================================================== */
+
+
+.tbl-o {
+    width: 100%;
+    border: 1px solid silver;
+    border-spacing:0;
+    margin:0;
+}
+
+.tbl-o TH {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid silver;
+    padding: 2px;
+    padding-left: 12px;
+    padding-right: 12px;
+    font-family: Calibri, Verdana, Tahoma;
+    font-size: 14px;
+}
+.tbl-o TD {
+    margin: 0;
+    padding: 3px;
+    border-bottom: 1px solid silver;
+    font-family: Calibri, Verdana, Tahoma;
+    font-size: 12px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.tbl-o TR {
+    background-color: white;
+}
+.tbl-o TR:hover {
+    background-color: khaki;
+}
+
+
+.tbl-o .td-date {
+    text-align: right;
+    vertical-align: middle;
+    font-size: 10px;
+    padding-right: 4px;
+}
+.tbl-o .td-ticker {
+    text-align: center;
+    color: navy;
+    font-weight: bold;
+}
+.tbl-o .td-qty {
+    text-align: right;
+    color: navy;
+}
+.tbl-o .td-close {
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    font-size: 12px;
+    color: brown;
+}
+
+
+.tbl-o .td-price-buy {
+    text-align: right;
+    color: green;
+    font-family: Consolas, Arial;
+}
+.tbl-o .td-price-sell {
+    text-align: right;
+    color: red;
+    font-family: Consolas, Arial;
+}
+
+
+.tbl-o .td-sum {
+    text-align: right;
+}
+.tbl-o .td-sum-sell {
+    color: orangered;
+}
+.tbl-o .td-sum-buy {
+    color: green;
+}
+.tbl-o .td-sum-div {
+    color: dodgerblue;
+}
+.tbl-o .td-sum-coupon {
+    color: blue;
+}
+.tbl-o .td-month-separator {
+    background-color: burlywood;
+    font-size: 11px;
+    padding: 2px;
+    padding-left: 5px;
+    color: black;
+}
+.tbl-o .td-day-separator {
+    background-color: black;
+    font-size: 1px;
+    padding: 0;
+}
+    .tbl-o .td-day-separator-first {
+        background-color: #f0f0f0;
+        font-size: 1px;
+        padding: 0;
+    }
+.tbl-o .td-saldo {
+    text-align: right;
+    background-color:khaki;
+}
+
+
+
+.tbl-o .td-result {
+    font-size: 12px;
+    text-align: right;
+    font-weight: normal;
+}
+.tbl-o .td-result.plus {
+    color: limegreen;
+}
+.tbl-o .td-result.minus {
+    color: red;
+}
+.tbl-o .td-result.zero {
+    color: grey;
+}
+.tbl-o .td-result.total {
+    background-color: blanchedalmond;
+    font-weight: bold !important;
+}
+
+
+
+.tbl-o .td-result-comm {
+    font-weight: bold;
+    font-size: 12px;
+    text-align: right;
+    border-right: 1px solid silver;
+}
+.tbl-o .td-result-comm.plus {
+    color: limegreen;
+}
+.tbl-o .td-result-comm.minus {
+    color: red;
+}
+
+
+.tbl-o .td-result-total-plus {
+    color: limegreen;
+}
+.tbl-o .td-result-total-minus {
+    color: red;
+}
+.tbl-o .td-result-total-zero {
+    font-weight: normal;
+    text-align: right;
+    color: gray;
+}
+
+
+
+.tbl-o .td-type-buy {
+    font-weight: bold;
+    font-size: 14px;
+    color: green;
+    text-align: center;
+    border: 1px solid silver;
+    border-radius: 3px;
+}
+
+.tbl-o .td-type-sell {
+    font-weight: bold;
+    font-size: 14px;
+    color: red;
+    text-align: center;
+    border: 1px solid silver;
+    border-radius: 3px;
+}
+
+.tbl-o .tr-pos > TD {
+    padding: 6px;
+    padding-top: 24px;
+    background-color: aliceblue;
+    text-align: right;
+}
+
+.tbl-o .tr-pos > .td-pos {
+    font-size: 16px;
+    font-weight: bold;
+    color: blue;
+    text-align: left;
+}
+
+.tbl-o .tr-pos > .td-pos .icon {
+    font-size: 14px !important;
+    color: black !important;
+    cursor: pointer;
+    text-align: left;
+    padding-left: 1px;
+}
+
+.tbl-o .tr-pos > .td-start-date {
+    font-size: 13px;
+    font-weight: normal;
+    color: black;
+}
+
+.tbl-o .tr-pos > .td-comm {
+    color: red;
+}
+
+.tbl-o .tr-pos > TD > div.pos-data-fin-total {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    background-color: rgb(188, 207, 241);
+    color: white;
+}
+
+.tbl-o .tr-pos > .td-plus {
+    color: green;
+}
+.tbl-o .tr-pos > .td-minus {
+    color: red;
+}
+
+.tbl-o .tr-pos-head > TD {
+    height: 26px;
+    background-color: white;
+    text-align: right;
+    border-left: 1px solid white !important;
+    border-right: 1px solid white !important;
+}
+
+/* ============================================================================== */
+
+
+.div-ticker {
+	margin: 0;
+	padding: 0;
+	border: 1px solid silver;
+    background-color: rgb(249, 249, 249);
+}
+
+.tbl-ticker {
+}
+.tbl-ticker TD {
+    padding: 3px;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: 14px;
+    font-family: Roboto, Calibri, Arial;
+    white-space: nowrap;
+}
+.tbl-ticker .td-name {
+    padding-right: 4px;
+    color: black;
+    cursor: pointer;
+}
+.tbl-ticker .td-name:hover {
+    text-decoration: underline;
+}
+.tbl-ticker .td-name-zero {
+    padding-right: 4px;
+    color: silver;
+    cursor: pointer;
+}
+.tbl-ticker .td-name-zero:hover {
+    text-decoration: underline;
+}
+.tbl-ticker .td-qty {
+    text-align: right;
+    color: mediumblue;
+}
+.tbl-ticker .td-qty-zero {
+    text-align: right;
+    color: grey;
+}
+.tbl-ticker .td-lot {
+    padding-left: 4px;
+    text-align: right;
+    color: grey;
+}
+.tbl-ticker .td-name span.ticker {
+	color: mediumblue;
+}
+.tbl-ticker .td-name-zero span.ticker {
+	color: silver;
+}
+
+/* ========================================================================================= */
+
+
+/* ==== Portfolio ========================================================================== */
+
+    .page-portfolio .tbl-g {
+        width: 100%;
+        border: 1px solid silver;
+    }
+
+    .page-portfolio .tbl-g TR {
+        background-color: white;
+    }
+
+    .page-portfolio .tbl-g TR:hover {
+        background-color: khaki;
+    }
+
+    .page-portfolio .tbl-g TH {
+        background-color: #f0f0f0;
+        font-weight: bold;
+        text-align: center;
+        border-bottom: 1px solid silver;
+        padding: 2px;
+        padding-left: 11px;
+        padding-right: 11px;
+        font-family: Calibri, Verdana, Tahoma;
+        font-size: 14px;
+    }
+
+    .page-portfolio .tbl-g TD {
+        padding: 3px;
+        border-bottom: 1px solid silver;
+        font-family: Calibri, Verdana, Tahoma;
+        font-size: 12px;
+        padding-left: 9px;
+        padding-right: 8px;
+    }
+
+    .page-portfolio .tbl-g .td-ticker {
+        color: navy;
+        font-weight: bold;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .page-portfolio .tbl-g .td-lot {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 8px;
+    }
+
+    .page-portfolio .tbl-g .td-total {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 8px;
+        font-family: 'Trebuchet MS', Roboto;
+        font-size: 10px;
+        vertical-align: middle;
+    }
+
+    .page-portfolio .tbl-g .td-buy {
+        color: black;
+        text-align: center;
+        padding-left: 9px;
+        padding-right: 8px;
+        background-color: rgba(121,242,110,0.7)
+    }
+
+    .page-portfolio .tbl-g .td-sell {
+        color: black;
+        text-align: center;
+        padding-left: 9px;
+        padding-right: 8px;
+        background-color: rgba(252,73,49,0.7)
+    }
+
+    .page-portfolio .tbl-g .td-sell-0 {
+        color: black;
+        text-align: center;
+        padding-left: 9px;
+        padding-right: 8px;
+        background-color: white;
+    }
+
+    .page-portfolio .tbl-g .td-date {
+        text-align: center;
+        padding-left: 9px;
+        padding-right: 8px;
+    }
+
+    .page-portfolio .tbl-g .td-price-div {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 6px;
+        color: cornflowerblue;
+        border-left: 1px solid silver;
+        border-right: 1px solid silver;
+    }
+
+    .page-portfolio .tbl-g .td-price-comm {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 6px;
+        color: silver;
+    }
+
+    .page-portfolio .tbl-g .td-profit-plus {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 6px;
+        color: limegreen;
+    }
+
+    .page-portfolio .tbl-g .td-profit-minus {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 6px;
+        color: red;
+    }
+
+    .page-portfolio .tbl-g .td-price-buymin {
+        text-align: right;
+        color: deepskyblue;
+        font-family: 'Trebuchet MS', roboto;
+        font-size: 10px;
+        vertical-align: middle;
+    }
+
+    .page-portfolio .tbl-g .td-price-sellmax {
+        text-align: right;
+        color: dodgerblue;
+        font-family: 'Trebuchet MS', roboto;
+        font-size: 10px;
+        vertical-align: middle;
+    }
+
+/* ============================================================================== */
+
+
+
+
+/* ============================================================================== */
+
+.tbl-g {
+    width: 100%;
+    border: 1px solid silver;
+}
+
+.tbl-g TR {
+    background-color: white;
+}
+
+.tbl-g TR:hover {
+    background-color: khaki;
+}
+
+.tbl-g TH {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid silver;
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-family: Calibri, Verdana, Tahoma;
+    font-size: 14px;
+    color: navy;
+    cursor: pointer;
+}
+.tbl-g TD {
+    padding: 2px;
+    border-bottom: 1px solid silver;
+    font-family: Calibri, Verdana, Tahoma;
+    font-size: 12px;
+    padding-left: 9px;
+    padding-right: 9px;
+    vertical-align: middle;
+}
+
+.tbl-g .td-ticker {
+    color: navy;
+    font-weight: bold;
+    text-align: left;
+}
+.tbl-g .td-lot {
+    text-align: right;
+}
+
+.tbl-g .td-buy {
+    color: black;
+    text-align: center;
+    background-color: rgba(121,242,110,0.7)
+}
+.tbl-g .td-sell {
+    color: black;
+    text-align: center;
+    background-color: rgba(252,73,49,0.7)
+}
+
+.tbl-g .td-sell-0 {
+    color: black;
+    text-align: center;
+    background-color: white;
+}
+
+.tbl-g .td-date {
+    text-align: center;
+}
+
+.tbl-g .td-sum {
+    color: black;
+    text-align: right;
+    color: cornflowerblue;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 8pt;
+}
+.tbl-g .td-sum-rur {
+    color: black;
+    text-align: right;
+    color: cornflowerblue;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 8pt;
+    font-weight: bold;
+}
+
+.tbl-g .td-price-div {
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 6px;
+    color: cornflowerblue;
+    border-left: 1px solid silver;
+    border-right: 1px solid silver;
+}
+.tbl-g .td-price-comm {
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 9px;
+    color: silver;
+}
+    .tbl-g .td-profit-plus {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 9px;
+        color: limegreen;
+    }
+    .tbl-g .td-profit-minus {
+        text-align: right;
+        padding-left: 9px;
+        padding-right: 9px;
+        color: red;
+    }
+
+    .tbl-g .td-price-buymin {
+        text-align: right;
+        color: deepskyblue;
+        font-family: 'Trebuchet MS', roboto;
+        font-size: 10px;
+        vertical-align: middle;
+    }
+
+    .tbl-g .td-price-sellmax {
+        text-align: right;
+        color: dodgerblue;
+        font-family: 'Trebuchet MS', roboto;
+        font-size: 10px;
+        vertical-align: middle;
+    }
+
+
+	.tbl-g tr.total {
+		font-weight: bold;
+	}
+
+	.tbl-g .total TD {
+		text-align: right;
+		padding-right: 6px;
+	}
+
+.tbl-g-acc TD {
+	white-space: nowrap;
+}
+
+.tbl-g .td-loss-price td {
+    text-align: right;
+    color: black;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 8pt;
+    font-weight: normal;
+    background-color: aquamarine;
+}
+
+.tbl-g .td-price-min td {
+    text-align: center;
+    color: black;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 8pt;
+    font-weight: normal;
+    background-color: silver;
+    border-left: 1px solid brown;
+    border-right: 1px solid brown;
+}
+
+.tbl-g .td-price-avg td {
+    text-align: center;
+    color: black;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 8pt;
+    font-weight: normal;
+    background-color: silver;
+    border-left: 1px solid brown;
+    border-right: 1px solid brown;
+}
+
+/* ============================================================================== */
+.tbl-ticker-d {
+    border: 1px solid silver;
+}
+.tbl-ticker-d TD {
+    border: 1px solid silver;
+    padding: 2px;
+    padding-left: 9px;
+    padding-right: 8px;
+    font-family: Calibri, Verdana, Tahoma;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.tbl-ticker-d .td-name {
+    font-weight: bold;
+    font-size: 14px;
+    text-decoration:underline;
+}
+.tbl-ticker-d .td-cur-price {
+    vertical-align: middle;
+    font-weight: bold;
+    color: navy;
+    font-size: 14px;
+}
+.tbl-ticker-d .td-qty {
+    font-weight: bold;
+    font-size: 14px;
+}
+.tbl-ticker-d .td-2 {
+    text-align: right;
+}
+.tbl-ticker-d .td-buy {
+    color: black;
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 8px;
+    background-color: rgba(121,242,110,0.3)
+}
+.tbl-ticker-d .td-sell {
+    color: black;
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 8px;
+    background-color: rgba(252,73,49,0.3)
+}
+
+.tbl-ticker-d .td-saldo-plus {
+    font-weight: bold;
+    font-size: 14px;
+    color: limegreen;
+    background-color: blanchedalmond;
+    text-align: right;
+}
+.tbl-ticker-d .td-saldo-minus {
+    font-weight: bold;
+    font-size: 14px;
+    color: red;
+    background-color: blanchedalmond;
+    text-align: right;
+}
+
+.tbl-ticker-d .td-cur-sum {
+    font-weight: normal;
+    font-size: 14px;
+    text-align: right;
+    color: rgb(51, 44, 44);
+}
+
+.tbl-ticker-d TD.td-cur-pos-price {
+    background-color: #f0f0f0;
+    font-size: 14px;
+}
+
+.tbl-ticker-d TD.td-cur-pos-notloss {
+    background-color: rgb(46, 162, 16);
+    color: white;
+    text-align: right;
+    font-size: 14px;
+}
+
+.tbl-ticker-d .td-qty {
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+}
+
+TD.buy {
+    color: limegreen !important;
+    text-align: right;
+    vertical-align: middle;
+}
+
+TD.sell {
+    color: red !important;
+}
+
+
+.div-acc-name {
+    display: inline-block;
+    padding: 3px;
+    padding-left: 6px;
+    padding-right: 6px;
+    background-color: cornflowerblue;
+    border-radius: 4px;
+    font-size: 11px;
+    color: white;
+    font-weight: bold;
+    font-family: Calibri;
+}
+
+.div-acc-qty {
+    display: inline-block;
+    padding: 3px;
+    padding-left: 8px;
+    padding-right: 6px;
+    font-size: 11px;
+    color: black;
+    font-family: Arial;    
+}
+
+.td-pos-price {
+    color: silver;
+    text-align: right;
+}
+
+
+.div-pos-closing {
+    display: inline-block;
+    padding: 4px;
+    background-color: white;
+    border: 1px solid orangered;
+    border-radius: 4px;
+    font-size: 9px;
+    line-height: 9px;
+    color: white;
+    font-weight: bold;
+    font-family: Calibri;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.div-pos-closed {
+    display: inline-block;
+    padding: 4px;
+    background-color: orangered;
+    border-radius: 4px;
+    font-size: 9px;
+    line-height: 9px;
+    color: white;
+    font-weight: bold;
+    font-family: Calibri;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+#chartPortfolio {
+	height: 300px;
+	margin: 0 auto;
+}
+#piePortfolio {
+    height: 340px;
+    width: 480px;
+    margin: 0 auto;
+}
+
+#chartCache {
+    width: 420px;
+    height: 270px;
+}
+
+#pie {
+    height: 440px;
+    margin: 0 auto;
+}
+
+
+
+
+/**/
+.tbl-cache-main {
+}
+.tbl-cache-main td {
+    text-align: left;
+	padding: 3px;
+}
+
+
+.tbl-usdrur-stat {
+}
+.tbl-usdrur-stat caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+.tbl-usdrur-stat th {
+    text-align: right;
+    border: 1px solid silver;
+    text-align: center;
+    color:navy;
+}
+.tbl-usdrur-stat td {
+    border: 1px solid silver;
+    padding: 2px;
+    padding-left: 9px;
+    padding-right: 8px;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 11px;
+    text-align: right;
+}
+.tbl-usdrur-stat .td-comm {
+    color:orangered;
+}
+.tbl-usdrur-stat .td-usd-total {
+    color: blue;
+}
+
+    .tbl-usdrur-stat .tr-comm {
+        color:gray;
+    }
+
+
+/**/
+.tbl-usdrur {
+}
+
+.tbl-usdrur caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+
+.tbl-usdrur th {
+    border: 1px solid silver;
+    color: navy;
+    text-align: center;
+    background-color: #f0f0f0;
+    font-size: 11px;
+    padding: 4px;
+}
+
+.tbl-usdrur td {
+    border: 1px solid silver;
+    padding: 2px;
+    padding-left: 9px;
+    padding-right: 8px;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 11px;
+}
+
+.tbl-usdrur .td-qty {
+    color: cornflowerblue;
+    text-align: right;
+}
+
+.tbl-usdrur .td-price {
+    color: lightgray;
+    text-align: right;
+}
+.tbl-usdrur .td-sum {
+    text-align: right;
+}
+.tbl-usdrur .td-date {
+    color: rosybrown;
+}
+.tbl-usdrur .td-comm {
+    color: dimgray;
+    text-align: right;
+}
+
+
+
+/**/
+.tbl-oper-cache {
+}
+.tbl-oper-cache caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+.tbl-oper-cache th {
+    border: 1px solid silver;
+    color: navy;
+    text-align: center;
+    background-color: #f0f0f0;
+    font-size: 11px;
+    padding: 4px;
+}
+.tbl-oper-cache td {
+    border: 1px solid silver;
+    padding: 2px;
+    padding-left: 9px;
+    padding-right: 8px;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 11px;
+}
+
+/**/
+.tbl-cache-acc {
+}
+.tbl-cache-acc caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+.tbl-cache-acc th {
+    font-weight: bold;
+    font-size: 8pt;
+    border-bottom: 1px solid silver;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    color: navy;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+.tbl-cache-acc td {
+    font-size: 8pt;
+    border-bottom: 1px solid silver;
+    padding-top: 1px;
+    padding-bottom: 1px
+}
+
+
+
+.tbl-usd-ex {
+    border: 1px solid silver;
+}
+.tbl-usd-ex caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+.tbl-usd-ex th {
+    border-bottom: 1px solid silver;
+    font-size: 8pt;
+}
+.tbl-usd-ex td {
+    border-bottom: 1px solid silver;
+    font-size: 8pt;
+}
+
+
+
+/***/
+.tbl-divs {
+}
+.tbl-divs caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+
+.tbl-divs th {
+    font-weight: bold;
+    font-size: 8pt;
+    border-bottom: 1px solid silver;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    color: navy;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+
+.tbl-divs td {
+    border-bottom: 1px solid silver;
+    font-size: 8pt;
+}
+.tbl-divs .td-cur {
+    color: black;
+}
+.tbl-divs .td-summa {
+    color: blue;
+    text-align: right;
+}
+.tbl-divs .td-comment {
+    font-size: 7pt;
+    color: gray;
+    width: 470px;
+}
+.tbl-divs .td-month-separator {
+    font-weight: bold;
+    padding-top: 6px;
+    padding-bottom: 4px;
+    background-color: antiquewhite;
+}
+
+
+
+/**/
+.tbl-divs-acc {
+}
+.tbl-divs-acc caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+
+.tbl-divs-acc th {
+    font-weight: bold;
+    font-size: 8pt;
+    border-bottom: 1px solid silver;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    color: navy;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+
+.tbl-divs-acc td {
+    font-size: 8pt;
+    border-bottom: 1px solid silver;
+    font-family: 'Trebuchet MS', roboto;
+    padding-top: 1px;
+    padding-bottom: 1px
+}
+
+.tbl-divs-acc .td-total {
+    text-align: right;
+    font-weight: bold;
+    padding: 2px;
+}
+.tbl-divs-acc .td-sum {
+    text-align: right;
+    color: blue;
+}
+.tbl-divs-acc .td-ticker {
+    white-space: nowrap;
+}
+
+.tbl-divs-acc .td-ticker-summa {
+    text-align: right;
+	color: blue;
+}
+
+
+/**/
+
+.tbl-oper-period {
+}
+.tbl-oper-period caption {
+    font-weight: bold;
+    color: dimgray;
+    padding: 0px;
+}
+.tbl-oper-period th {
+        font-weight: bold;
+        font-size: 8pt;
+        border-bottom: 1px solid silver;
+        padding-top: 1px;
+        padding-bottom: 1px;
+        color: navy;
+        text-align: center;
+        background-color: #f0f0f0;
+    }
+.tbl-oper-period td {
+    font-size: 8pt;
+    border-bottom: 1px solid silver;
+    font-family: 'Trebuchet MS', roboto;
+    padding-top: 1px;
+    padding-bottom: 1px
+}
+.tbl-oper-period .td-summa {
+    text-align: right;
+    color: cornflowerblue;
+}
+.tbl-oper-period .td-summa-buy {
+	text-align: right;
+	color: forestgreen;
+	text-align: right;
+}
+.tbl-oper-period .td-summa-sell {
+	text-align: right;
+	color: coral;
+	text-align: right;
+}
+
+.tbl-oper-period .td-month-separator {
+    font-weight: bold;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    background-color: azure;
+}
+
+    .tbl-oper-period .td-summa-total {
+		padding: 5px;
+        font-weight: bold;
+        padding-top: 3px;
+        padding-bottom: 3px;
+        background-color: azure;
+        color: blue;
+        text-align: right;
+    }
+
+
+
+
+.tbl-h {
+	width: 30%;
+}
+.tbl-h th {
+	font-family: 'Trebuchet MS', roboto;
+	font-weight: bold;
+	font-size: 8pt;
+	border: 1px solid silver;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	color: blue;
+	text-align: center;
+	background-color: #f0f0f0;
+}
+.tbl-h td {
+	font-size: 8pt;
+	font-family: 'Trebuchet MS', roboto;
+	color: black;
+	padding: 3px;
+	padding-left: 5px;
+	border: 1px solid silver;
+}
+.tbl-h .td-cache {
+	text-align: right;
+}
+.tbl-h .td-cache-total {
+	color: dodgerblue;
+	font-weight: bold;
+	text-align: right;
+}
+.tbl-h .td-cache-buy {
+	color: forestgreen;
+	text-align: right;
+}
+.tbl-h .td-cache-sell {
+	color: orangered;
+	text-align: right;
+}
+.tbl-h .td-cache-comm {
+	color: red;
+	text-align: right;
+}
+.tbl-h .td-cache-saldo {
+	text-align: right;
+	font-weight: bold;
+}
+.tbl-h .td-cache-divs {
+	text-align: right;
+	color: cornflowerblue;
+}
+
+
+
+
+/* ============================================================================== */
+
+.tbl-profit {
+	border: 1px solid silver;
+}
+
+.tbl-profit TR {
+	background-color: white;
+}
+
+.tbl-profit TR:hover {
+	background-color: khaki;
+}
+
+.tbl-profit TH {
+	background-color: #f0f0f0;
+	font-weight: bold;
+	text-align: center;
+	border-bottom: 1px solid silver;
+	padding: 2px;
+	padding-left: 10px;
+	padding-right: 10px;
+	font-family: Calibri, Verdana, Tahoma;
+	font-size: 14px;
+	color: navy;
+	cursor: pointer;
+}
+.tbl-profit td {
+	padding: 2px;
+	border-bottom: 1px solid silver;
+	font-family: Calibri, Verdana, Tahoma;
+	font-size: 12px;
+	padding-left: 7px;
+	padding-right: 6px;
+	vertical-align: middle;
+}
+
+.tbl-profit .td-ticker {
+	color: navy;
+	font-weight: bold;
+	text-align: left;
+    cursor: pointer;
+}
+.tbl-profit .td-lot {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.tbl-profit .td-buy {
+	color: black;
+	text-align: center;
+	background-color: rgba(121,242,110,0.7)
+}
+.tbl-profit .td-sell {
+	color: black;
+	text-align: center;
+	background-color: rgba(252,73,49,0.7)
+}
+.tbl-profit .td-sell-0 {
+    color: black;
+    text-align: center;
+    padding-left: 9px;
+    padding-right: 8px;
+    background-color: white;
+}
+.tbl-profit .td-price-comm {
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 6px;
+    color: silver;
+}
+
+.tbl-profit .td-profit-plus {
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 6px;
+    color: limegreen;
+}
+
+.tbl-profit .td-profit-minus {
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 6px;
+    color: red;
+}
+
+.tbl-profit .td-price-buymin {
+    text-align: right;
+    color: deepskyblue;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 10px;
+    vertical-align: middle;
+}
+
+.tbl-profit .td-price-sellmax {
+    text-align: right;
+    color: dodgerblue;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 10px;
+    vertical-align: middle;
+}
+.tbl-profit .td-price-div {
+    text-align: right;
+    padding-left: 9px;
+    padding-right: 6px;
+    color: cornflowerblue;
+    border-left: 1px solid silver;
+    border-right: 1px solid silver;
+}
+
+.tbl-profit .td-total-fifo {
+    text-align: right;
+    font-weight: bold;
+    font-family: 'Trebuchet MS', roboto;
+    color: cornflowerblue;
+    font-size: 8pt;
+}
+
+.tbl-profit .td-total-fifo-total {
+    text-align: right;
+    font-family: 'Trebuchet MS', roboto;
+    color: black;
+    font-size: 8pt;
+}
+
+.tbl-profit .tr-fifo-total {
+    background-color: lemonchiffon;
+}
+.tbl-profit .td-total-fifo-div {
+    text-align: right;
+    font-family: 'Trebuchet MS', roboto;
+    color: cornflowerblue;
+    font-size: 8pt;
+    
+}
+
+
+.tbl-hist th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid silver;
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-family: Calibri, Verdana, Tahoma;
+    font-size: 14px;
+    color: navy;
+    cursor: pointer;
+}
+.tbl-hist td {
+    padding: 3px;
+    font-family: 'Trebuchet MS', roboto;
+    font-size: 8pt;
+    border-bottom: 1px solid lightgrey;
+}
+.tbl-hist tr:hover {
+    background-color: antiquewhite;
+}
+
+
+
+/* ================================================== */
+
+::-webkit-scrollbar {
+	width: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #fff;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 0 40px 4px transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: #e4e4e4;
+	border-radius: 4px;
+	-webkit-box-shadow: inset 0 0 0 0px rgb(96, 96, 96);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(96, 96, 96);
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 0 0 0px rgba(32, 80, 129, 0.42);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: rgb(96, 96, 96);
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 0 0 0px rgba(32, 80, 129, 0.52);
+}

@@ -1,0 +1,599 @@
+﻿@using InvApp.Entities
+@using Core = Invest.WebApp.Core
+@model InvApp.Controllers.OperationViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Operations";
+    var stock = Core.Instance.Stocks.FirstOrDefault(x => x.Ticker.ToUpper() == Model.Ticker.ToUpper());
+
+    var notClosedOps = Model.Operations.Where(x => !x.IsClosed).OrderByDescending(x => x.Date);
+
+    var notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
+    var notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
+
+    var notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
+    var notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
+    var notClosedSaldo = notClosedSellSum - notClosedBuySum;
+    decimal? notClosedPrice = 0;
+
+    if (stock.Data.QtyBalance != 0) {
+        notClosedPrice = notClosedSaldo / stock.Data.QtyBalance;
+    }
+
+    foreach (var a in Core.Instance.Accounts)
+    {
+        notClosedOps = Model.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type).OrderByDescending(x => x.Date);
+
+        notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
+        notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
+
+        notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
+        notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
+        notClosedSaldo = notClosedSellSum - notClosedBuySum;
+
+        if (stock.Data.QtyBalance != 0) {
+            stock.AccountData[a.Type].NotLossPrice = notClosedSaldo / stock.Data.QtyBalance;
+        }
+    }
+}
+<style>
+	.td-acc-name {
+		padding: 0 !important;
+		padding-top: 18px !important;
+		text-align: left;
+		font-size: 21px !important;
+		font-weight: bold !important;
+		color: cadetblue;
+		border-left: 1px solid white !important;
+		border-right: 1px solid white !important;
+		border-bottom: 1px solid white !important;
+	}
+</style>
+
+<div>
+    <table>
+    <tr>
+    <td>
+        <table class="tbl-ticker-d">
+        <tr>
+            <td>Ticker:</td>
+            <td class="td-name" colspan="6" title="@(stock.Isin != null && stock.Isin.Length != 0 ? stock.Isin[0] : ""), @stock.RegNum">@Model.Ticker</td>
+            <td class="td-cur-price">@($"{stock.CurPrice:N5}")</td>
+        </tr>
+        <tr>
+            <td>Наличие:</td>
+            <td class="td-qty" style="text-align: left;" colspan="6">@($"{stock.Data.QtyBalance} ({stock.Data.QtyBalance / stock.LotSize} лот.)")</td>
+        </tr>
+        <tr>
+            <td>:</td>
+            <td></td>
+            <td>start</td>
+            <td>end</td>
+            <td>min:</td>
+            <td>avr:</td>
+            <td>max:</td>
+        </tr>
+        <tr>
+            <td>Buy:</td>
+            <td class="td-buy">@($"{stock.Data.BuyQty / stock.LotSize}")</td>
+            <td class="td-buy">@($"{stock.Data.FirstBuy:dd MMM, yy}")</td>
+            <td class="td-buy">@($"{stock.Data.LastBuy:dd MMM, yy}")</td>
+            <td class="td-buy">@($"{stock.Data.BuyMin:N2}")</td>
+            <td class="td-buy"><b>@($"{stock.Data.BuyAvg:N2}")</b></td>
+            <td class="td-buy">@($"{stock.Data.BuyMax:N2}")</td>
+        </tr>
+        <tr>
+            <td>Sell:</td>
+            <td class="td-sell">@($"{stock.Data.SellQty / stock.LotSize}")</td>
+            <td class="td-sell">@($"{stock.Data.FirstSell:dd MMM, yy}")</td>
+            <td class="td-sell">@($"{stock.Data.LastSell:dd MMM, yy}")</td>
+            <td class="td-sell">@($"{stock.Data.SellMin:N2}")</td>
+            <td class="td-sell"><b>@($"{stock.Data.SellAvg:N2}")</b></td>
+            <td class="td-sell">@($"{stock.Data.SellMax:N2}")</td>
+        </tr>
+        <tr>
+            <td colspan="4"></td>
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
+            }
+            <td></td>
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
+            }
+            <td style="color:cornflowerblue; font-weight: bold; text-align:center;">Total</td>
+        </tr>
+
+        <tr>
+            <td>Total buy:</td>            
+            <td style="text-align: right; color:red">@Core.GetSum(stock.Data.BuySum)</td>            
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="" style="text-align:right;">com b.:</td>            
+            @foreach (var a in Core.Instance.Accounts) {
+                <td style="text-align: right; color:red;">@Core.GetSum(stock.AccountData[a.Type].BuyCommission)</td>
+            }
+            <td style="text-align: right; color:red;">@Core.GetSum(stock.Data.BuyCommission)</td>
+        </tr>
+        <tr>
+            <td>Total sell:</td>
+            <td style="text-align: right; color: green;" class="">@Core.GetSum(stock.Data.SellSum)</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="" style="text-align:right;">com s.:</td>            
+            @foreach (var a in Core.Instance.Accounts) {
+                <td style="text-align: right; color:red;">@Core.GetSum(stock.AccountData[a.Type].SellCommission)</td>
+            }
+            <td style="text-align: right; color:red;" class="">@Core.GetSum(stock.Data.SellCommission)</td>
+        </tr>
+        <tr>
+            <td>saldo:</td>
+            <td style="text-align: right" class="">@($"{stock.Data.SellSum - stock.Data.BuySum:N2}")</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="text-align:right;">total com:</td>
+            @foreach (var a in Core.Instance.Accounts) {
+                <td style="text-align: right; color:red;">@Core.GetSum(stock.AccountData[a.Type].Commission)</td>
+            }
+            <td style="text-align: right; color: red;">@($"{stock.Data.Commission:N2}")</td>
+        </tr>
+
+        <tr>
+            <td style="text-align: right">Cur. stock sum:</td>
+            <td style="text-align: right">@($"{stock.Data.QtyBalance * stock.CurPrice:N2}")</td>
+            <td style="text-align: right">= (<span>@stock.Data.QtyBalance</span> * <span>@($"{stock.CurPrice:N5}")</span>)</td>
+            <td></td>                        
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                <td style="color:dimgrey; font-weight: bold; text-align:right;">
+                    @Core.GetSum(stock.AccountData[a.Type].QtyBalance * stock.CurPrice)
+                </td>
+            }
+        </tr>
+
+        <tr>
+            <td style="text-align: right">Not loss price:</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                <td style="color:limegreen; font-weight: bold; text-align:right; border: 1px solid limegreen; background-color: lightgoldenrodyellow;">
+                    @Core.GetSum(stock.AccountData[a.Type].NotLossPrice)
+                </td>
+            }
+
+            <td style="color:limegreen; font-weight: bold; text-align:right; border: 1px solid limegreen; background-color: lightgoldenrodyellow;">
+                @string.Format("{0:N2}", notClosedPrice)
+            </td>
+        </tr>
+
+        <tr>
+            <td><b>closed positions result:</b></td>
+            @{
+                var znak = stock.Data.FinResultForClosedPositions > 0 ? "+" : "-";
+                if (stock.Data.FinResultForClosedPositions == 0) {
+                    znak = "";
+                }
+                var cssResEstimate = stock.Data.FinResultForClosedPositions >= 0 ? "td-saldo-plus" : "td-saldo-minus";
+            }
+            <td class="@cssResEstimate">@Model.Value(stock.Data.FinResultForClosedPositions, true)</td>
+            <td style="text-align: right;" colspan="2"></td>
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                <td style="color:cornflowerblue; font-weight: bold; text-align:right;" >
+                    @Core.GetSum(stock.AccountData[a.Type].FinResultForClosedPositions, "-")
+                </td>
+            }
+        </tr>
+        <tr>
+            <td><b>open position result:</b></td>            
+            <td class="@(stock.Data.FinResult > 0 ? "td-saldo-plus" : "td-saldo-minus")">@Core.GetSum(stock.Data.FinResult, "-")</td>            
+            <td style="text-align: right;">with comm:</td>
+            <td style="text-align: right;"></td>
+
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                <td style="color:cornflowerblue; font-weight: bold; text-align:right;">
+                    @Core.GetSum(stock.AccountData[a.Type].TotalFinResult, "-")
+                </td>
+            }
+        </tr>
+
+        <tr>
+            <td><b>total fin result:</b></td>
+            <td class="@cssResEstimate">@Model.Value(stock.Data.FinResult + stock.Data.FinResultForClosedPositions)</td>
+            @{
+                znak = stock.Data.Profit >= 0 ? "+" : "";
+                cssResEstimate = stock.Data.Profit >= 0 ? "td-saldo-plus" : "td-saldo-minus";
+            }
+            <td style="text-align: right;"><b>profit:</b></td>
+            <td class="@cssResEstimate" style="@(stock.Data.Profit > 0 ? "color:limegreen" : "color:red"); text-align: right;">
+                @Model.Value(stock.Data.Profit)
+            </td>
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                var val = stock.AccountData[a.Type].Profit;
+                <td class="@cssResEstimate" style="@(val > 0 ? "color:limegreen" : "color:red"); text-align: right;">@Model.Value(val)</td>
+            }
+
+            <td class="@cssResEstimate" colspan="5">@string.Format("{0:N2}%", stock.Data.ProfitPercent)</td>
+        </tr>
+
+        <tr>
+            <td style="text-align: right;"></td>
+            <td></td>
+            <td style="text-align: right;">Divs:</td>
+            <td class="td-divs" style="text-align: right; color:cornflowerblue;">
+                @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker).Sum(x => x.Value.DivSumma))
+            </td>
+            @foreach (var a in Core.Instance.Accounts)
+            {
+                <td style="text-align: right; color:cornflowerblue;">
+                    @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker && x.Key.AccountType == a.Type).Sum(x => x.Value.DivSumma))
+                </td>
+            }
+        </tr>
+        <tr>
+            @{
+                var total = (stock.Data.Profit ?? 0) + (stock.Data.FinResultForClosedPositions ?? 0) + (stock.Data.FinResult ?? 0);
+                znak = total >= 0 ? "+" : "";
+                cssResEstimate = total >= 0 ? "td-saldo-plus" : "td-saldo-minus";
+            }
+            <td style="text-align: right;"></td>
+            <td class="td-divs" style="text-align: right; color:cornflowerblue;"></td>
+            <td style="text-align: right;"><b>total:</b></td>
+            <td class="@cssResEstimate" style="text-align: right;">@($"{znak}{total:N2}")</td>
+        </tr>
+        </table>
+    </td>
+    <td>
+        <table class="tbl-ticker-d">
+            <tr>
+                <td>Last Position:</td>
+                <td class="td-name" colspan="7"></td>
+            </tr>
+            
+            @foreach (var a in Core.Instance.Accounts)
+			{
+				if (stock.AccountData[a.Type].QtyBalance == 0) { continue; }
+
+				var accData = stock.AccountData[a.Type];
+
+				var lastPos = accData.Positions.LastOrDefault();
+				var notClosedItems = lastPos.Items;
+
+				//notClosedOps = Model.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type)
+				//	.OrderByDescending(x => x.Date);
+
+			    notClosedBuyOps = notClosedItems.Where(x => x.Operation.Type == OperationType.Buy).Select(x => x.Operation).ToList();
+				notClosedSellOps = notClosedItems.Where(x => x.Operation.Type == OperationType.Sell).Select(x => x.Operation).ToList();
+
+				notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
+				notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
+				notClosedSaldo = notClosedSellSum - notClosedBuySum;
+
+				if (stock.AccountData[a.Type].QtyBalance != 0) {
+					stock.AccountData[a.Type].NotLossPrice = notClosedSaldo / stock.Data.QtyBalance;
+					notClosedPrice = notClosedSaldo / stock.AccountData[a.Type].QtyBalance;
+				}
+
+				if (notClosedSaldo > 0) {
+					notClosedPrice = 0;
+				}
+
+				//decimal? avgBalance = 0;
+				//if (notClosedBuyOps.Count != 0) {
+				//	avgBalance = notClosedBuyOps.Where(x => x.Type == OperationType.Buy).Sum(x => x.Price) / notClosedBuyOps.Sum(x => x.Qty);
+				//}
+
+                <tr>
+                    <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
+                    <td>Qty</td>
+                    <td>Buy</td>
+                    <td>Sell</td>
+                    <td>--</td>
+                    <td>Min.p</td>
+                    <td>Max.p</td>
+                    <td>Pos.price</td>
+                    <td>NotLoss.price</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="td-qty">@(stock.AccountData[a.Type].QtyBalance)</td>
+                    <td class="td-cur-sum buy">@($"{notClosedBuySum:N2}")</td>
+                    <td class="td-cur-sum sell">@($"{notClosedSellSum:N2}")</td>
+                    <td></td>
+                    <td class="td-cur-sum">@($"{notClosedBuyOps.Min(x => x.Price):N2}")</td>
+                    <td class="td-cur-sum">@($"{notClosedBuyOps.Max(x => x.Price):N2}")</td>
+                    <td class="td-cur-pos-price">@($"{stock.AccountData[a.Type].PosPrice:N4}")</td>
+                    <td class="td-cur-pos-notloss" title="saldo: @($"{notClosedSaldo:N2}")">@($"{Math.Abs(notClosedPrice.Value):N2}")</td>
+                </tr>
+            }
+        </table>
+    </td>
+    </tr>
+    </table>
+</div>
+<br/>
+
+<table class="tbl-o">
+<tr>
+    @if (stock.Type == StockType.Bond) {
+		<td colspan="9">>></td>
+	}
+    else {
+		<td colspan="7">>></td>
+	}
+    <td></td>
+    <td style="text-align: right; font-weight: bold; color: red;">@($"{stock.Data.Commission:N2}")</td>
+    <td></td>
+    @{
+        var css1 = "";
+        if (stock.Data.FinResult > 0)
+        {
+            css1 = "plus";
+        }
+        else if (stock.Data.FinResult < 0)
+        {
+            css1 = "minus";
+        }
+
+        var fifo = Core.Instance.FifoResults.Where(x => x.Key.Ticker == stock.Ticker);
+    }
+    <td class="@css1" style="text-align: right;">@Model.Value(stock.Data.TotalFinResult, true, "")</td>
+    <td></td>
+    <td class="@css1" style="text-align: right;">@Model.Value(fifo.Sum(x => x.Value.Summa), true, "")</td>
+    <td class="@css1" style="text-align: right;">@Model.Value(fifo.Sum(x => x.Value.RurSumma), true, "")</td>
+</tr>
+<tr>
+    <th></th>
+    <th>Дата</th>
+    <th></th>
+    <th>Объем (шт.)</th>
+    <th>Лоты (шт.)</th>
+    <th>Цена</th>
+    <th>Сумма</th>
+    @{
+        if (stock.Type == StockType.Bond) {
+            <th>Нкд</th>
+			<th>Сумма с Нкд</th>
+		}
+	}
+    <th>PosPrice</th>
+    <th>Comm.</th>
+    <th>Result</th>
+    <th>Result (total)</th>
+    <th>Fifo Result</th>
+    <th>Fifo Result (total)</th>
+    <th>Fifo (rurSum)</th>
+</tr>
+@{
+	var operations = Model.Operations;
+	DateTime? lastDate = null;
+
+	foreach (var a in Core.Instance.Accounts)
+	{
+		var ops = operations.Where(x => x.AccountType == a.Type).ToList();
+		if (!ops.Any())
+		{
+			continue;
+		}
+
+		var accData = stock.AccountData[a.Type];
+
+	    <tr>
+            <td class="td-acc-name" colspan="14">@a.Name</td>
+        </tr>
+
+		foreach (var pos in accData.Positions.OrderByDescending(x => x.Num))
+		{
+			var posItems = pos.Items.OrderByDescending(x => x.Operation.Date).ThenByDescending(x => x.Operation.TransId).ToList(); //ops.Where(x => x.PositionNum == num).ToList();
+
+			var posFinTotal = accData.Positions.Where(x => x.Num <= pos.Num).Sum(x => x.FinResult);
+			var posFifoTotal = accData.Positions.Where(x => x.Num <= pos.Num).Sum(x => x.FifoResult?.TotalSumma);
+
+			if (stock.Type == StockType.Bond)
+			{
+				//posOps = ops.ToList();
+			}
+
+		    <tr class="tr-pos-head">
+                @if (stock.Type == StockType.Bond)
+                {
+                    <td colspan="16"></td>
+				}
+				else
+				{
+				    <td colspan="14"></td>
+				}
+            </tr>
+		    <tr class="tr-pos">
+                <td class="td-pos">
+                    @($"п. {pos.Num} ({a.Type})")<br>
+                    <span class="@(!pos.IsClosed ? "icon-minus-squared" : "icon-plus-squared") icon" onclick="showHidePos('@a.Type', @pos.Num, this)"></span>
+                </td>
+                <td class="td-start-date" colspan="1">Период:<br>@($"{pos.StartDate:dd.MM.yyyy} - {pos.CloseDate:dd.MM.yyyy}")</td>
+                <td class="" style="text-align:right;" colspan="3">
+                    <div>buy: @($"{pos.BuySum:N2}")</div>
+		            <div>sell: @($"{pos.SellSum:N2}")</div>
+                </td>
+                <td class="">
+                    <div>min: @($"{posItems.Min(x => x.Operation.Price):N2}")</div>
+                    <div style="color:dodgerblue;">avg: @($"{posItems.Average(x => x.Operation.Price):N2}")</div>
+                    <div>max: @($"{posItems.Max(x => x.Operation.Price):N2}")</div>
+                </td>
+                <td colspan="@(stock.Type == StockType.Bond ? 4 : 2)"></td>
+                <td class="td-comm">@($"{posItems.Sum(x => x.Commission):N4}")</td>
+                <td class=""></td>
+
+                <td class="@(posFinTotal > 0 ? "td-plus" : "td-minus")" style="font-weight: bold;">
+                    <div class="pos-data-fin-total">@($"{posFinTotal:N2}")</div><br/>
+                    <span style="@(pos.FinResult < 0 ? "color:red" : "");">@(Core.GetSumWithZnak(pos.FinResult))</span>
+                </td>
+                
+                <td class=""></td>
+
+                <td class="@(posFifoTotal > 0 ? "td-plus" : "td-minus")" style="font-weight: bold;">
+                    <div class="pos-data-fin-total">@($"{posFifoTotal:N2}")</div><br/>
+                    <span style="color: @(pos.FifoResult.TotalSumma < 0 ? "red" : "green");">@(Core.GetSumWithZnak(pos.FifoResult.TotalSumma))</span>
+                </td>
+            </tr> 
+
+			for (var i=0; i < posItems.Count; ++i)
+			{
+				var item = posItems[i];
+			    var o = posItems[i];
+				var trCss = "";
+
+				var cssSum = "td-sum";
+				if (o.Operation.Type == OperationType.Buy) {
+					cssSum = "td-sum-buy";
+				}
+				else if (o.Operation.Type == OperationType.Sell) {
+					cssSum = "td-sum-sell";
+				}
+				else if (o.Operation.Type == OperationType.Dividend) {
+					cssSum = "td-sum-div";
+				}
+
+		        <tr class="tr-pos-oper" posNum="@pos.Num" accType="@a.Type" style="@(pos.IsClosed ? "display: none;" : "")">
+                    <td class="td-date"></td>
+                    <td class="td-date" title="delivery: @($"{o.Operation.DeliveryDate:dd.MM.yyyy}"), oper. date: @($"{o.Operation.Date:dd.MM.yyyy HH:mm:ss}"), transId: @o.Operation.TransId" style="@trCss">
+                        @if (lastDate == null || (lastDate != null
+                             && (lastDate.Value.Year != o.Operation.Date.Year || lastDate.Value.Month != o.Operation.Date.Month) || posItems.Count-1 == i))
+                        {
+						    @($"{o.Operation.Date:yyyy, dd MMM, ddd}")
+						}
+                        else {
+                            @($"{o.Operation.Date:dd MMM, ddd}")
+                        }
+                    </td>
+
+                    @if (o.Operation.Type == OperationType.Buy)
+                    {
+                        <td class="td-type-buy" style="@trCss">@($"{o.Operation.Type.ToString()[0]}")</td>
+                    }
+                    else if (o.Operation.Type == OperationType.Sell)
+                    {
+                        <td class="td-type-sell" style="@trCss">@($"{o.Operation.Type.ToString()[0]}")</td>
+                    }
+                    else if (o.Operation.Type == OperationType.Dividend)
+                    {
+                        <td class="td-type-sell" style="color:cornflowerblue;">@($"{o.Operation.Type.ToString()[0]}")</td>
+                    }
+                    else if (o.Operation.Type == OperationType.Coupon)
+                    {
+                        <td class="td-type-sell" style="color: lightseagreen;">K</td>
+                    }
+
+                    <td class="td-qty" style="text-align: center; @trCss">@($"{o.Qty:N0}")</td>
+
+                    @if (o.Qty != 0)
+                    {
+                        <td class="td-qty" style="text-align: center; @trCss">@($"{o.Qty / o.Operation.Stock.LotSize}")</td>
+                    }
+                    else
+                    {
+                        <td class="td-qty" style="text-align: center; @trCss">-</td>
+                    }
+
+                    @{
+                        var cssTdPrice = o.Operation.Type == OperationType.Sell ? "td-price-sell" : "td-price-buy";
+                    }
+                    
+                    @if(stock.Type == StockType.Bond) {
+                        <td class="@cssTdPrice" title="price: @($"{o.Operation.Price:N2}") %" style="@trCss">@($"{o.Operation.Price * 10:N5}")</td>
+					}
+					else {
+					    <td class="@cssTdPrice" title="" style="@trCss">@($"{o.Operation.Price:N5}")</td>
+					}
+
+                    @if (o.Qty != 0)
+                    {
+                        @if (stock.Type == StockType.Bond)
+                        {
+                            <td class="td-sum @cssSum" style="@trCss">@($"{o.Operation.Summa:N2}")</td>
+                        }
+                        else {
+                            <td class="td-sum @cssSum" style="@trCss">@($"{o.Operation.Price * o.Qty:N2}")</td>
+                        }
+                    }
+                    else
+                    {
+                        <td class="td-sum @cssSum" style="@trCss">@($"{o.Operation.Summa:N2}")</td>
+                    }
+                    
+                    @if (stock.Type == StockType.Bond)
+					{
+					    <td class="td-sum" style="@trCss color: cornflowerblue;">@($"{o.Operation.Nkd:N2}")</td>
+					    <td class="td-sum" style="@trCss">@($"{o.Operation.Summa + o.Operation.Nkd:N2}")</td>
+					}
+
+                    <td class="td-pos-price" style="@trCss">
+                        @($"{o.PosPrice:N5}")
+                    </td>
+
+                    @{
+                        var cssFinResult = "zero";
+                        if (o.FinResult > 0)
+                        {
+                            cssFinResult = "plus";
+                        }
+                        else if (o.FinResult < 0)
+                        {
+                            cssFinResult = "minus";
+                        }
+                    }
+
+                    <td title="bank comm: @($"{o.Operation.BankCommission1:N4}, {o.Operation.BankCommission2:N4}")" class="td-result-comm minus" style="font-weight:normal; @trCss">
+                        @($"{item.Commission:N4}")
+                    </td>
+                    <td class="td-result @cssFinResult" style="@trCss">@Core.GetSumWithZnak(item.FinResult)</td>
+                    
+                    @{
+                        var cssFinResulTotal = item.TotalFinResult > 0 ? "td-result-total-plus" : "td-result-total-minus";
+                        if (item.TotalFinResult == 0) { cssFinResulTotal = "td-result-total-zero"; }
+                    }
+                    <td class="td-result total @cssFinResulTotal" style="@trCss">
+                        @Core.GetSumWithZnak(item.TotalFinResult)
+                    </td>
+                    
+                    @{
+						cssFinResulTotal = item.FifoResult?.Summa > 0 ? "td-result-total-plus" : "td-result-total-minus";
+						if (item.FifoResult?.Summa == 0) { cssFinResulTotal = "td-result-total-zero"; }
+
+						decimal curRate = 0;
+
+						if (o.Operation.Currency != Currency.Rur) {
+							curRate = Core.Instance.GetCurRate(o.Operation.Currency, o.Operation.DeliveryDate);
+						}
+                    }
+                    <td title="@($"rur: {item.FifoResult?.RurSumma:N2}"), @($"rurComm: {item.FifoResult?.RurCommission:N2}"), @($"rurBase: {item.FifoResult?.RurSumma - item.FifoResult?.RurCommission:N2}"), @($"curs: {curRate:N4}")" 
+                        class="td-result @cssFinResulTotal" style="@trCss">
+                        @($"{(item.FifoResult?.Summa > 0 ? "+" : "")}{item.FifoResult?.Summa:N2}")
+                    </td>
+                    
+                    <td class="td-result total @cssFinResulTotal" style="@trCss" title="">
+                        @Core.GetSumWithZnak(item.FifoResult?.TotalSumma)
+                    </td>
+                    
+                    <td></td>
+                </tr>
+
+		        lastDate = o.Operation.Date;
+		    }
+        }
+    }
+}
+</table>

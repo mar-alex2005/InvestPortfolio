@@ -1,0 +1,356 @@
+﻿@model InvApp.Controllers.ProfitViewModel
+@using DevExtreme.AspNet.Mvc
+@using InvApp.Entities
+@using Core = Invest.WebApp.Core
+@{
+    ViewData["Title"] = "Home Page";
+    var core = Core.Instance;
+
+    int curYear = DateTime.Today.Year;
+    var rurStocks = core.Stocks.Where(x => x.Currency == InvApp.Entities.Currency.Rur);
+    decimal? fifoUsdTotal = 0m;
+    decimal? fifoRurTotal = 0m;
+    decimal? fifoInRurTotal = 0m;
+    decimal? fifoBaseRurTotal = 0m;
+}
+
+<div class="page-profit">
+    <table class="tbl-profit">
+    <tr>
+        <th col="Ticker">Ticker</th>
+        <th col="Qty">Ак.<br />(лот)</th>
+        <th col="BuyQty">Buy,<br />шт.</th>
+        <th col="SellQty">Sell,<br />шт.</th>
+        <th>Buy,<br />min</th>
+        <th>Buy,<br /> max</th>
+        <th>Sell,<br />max</th>
+        <th>Buy,<br/>min</th>
+        <th>Sell,<br/>max</th>
+        <th>Buy,<br />sum</th>
+        <th>Sell,<br />sum</th>
+        <th col="Comm">Comm</th>
+        <th col="DivUsd">Divs,<br />usd</th>
+        <th col="DivRur">Divs,<br />rur</th>
+        <th>FinResult<br/>(close)</th>
+        <th>FinResult<br />(open)</th>
+        <th>FinResult<br />total</th>
+        <th col="FifoUsd">Fifo,<br />usd</th>
+        <th col="FifoRur">Fifo,<br />rur</th>
+        <th col="FifoInRur">Fifo,<br />in rur</th>
+        <th col="FifoBaseRur">Fifo,<br />base</th>
+    </tr>
+
+        @foreach (var item in Model.StockItems)
+        {
+            var ops = core.Operations
+                .Where(x => x.Stock == item.Stock && (x.Type == InvApp.Entities.OperationType.Buy || x.Type == InvApp.Entities.OperationType.Sell))
+                    .OrderBy(x => x.Date);
+
+            var qtyBuy = ops.Where(x => x.Type == InvApp.Entities.OperationType.Buy)?.Sum(x => x.Qty);
+            var qtySell = ops.Where(x => x.Type == InvApp.Entities.OperationType.Sell)?.Sum(x => x.Qty);
+            var qtyCurrent = qtyBuy - qtySell;
+
+            // calc summ not salled stocks
+            decimal buyTotalSum = 0;
+
+            <tr>
+                <td class="td-ticker" title="@item.Stock.Company.Name" onclick="openOperationsByTicker('@item.Stock.Ticker')">@item.Stock.Ticker</td>
+                <td class="td-lot" title="@string.Format("total: {0:N2} usd", buyTotalSum)">
+                    @(item.Stock.Data.QtyBalance != 0 ? item.Stock.Data.QtyBalance.ToString() : "-")
+                    @(item.Stock.Data.QtyBalance != 0 ? " (" + (item.Stock.Data.QtyBalance / item.Stock.LotSize).ToString() + ")" : "")
+                </td>
+                <td class="td-buy">@string.Format("{0}", Core.KFormat(qtyBuy.Value))</td>
+                @{
+                    var cssSell = "td-sell";
+                    if (item.Stock.Data.SellQty == 0)
+                    {
+                        cssSell = "td-sell-0";
+                    }
+                }
+                <td class="@cssSell">@(item.SellQty != 0 ? Core.KFormat(item.SellQty.Value) : "-")</td>
+                <td class="td-date">@string.Format("{0:dd.MM.yy}", item.Stock.Data.FirstBuy)</td>
+                <td class="td-date">@string.Format("{0:dd.MM.yy}", item.Stock.Data.LastBuy)</td>
+                <td class="td-date">@string.Format("{0:dd.MM.yy}", item.Stock.Data.LastSell)</td>
+                <td class="td-price-buymin">@string.Format("{0:0,0.00}", item.Stock.Data.BuyMin)</td>
+                <td class="td-price-sellmax">@string.Format("{0:0,0.00}", item.Stock.Data.SellMax)</td>
+                <td class="td-lot">@Core.GetSum(item.Stock.Data.BuySum)</td>
+                <td class="td-lot">@Core.GetSum(item.Stock.Data.SellSum)</td>
+
+                <td class="td-price-comm">@string.Format("{0:N2}", item.Commission)</td>
+                <td class="td-price-div">@string.Format("{0:N2}", item.DivUsd != 0 ? item.DivUsd : null)</td>
+                <td class="td-price-div">@string.Format("{0:N2}", item.DivRur != 0 ? item.DivRur : null)</td>
+                @{
+                    var cssProfit = "td-profit-plus";
+                    if (item.Stock.Data.Profit < 0)
+                    {
+                        cssProfit = "td-profit-minus";
+                    }
+
+                    var cssTotalFinResultForClosedPositions = "color: green;";
+                    if (item.Stock.Data.FinResultForClosedPositions < 0)
+                    {
+                        cssProfit = "red";
+                    }
+                    if (item.Stock.Data.FinResultForClosedPositions == 0)
+                    {
+                        cssTotalFinResultForClosedPositions = "color: silver;";
+                    }
+
+                    var cssFinResult = "color: green;";
+                    if (item.Stock.Data.FinResult < 0)
+                    {
+                        cssFinResult = "red";
+                    }
+                    if (item.Stock.Data.FinResult == 0)
+                    {
+                        cssFinResult = "color: silver;";
+                    }
+                }
+
+                <td class="@cssProfit" style="@(item.Stock.Data.FinResultForClosedPositions > 0 ? "color:limegreen" : "color:red")">
+                    @Core.GetSumWithZnak(item.Stock.Data.FinResultForClosedPositions)
+                </td>
+                <td class="@cssProfit" style="@(item.Stock.Data.TotalFinResult > 0 ? "color:limegreen" : "color:red")">
+                    @Core.GetSumWithZnak(item.Stock.Data.FinResult)
+                </td>
+                <td class="@cssProfit" style="@(item.Stock.Data.TotalFinResult > 0 ? "color:limegreen" : "color:red")">
+                    @Core.GetSumWithZnak(item.Stock.Data.TotalFinResult)
+                </td>
+
+                <td class="@cssProfit" style="color:black; background-color: lightblue;">
+                    @string.Format("{0}{1:N2}", item.FifoUsd > 0 ? "+" : "", item.FifoUsd != 0 ? item.FifoUsd : null)
+                </td>
+                <td class="@cssProfit" style="color:black; background-color: lightblue;">
+                    @string.Format("{0}{1:N2}", item.FifoRur > 0 ? "+" : "", item.FifoRur != 0 ? item.FifoRur : null)
+                </td>
+
+                @{  
+                    var sFifo = Core.Instance.FifoResults.Where(x => x.Key.Ticker == item.Stock.Ticker).ToList();
+                    var rurSum = 0m;
+                    var rurComm = 0m;
+
+                    if (sFifo != null)
+                    {
+                        rurSum += sFifo.Sum(x => x.Value.RurSumma ?? 0);
+                        rurComm += sFifo.Sum(x => x.Value.RurCommission);
+                    }
+
+                    fifoUsdTotal += item.FifoUsd;
+                    fifoRurTotal += item.FifoRur;
+                    fifoInRurTotal += item.FifoInRur;
+                    fifoBaseRurTotal += item.FifoBaseRur;
+                }
+                <td class="@cssProfit" style="color:black; background-color: lightblue;" title="rurSum: @string.Format("{0:N2}", rurSum)">
+                    @string.Format("{0}{1:N2}", item.FifoInRur > 0 ? "+" : "", item.FifoInRur != 0 ? item.FifoInRur : null)
+                </td>
+                <td class="@cssProfit" style="color:dimgrey; background-color: lightsteelblue;" title="comm: @string.Format("{0:N2}", item.FifoBaseRur)">
+                    @string.Format("{0}{1:N2}", item.FifoBaseRur > 0 ? "+" : "", item.FifoBaseRur != 0 ? item.FifoBaseRur : null)
+                </td>
+            </tr>
+        }
+
+        @{
+        var years = new List<int?> { null, 2021,2020,2019};
+        foreach(var year in years)
+        {
+            <tr style="border-bottom: 1px solid grey;">
+                <td colspan="8" rowspan="2" style="text-align: right; font-weight: bold;">@(year == null ? "Total" : year.ToString())</td>
+                <td class="td-lot">USD</td>
+                <td colspan="2"></td>
+                <td class="td-lot" style="color:red;">@string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Usd && (year == null || x.Key.Year == year)).Sum(x => x.Value.Commission ?? 0))</td>
+                <td class="td-lot" style="color:cornflowerblue;">@string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Usd).Sum(x => x.Value.DivSumma))</td>
+                <td class="td-total" style="text-align: right;"></td>
+                <td class="td-total" style="text-align: right;"></td>
+                <td class="td-total" style="text-align: right;"></td>
+                <td class="td-total" style="text-align: right;"></td>
+                <td class="td-total" style="text-align: right;"><b>
+                    @Core.GetSum(Core.Instance.FifoResults.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Usd && Model.Tickers.Contains(x.Key.Ticker)).Sum(x => x.Value.Summa))</b>
+                </td>
+                <td class="td-total"></td>
+                <td class="td-total" style="text-align: right;"><b>
+                    @Core.GetSum(Core.Instance.FifoResults.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Usd && Model.Tickers.Contains(x.Key.Ticker)).Sum(x => x.Value.RurSumma))
+                </b></td>
+                <td class="td-total" style="text-align: right;"><b>
+                    @Core.GetSum(Core.Instance.FifoResults.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Usd && Model.Tickers.Contains(x.Key.Ticker)).Sum(x => x.Value.RurSumma - x.Value.RurCommission))
+                </b></td>
+            </tr>
+            <tr style="">
+                <td class="td-lot">RUR</td>
+                <td colspan="2"></td>
+                <td class="td-lot" style="color:red;">@string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Rur && (year == null || x.Key.Year == year)).Sum(x => x.Value.Commission ?? 0))</td>
+                <td></td>
+                <td class="td-lot" style="color:cornflowerblue;">@string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Rur).Sum(x => x.Value.DivSumma))</td>
+                <td class="td-total"></td>
+                <td class="td-total"></td>
+                <td class="td-total" style="text-align: right;"></td>
+                <td class="td-total" style="text-align: right;"></td>
+                <td class="td-total" style="text-align: right;">
+                    <b>@Core.GetSum(Core.Instance.FifoResults.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Rur && Model.Tickers.Contains(x.Key.Ticker)).Sum(x => x.Value.Summa))</b>
+                </td>
+                <td class="td-total" style="text-align: right;"><b>
+                    @Core.GetSum(Core.Instance.FifoResults.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Rur && Model.Tickers.Contains(x.Key.Ticker)).Sum(x => x.Value.RurSumma))
+                </b></td>
+                <td class="td-total" style="text-align: right;"><b>
+                    @Core.GetSum(Core.Instance.FifoResults.Where(x => (year == null || x.Key.Year == year) && x.Key.Cur == Currency.Rur && Model.Tickers.Contains(x.Key.Ticker)).Sum(x => x.Value.RurSumma - x.Value.RurCommission))
+                </b></td>
+            </tr>
+        }
+        }
+    
+        </table>
+        <br/>
+
+        <table class="tbl-profit">
+        <tr>
+            <th></th>
+            @foreach (var a in Core.Instance.Accounts) {
+                <th colspan="7" style="border: 1px solid silver">@a.Name</th>
+            }
+            <th colspan="7" style="border: 1px solid silver">Total</th>
+        </tr>
+        <tr>
+            <th></th>
+            @{  
+                var accounts = new List<AccountType?>() { AccountType.Iis, AccountType.VBr, null };
+                foreach (var a in accounts)
+                {
+                    <th>usd</th>
+                    <th>rur</th>
+                    <th>rur base</th>
+                    <th>div, $</th>
+                    <th>div, р.</th>
+                    <th>com, $</th>
+                    <th>com, р.</th>
+                }
+            }
+        </tr>
+        @{  
+            var rurYearTotalSum = 0m;
+            var rurYearTotalComm = 0m;
+
+            for (var year = DateTime.Today.Year; year >= 2019; year--)
+            {
+            <tr>
+                <td><b>@year</b></td>
+                @foreach (var a in accounts)
+                {
+                    var listCur = Core.Instance.FifoResults.Where(x => x.Key.Year == year && (a == null || x.Key.AccountType == a)).ToList();
+                    var list = Core.Instance.FifoResults.Where(x => x.Key.Year == year && (a == null || x.Key.AccountType == a)).ToList();
+                    if (list != null)
+                    {
+                        rurYearTotalSum = list.Sum(x => x.Value.RurSumma ?? 0);
+                        rurYearTotalComm = list.Sum(x => x.Value.RurCommission);
+                    }
+                                        
+                    <td class="td-total-fifo" style="color: black;" title="@string.Format("{0:N2}", rurYearTotalSum)">
+                        @Core.GetSum(listCur.Where(x => x.Key.Cur == Currency.Usd).Sum(x => x.Value.Summa), "-")
+                    </td>
+                    <td class="td-total-fifo" style="color: black;" title="rurSum: @string.Format("{0:N2}", rurYearTotalSum), comm: @string.Format("{0:N2}", rurYearTotalComm)">
+                        @Core.GetSum(listCur.Where(x => x.Key.Cur == Currency.Rur).Sum(x => x.Value.Summa), "-")
+                    </td>
+                    <td class="td-total-fifo" style="color: blue;" title="rurSum: @string.Format("{0:N2}", rurYearTotalSum), comm: @string.Format("{0:N2}", rurYearTotalComm)">
+                        @Core.GetSum(rurYearTotalSum - rurYearTotalComm, "-")
+                    </td>
+
+                    <td class="td-total-fifo" style="color: cornflowerblue;" title="">
+                        @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Usd && (a == null || x.Key.AccountType == a) && x.Key.Year == year).Sum(x => x.Value.DivSumma), "-")
+                    </td>
+                    <td class="td-total-fifo" style="color: cornflowerblue;" title="">
+                        @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Rur && (a == null || x.Key.AccountType == a) && x.Key.Year == year).Sum(x => x.Value.DivSumma), "-")
+                    </td>
+
+                    <td class="td-total-fifo" style="color: grey;" title="">
+                        @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Usd && (a == null || x.Key.AccountType == a) && x.Key.Year == year).Sum(x => x.Value.Commission), "-")
+                    </td>
+                    <td class="td-total-fifo" style="color: grey;" title="">
+                        @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Rur && (a == null || x.Key.AccountType == a) && x.Key.Year == year).Sum(x => x.Value.Commission), "-")
+                    </td>
+                }
+            </tr>
+
+                @if (year == DateTime.Today.Year)
+                {
+                    for (var month = DateTime.Today.Month; month >= 1; month--)
+                    {
+                    <tr>
+                        <td style="text-align: right; padding-left: 20px;">@string.Format("{0:MMMM}", new DateTime(year, month, 1))</td>
+                        @foreach (var a in accounts)
+                        {
+                            var listCur = Core.Instance.FifoResults.Where(x => x.Key.Year == year && x.Key.Month == month && (a == null || x.Key.AccountType == a));
+                            var listRur = Core.Instance.FifoResults.Where(x => x.Key.Year == year && x.Key.Month == month && (a == null || x.Key.AccountType == a));
+                            if (listRur != null)
+                            {
+                                rurYearTotalSum = listRur.Sum(x => x.Value.RurSumma ?? 0);
+                                rurYearTotalComm = listRur.Sum(x => x.Value.RurCommission);
+                            }
+
+                            <td class="td-total-fifo-total" style="color: black;" title="@string.Format("{0:N2}", rurYearTotalSum)">
+                                @Core.GetSum(listCur.Where(x => x.Key.Cur == Currency.Usd).Sum(x => x.Value.Summa), "-")
+                            </td>
+                            <td class="td-total-fifo-total" style="color: black;" title="rurSum: @string.Format("{0:N2}", rurYearTotalSum), comm: @string.Format("{0:N2}", rurYearTotalComm)">
+                                @Core.GetSum(listCur.Where(x => x.Key.Cur == Currency.Rur).Sum(x => x.Value.Summa), "-")
+                            </td>
+                            <td class="td-total-fifo-total"style="color: blue;"  title="rurSum: @string.Format("{0:N2}", rurYearTotalSum), comm: @string.Format("{0:N2}", rurYearTotalComm)">
+                                @Core.GetSum(rurYearTotalSum - rurYearTotalComm, "-")
+                            </td>
+
+                            <td class="td-total-fifo-div" title="">
+                                @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Usd && (a == null || x.Key.AccountType == a) && x.Key.Year == year && x.Key.Month == month).Sum(x => x.Value.DivSumma), "-")
+                            </td>
+                            <td class="td-total-fifo-div" title="">
+                                @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Rur && (a == null || x.Key.AccountType == a) && x.Key.Year == year && x.Key.Month == month).Sum(x => x.Value.DivSumma), "-")
+                            </td>
+
+                            <td class="td-total-fifo-total" style="color: grey;" title="">
+                                @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Usd && (a == null || x.Key.AccountType == a) && x.Key.Year == year && x.Key.Month == month).Sum(x => x.Value.Commission), "-")
+                            </td>
+                            <td class="td-total-fifo-total" style="color: grey;" title="">
+                                @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Cur == Currency.Rur && (a == null || x.Key.AccountType == a) && x.Key.Year == year && x.Key.Month == month).Sum(x => x.Value.Commission), "-")
+                            </td>
+                        }
+                    </tr>
+                    }
+                }
+            }
+        }
+        <tr class="tr-fifo-total">
+            <td></td>               
+            @foreach (var a in accounts)
+            {                
+                <td class="td-total-fifo" style="color: black" title="">
+                    @Core.GetSum(Core.Instance.FifoResults.Where(x => (a == null || x.Key.AccountType == a) && x.Key.Cur == Currency.Usd).Sum(x => x.Value.Summa))
+                </td>
+                <td class="td-total-fifo" style="color: black" title="">
+                    @Core.GetSum(Core.Instance.FifoResults.Where(x => (a == null || x.Key.AccountType == a) && x.Key.Cur == Currency.Rur).Sum(x => x.Value.Summa))
+                </td>
+                <td class="td-total-fifo" style="color: black" title="">
+                    @{  
+                        var r = Core.Instance.FifoResults.Where(x => (a == null || x.Key.AccountType == a)).Sum(x => x.Value.RurSumma)
+                            - Core.Instance.FifoResults.Where(x => (a == null || x.Key.AccountType == a)).Sum(x => x.Value.RurCommission);
+                    }
+                    @Core.GetSum(r, "-")
+                </td>
+
+                <td class="td-total-fifo" style="color: cornflowerblue;" title="">
+                    @string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => (a == null || x.Key.AccountType == a) && x.Key.Cur == Currency.Usd).Sum(x => x.Value.DivSumma))
+                </td>
+                <td class="td-total-fifo" style="color: cornflowerblue;" title="">
+                    @string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => (a == null || x.Key.AccountType == a) && x.Key.Cur == Currency.Rur).Sum(x => x.Value.DivSumma))
+                </td>
+
+                <td class="td-total-fifo" style="color: grey;" title="">
+                    @string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => (a == null || x.Key.AccountType == a) && x.Key.Cur == Currency.Usd).Sum(x => x.Value.Commission))
+                </td>
+                <td class="td-total-fifo" style="color: grey;" title="">
+                    @string.Format("{0:N2}", Core.Instance.FinIndicators.Where(x => (a == null || x.Key.AccountType == a) && x.Key.Cur == Currency.Rur).Sum(x => x.Value.Commission))
+                </td>
+            }            
+        </tr>
+        </table>
+
+    <div style="border: 1px solid lightgrey; margin-top: 6px; background-color:  #f0f0f0; padding: 7px;">
+        <div style="border: 1px solid lightgrey; background-color: white; padding: 14px;">
+            @(Html.DevExtreme().Chart().ID("chart"))
+        </div>
+    </div>
+</div>  

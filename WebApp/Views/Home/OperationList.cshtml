@@ -1,0 +1,277 @@
+﻿@using Core = Invest.WebApp.Core
+@model InvApp.Controllers.OperationViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Operations";
+
+    var core = Core.Instance;
+    var operationsByDate = core.Operations
+        .Where(x => x.Type == InvApp.Entities.OperationType.Sell || x.Type == InvApp.Entities.OperationType.Buy)
+        .OrderByDescending(x => x.Date)
+        .GroupBy(g => new { g.Date.Date, g.Currency, g.Type })
+        .Select(s => new { s.Key, Summa = s.Sum(y => y.Summa), RurSumma = s.Sum(y => y.RurSumma) })
+        .ToList();
+}
+
+<script>
+    $(document).ready(function () {
+        //console.log("Объектная модель готова к использованию!");
+        var h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divOperations")) - 8;
+        $("#divOperations").height(h);
+
+        h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divOperPeriod")) - 8;
+        $("#divOperPeriod").height(h);
+    });
+</script>
+
+<table>
+<tr>
+<td>
+    <div id="divOperations" style="overflow-y: scroll; padding:0; margin:0;">
+        <table class="tbl-o">
+        <tr>
+            <th>Счет</th>
+            <th>Дата</th>
+            <th>Ticker</th>
+            <th>Кол-во</th>
+            <th>Лоты</th>
+            <th>Цена</th>
+            <th>Сумма</th>
+        </tr>
+        @{
+            DateTime? lastDate = null;
+
+            foreach (var o in Model.Operations.Where(o => o.Stock != null))
+            {
+                if (lastDate != null && lastDate.Value.Month != o.Date.Month) {
+                    <tr><td class="td-month-separator" colspan="7"><b>@($"{o.Date:MMMM, yyyy}")</b></td></tr>
+                }
+                if (lastDate != null && lastDate.Value.Year == o.Date.Year && lastDate.Value.Month == o.Date.Month && lastDate.Value.Day != o.Date.Day) {
+                    <tr><td class="td-day-separator" colspan="7">&nbsp;</td></tr>
+				}
+
+				var cssSum = "td-sum";
+				if (o.Type == InvApp.Entities.OperationType.Buy) {
+					cssSum = "td-sum-buy";
+				}
+				else if (o.Type == InvApp.Entities.OperationType.Sell) {
+					cssSum = "td-sum-sell";
+				}
+				else if (o.Type == InvApp.Entities.OperationType.Dividend) {
+					cssSum = "td-sum-div";
+				}
+				else if (o.Type == InvApp.Entities.OperationType.Coupon)
+				{
+					cssSum = "td-sum-coupon";
+				}
+
+                <tr>
+                    <td class="td-qty" style="color:saddlebrown; text-align: left;">@string.Format("{0}", o.AccountType)</td>
+                    <td class="td-date">@string.Format("{0:dd MMM yy, ddd}", o.Date)</td>
+                    <td class="td-ticker">@o.Stock.Ticker</td>
+
+                    @if (o.Qty.HasValue) {
+                        <td class="td-qty">@($"{Core.KFormat(o.Qty.Value)}")</td>
+                        <td class="td-qty" style="color:gray;">@($"{o.LotCount}")</td>
+                    }
+                    else
+                    {
+                        <td class="td-qty">-</td>
+                        <td class="td-qty">-</td>
+                    }
+
+                    <td class="td-price" style="text-align: right;">@($"{o.Price:N5}")</td>
+
+                    @if (o.Qty.HasValue) {
+                        <td class="td-sum @cssSum">@($"{o.Price * o.Qty:N2}")</td>
+                    }
+                    else {
+                        <td class="td-sum @cssSum">@($"{o.Summa:N2}")</td>
+                    }
+                </tr>
+
+                lastDate = o.Date;
+            }
+        }
+        </table>
+    </div>
+</td>
+<td>
+    <div id="divOperPeriod" style="overflow-y: scroll;">
+        <table class="tbl-oper-period">
+        <caption>Обороты по периодам</caption>
+        <tr>
+            <th rowspan="2">Date</th>
+            <th colspan="2">Buy</th>
+            <th colspan="2">Sell</th>
+            <th colspan="2">Total</th>
+            <th>RU</th>
+        </tr>
+        <tr>
+            <th>Rur</th>
+            <th>Usd</th>
+            <th>Rur</th>
+            <th>Usd</th>
+            <th>Rur</th>
+            <th>Usd</th>
+            <th></th>
+        </tr>
+        @{
+            var start = new DateTime(2019, 1, 1);
+            var d = DateTime.Today;
+            lastDate = null;
+
+            while (d >= start)
+            {
+                var list = operationsByDate.Where(x => x.Key.Date.Year == d.Year).ToList();
+                if (!list.Any()) {
+                    d = d.AddYears(-1);
+                    continue;
+                }
+                <tr>
+                    <td class="td-month-separator">@($"{d:yyyy}")</td>
+                    <td class="td-summa-total">
+                        @($"{list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Rur && x.Key.Type == InvApp.Entities.OperationType.Buy)?.Sum(x => x.Summa):N2}")
+                    </td>
+                    <td class="td-summa-total">
+                        @($"{list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Usd && x.Key.Type == InvApp.Entities.OperationType.Buy)?.Sum(x => x.Summa):N2}")
+                    </td>
+                    <td class="td-summa-total">
+                        @string.Format("{0:N2}", list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Rur && x.Key.Type == InvApp.Entities.OperationType.Sell)?.Sum(x => x.Summa))
+                    </td>
+                    <td class="td-summa-total">
+                        @string.Format("{0:N2}", list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Usd && x.Key.Type == InvApp.Entities.OperationType.Sell)?.Sum(x => x.Summa))
+                    </td>
+
+                    <td class="td-summa-total">
+                        @string.Format("{0:N2}", list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Rur)?.Sum(x => x.Summa))
+                    </td>
+                    <td class="td-summa-total">
+                        @string.Format("{0:N2}", list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Usd)?.Sum(x => x.Summa))
+                    </td>
+
+                    <td class="td-summa-total">
+                        @string.Format("{0:N2}", list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Rur)?.Sum(x => x.Summa) 
+                                                 + list.Where(x => x.Key.Currency == InvApp.Entities.Currency.Usd)?.Sum(x => x.RurSumma))
+                    </td>
+                </tr>
+
+                d = d.AddYears(-1);
+            }
+
+            var monthTotal = new Dictionary<int, decimal>();
+
+            start = new DateTime(2019, 12, 1);
+            d = DateTime.Today.AddDays(1);
+
+            while (d >= start)
+            {
+                d = d.AddDays(-1);
+
+                var list = operationsByDate.Where(x => x.Key.Date == d);
+                if (!list.Any())
+                {
+                    continue;
+                }
+
+                var rurBuy = list.FirstOrDefault(x => x.Key.Currency == InvApp.Entities.Currency.Rur && x.Key.Type == InvApp.Entities.OperationType.Buy);
+                var usdBuy = list.FirstOrDefault(x => x.Key.Currency == InvApp.Entities.Currency.Usd && x.Key.Type == InvApp.Entities.OperationType.Buy);
+                var rurSell = list.FirstOrDefault(x => x.Key.Currency == InvApp.Entities.Currency.Rur && x.Key.Type == InvApp.Entities.OperationType.Sell);
+                var usdSell = list.FirstOrDefault(x => x.Key.Currency == InvApp.Entities.Currency.Usd && x.Key.Type == InvApp.Entities.OperationType.Sell);
+
+                if (lastDate == null || lastDate.Value.Month != d.Month)
+                {
+                    var rurBuyTotal = operationsByDate.Where(x => x.Key.Date.Year == d.Year && x.Key.Date.Month == d.Month
+                        && x.Key.Currency == InvApp.Entities.Currency.Rur && x.Key.Type == InvApp.Entities.OperationType.Buy).Sum(x => x.Summa);
+
+                    var usdBuyTotal = operationsByDate.Where(x => x.Key.Date.Year == d.Year && x.Key.Date.Month == d.Month
+                        && x.Key.Currency == InvApp.Entities.Currency.Usd && x.Key.Type == InvApp.Entities.OperationType.Buy).Sum(x => x.Summa);
+
+                    var rurSellTotal = operationsByDate.Where(x => x.Key.Date.Year == d.Year && x.Key.Date.Month == d.Month
+                        && x.Key.Currency == InvApp.Entities.Currency.Rur && x.Key.Type == InvApp.Entities.OperationType.Sell).Sum(x => x.Summa);
+
+                    var usdSellTotal = operationsByDate.Where(x => x.Key.Date.Year == d.Year && x.Key.Date.Month == d.Month
+                        && x.Key.Currency == InvApp.Entities.Currency.Usd && x.Key.Type == InvApp.Entities.OperationType.Sell).Sum(x => x.Summa);
+
+                    var usdInRurTotal = operationsByDate.Where(x => x.Key.Date.Year == d.Year && x.Key.Date.Month == d.Month).Sum(x => x.RurSumma);
+                    
+                    <tr>
+                        <td class="td-month-separator">@string.Format("{0:yyyy, MMMM}", d)</td>
+                        <td class="td-summa-total">@string.Format("{0:N2}", rurBuyTotal)</td>
+                        <td class="td-summa-total">@string.Format("{0:N2}", usdBuyTotal)</td>
+                        <td class="td-summa-total">@string.Format("{0:N2}", rurSellTotal)</td>
+                        <td class="td-summa-total">@string.Format("{0:N2}", usdSellTotal)</td>
+
+                        <td class="td-summa-total">@string.Format("{0:N2}", (rurBuyTotal ?? 0) + (rurSellTotal ?? 0))</td>
+                        <td class="td-summa-total">@string.Format("{0:N2}", (usdBuyTotal ?? 0) + (usdSellTotal ?? 0))</td>
+                        
+                        <td class="td-summa-total">@string.Format("{0:N2}", (rurBuyTotal ?? 0) + (rurSellTotal ?? 0) + (usdInRurTotal ?? 0))</td>
+                    </tr>
+                }
+
+                <tr>
+                    <td class="td-date">@string.Format("{0:dd.MM.yyyy}", d)</td>
+                    <td class="td-summa-buy">
+                        @if (rurBuy != null)
+                        {
+                            <span>@string.Format("{0:N2}", rurBuy.Summa)</span>
+                        }
+                    </td>
+                    <td class="td-summa-buy">
+                        @if (usdBuy != null)
+                        {
+                            <span>@($"{usdBuy.Summa:N2}")</span>
+                        }
+                    </td>
+                    <td class="td-summa-sell">
+                        @if (rurSell != null)
+                        {
+                            <span>@($"{rurSell.Summa:N2}")</span>
+                        }
+                    </td>
+                    <td class="td-summa-sell">
+                        @if (usdSell != null)
+                        {
+                            <span>@string.Format("{0:N2}", usdSell.Summa)</span>
+                        }
+                    </td>
+                    <td class="td-summa">
+                        @if (rurBuy != null || rurSell != null)
+                        {
+                            <span>@($"{(rurBuy?.Summa ?? 0) + (rurSell?.Summa ?? 0):N2}")</span>
+                        }
+                    </td>
+                    <td class="td-summa">
+                        @if (usdBuy != null || usdSell != null)
+                        {
+                            <span>@($"{(usdBuy?.Summa ?? 0) + (usdSell?.Summa ?? 0):N2}")</span>
+                        }
+                    </td>
+                    <td class="td-summa">
+                        @string.Format("{0:N2}", (rurBuy?.Summa ?? 0) + (rurSell?.Summa ?? 0) 
+                                            + (((usdBuy?.Summa ?? 0) + (usdSell?.Summa ?? 0)) * Core.Instance.GetCurRate(InvApp.Entities.Currency.Usd, d)))
+                    </td>
+                </tr>
+               
+                lastDate = d;
+            }
+        }
+        <tr>
+            <td></td>
+        </tr>
+        </table>
+    </div>
+    
+    @*<div style="border: 1px solid lightgrey; margin-top: 6px; background-color:  #f0f0f0; padding: 7px;">
+        <div style="border: 1px solid lightgrey; background-color: white; padding: 14px;">
+            @(Html.DevExtreme()
+                    .Chart()
+                    .ID("chart")
+                    .Export(e => e.Enabled(true))
+                )
+        </div>
+    </div>*@
+
+</td>
+</tr>
+</table>
