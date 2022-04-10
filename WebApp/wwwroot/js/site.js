@@ -4,8 +4,7 @@ var curentPortfolio = null;
 // Перечисление всех возможных локальных пользовательских настроек
 var LocalSettingEnum = {
     AutoPlayClip: "AutoPlayClip",
-    IsPlayerControlVisible: "IsPlayerControlVisible",
-    SoundEnable: "SoundEnable"
+    IsPlayerControlVisible: "IsPlayerControlVisible"
 };
 Object.freeze(LocalSettingEnum);
 
@@ -13,8 +12,7 @@ Object.freeze(LocalSettingEnum);
 LocalSetting.prefixName = "InvSetting";
 LocalSetting.list = [
     { name: LocalSettingEnum.AutoPlayClip, type: "bool", defaultValue: false },
-    { name: LocalSettingEnum.IsPlayerControlVisible, type: "bool", defaultValue: false },
-    { name: LocalSettingEnum.SoundEnable, type: "bool", defaultValue: false }
+    { name: LocalSettingEnum.IsPlayerControlVisible, type: "bool", defaultValue: false }
 ];
 
 // Инициализация коллекции локальных параметров пользователя значениями по умолчанию
