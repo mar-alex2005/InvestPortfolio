@@ -5,25 +5,45 @@ using Newtonsoft.Json;
 
 namespace Invest.Core.Entities
 {
-    public class Account
+	public abstract class BaseAccount
+	{
+		public string Id;
+		public string Name;
+		public string BrokerName;
+		public AccountType Type;
+	}
+
+    public class Account : BaseAccount
+    {
+    }
+
+    public abstract class BaseCompany
     {
 	    public string Id;
-        public string Name;
-        public string BrokerName;
-        public AccountType Type;
+	    public string Name;
+	    public string DivName;      // Имя для divs (from report)
+	    public int SortIndex;
     }
 
-    public class Company
+    public class Company : BaseCompany
     {
-        public string Id;
-        public string Name;
-        public string DivName;      // Имя для divs (from report)
-        public int SortIndex;
     }
 
-    public class Stock
+	public abstract class BasePortfolio
+	{
+		public string Id;
+		public string Name;
+		public int SortIndex;
+	}
+
+    public class Portfolio : BasePortfolio
     {
-	    [JsonProperty(PropertyName = "t")]
+    }
+
+
+	public class BaseStock
+	{
+		[JsonProperty(PropertyName = "t")]
 	    public string Ticker;
 		public string[] Isin; // array of isin`s. In order to store some isins, if company changes own fin.params
 		public string RegNum; // reg num for bonds
@@ -44,8 +64,8 @@ namespace Invest.Core.Entities
         public Data Data;   
         public Dictionary<AccountType, AccountData> AccountData;
 
-        public Stock() { }
-        public Stock(string ticker) {
+        public BaseStock() { }
+        public BaseStock(string ticker) {
             Ticker = ticker;
         }
 
@@ -146,7 +166,13 @@ namespace Invest.Core.Entities
 
             return r.Any() ? r.Max(x => x.Price) : null;
         }
+	}
+
+    public class Stock : BaseStock
+    {
+	    
     }
+
 
     public class Data
     {
@@ -814,7 +840,7 @@ namespace Invest.Core.Entities
 
 
 	[Flags]
-	public enum Portfolio
+	public enum PortfolioType
 	{
 		IIs = 1,
 		Vbr = 2,

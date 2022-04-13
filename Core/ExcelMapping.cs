@@ -3,7 +3,7 @@ using Invest.Core.Entities;
 
 namespace Invest.Core
 {
-	public partial class Core 
+	public class ExcelMapping 
 	{
 		public class ExcelCellsMappingOperation
 		{

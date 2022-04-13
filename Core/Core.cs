@@ -11,19 +11,17 @@ using log4net;
 
 namespace Invest.Core
 {
-    public partial class Core
+    public partial class Builder
     {
         protected readonly ILog Log;
 
         // xsl files directory
         private readonly string[] _excelFilePath = { @"C:\Users\Alex\Downloads",  @"C:\Users\....\Downloads" };
-        
-        public static Invest.Core.Core Instance;
         private Dictionary<string, int> _excelCells;
+
         /// <summary>Time of first operftion in portfolio</summary>
         private static DateTime _startOperationDate;
-        //public decimal Comission { get { return 0.06M; } }
-
+        
 		public List<string> BlueUsList;
 		public List<string> BlueRuList;
 		public List<string> BlueEurList;
@@ -77,7 +75,7 @@ namespace Invest.Core
 				: null;
 		}
 
-        private Core() {
+		public Builder() {
             Log = LogManager.GetLogger("InvApp.Core");
             _startOperationDate = new DateTime(2019, 12,1);
 
@@ -110,50 +108,46 @@ namespace Invest.Core
         public Dictionary<Analytics, FifoResult> FifoResults;
 		public Dictionary<Analytics, FinIndicator> FinIndicators;
         public List<Period> Periods;		
-        public List<Account> Accounts;
-        public List<Company> Companies;
-        public List<Stock> Stocks;
+        public List<BaseAccount> Accounts;
+        public List<BaseCompany> Companies;
+        public List<BaseStock> Stocks;
+        public List<BasePortfolio> Portfolios;
         public List<Operation> Operations;
         public Dictionary<DateTime, decimal> UsdRate;
         public Dictionary<DateTime, decimal> EurRate;
 		public List<History> History;
 
-        public static Invest.Core.Core Init() {
+        public void Init() 
+        {
+	        //Accounts = new List<Account>(),
+            //Companies = new List<Company>(),
+            //Stocks = new List<Stock>(),
+            Portfolios = new List<BasePortfolio>();
+            Operations = new List<Operation>();
+            UsdRate = new Dictionary<DateTime, decimal>();
+            EurRate = new Dictionary<DateTime, decimal>();
+            FifoResults = new Dictionary<Analytics, FifoResult>();
+			FinIndicators = new Dictionary<Analytics, FinIndicator>();
+			History = new List<History>();
 
-            if (Instance != null)
-                return Instance;
-
-            Instance = new Invest.Core.Core
-            {				
-                Accounts = new List<Account>(),
-                Companies = new List<Company>(),
-                Stocks = new List<Stock>(),
-                Operations = new List<Operation>(),
-                UsdRate = new Dictionary<DateTime, decimal>(),
-                EurRate = new Dictionary<DateTime, decimal>(),
-                FifoResults = new Dictionary<Analytics, FifoResult>(),
-				FinIndicators = new Dictionary<Analytics, FinIndicator>(),
-				History = new List<History>()
-            };
-
-			Instance.FillPeriods();
+			FillPeriods();
 
             // For excel cells
-            Instance.FillExcelCellsDictionary();
+            //FillExcelCellsDictionary();
 
             // Load rates (usd, eur)
-            Instance.LoadCurrencyRates(Currency.Usd);
-            Instance.LoadCurrencyRates(Currency.Eur);
+            LoadCurrencyRates(Currency.Usd);
+            LoadCurrencyRates(Currency.Eur);
 
-            Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
+            //Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
 
 			//load broker reports by year (since 2019)
 			for(var year = _startOperationDate.Year; year <= DateTime.Today.Year; year++)
 			{
-				Instance.LoadBrokerReports(AccountType.Iis, $"7101NME0_{year}*.xls", year);
-				Instance.LoadBrokerReports(AccountType.VBr, $"7101NMC0_{year}*.xls", year);
+				//Instance.LoadBrokerReports(AccountType.Iis, $"7101NME0_{year}*.xls", year);
+				//Instance.LoadBrokerReports(AccountType.VBr, $"7101NMC0_{year}*.xls", year);
 
-				Instance.LoadBrokerReports(AccountType.SBr, $"Сделки_{year}*.xlsx", year);
+				//Instance.LoadBrokerReports(AccountType.SBr, $"Сделки_{year}*.xlsx", year);
 			}
 
             // Prices
@@ -164,9 +158,7 @@ namespace Invest.Core
 			var hist = new HistoryData();
 			hist.Load();
 
-            Instance.Calc();            
-
-            return Instance;
+            Calc();
         }
 
         /// <summary>
@@ -1782,6 +1774,54 @@ namespace Invest.Core
 			}
 
 			sb.AppendLine("]");
+		}
+
+		public void AddStocks(JsonStocksLoader jsonStocksLoader)
+		{
+			Stocks = jsonStocksLoader.Load();
+			// Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
+		}
+
+
+		public List<BaseAccount> LoadAccountsFromJson(string fileName)
+		{
+			if (!File.Exists(fileName))
+				throw new Exception($"LoadAccounts(): file '{fileName}' not found.");
+
+			List<BaseAccount> list;
+
+			using(var fs = File.OpenText(fileName))
+			{
+				var content = fs.ReadToEnd();
+				var data = Newtonsoft.Json.JsonConvert.DeserializeObject(content);
+
+				list = new List<BaseAccount>();
+                
+				foreach(var acc in ((Newtonsoft.Json.Linq.JObject)data)["accounts"])
+				{
+					list.Add( 
+						new Account{ 
+							Name = acc["name"].ToString(), 
+							Id = acc["id"].ToString(), 
+							BrokerName = acc["brokerName"].ToString(), 
+							Type = (AccountType)Enum.Parse(typeof(AccountType), acc["type"].ToString(), true) 
+							//Currency = (Currency)Enum.Parse(typeof(Currency), acc["cur"].ToString(), true) 
+						});
+				}
+			}
+
+			return list;
+		}
+
+
+		public void SetAccounts(List<BaseAccount> accounts)
+		{
+			Accounts = accounts;
+		}
+
+		public void SetPortfolios(List<Portfolio> portolios)
+		{
+			Portfolios = portolios;
 		}
     }
 }
