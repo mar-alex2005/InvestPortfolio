@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.IO;
+using Invest.Core;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,10 +26,35 @@ namespace Invest.WebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            services.AddMvc();
+			var b = InitLayer();
 
-            //Core.Init();
+            // Add framework services.
+            services.AddSingleton(b);
+            services.AddMvc();
+        }
+
+        private Builder InitLayer()
+        {
+	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+	        var fileName = Path.Combine(docFolder, "stocksData.json");
+
+	        var builder = new Builder();
+
+	        var accounts = builder.LoadAccountsFromJson(fileName);
+	        builder.SetAccounts(accounts);
+
+	        var portolios = builder.LoadPortfoliosFromJson(fileName);
+	        builder.SetPortfolios(portolios);
+			
+	        builder.AddStocks(new JsonStocksLoader(fileName));
+			
+	        //builder.AddReport(new VtbBrokerReport(){});
+	        //builder.AddReport(new SberBrokerReport(){});
+	        //builder.AddReport(new AlfaBrokerReport(){});
+			
+	        builder.Init();
+
+			return builder;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Invest.Core.Enums;
 using Newtonsoft.Json;
 
 namespace Invest.Core.Entities

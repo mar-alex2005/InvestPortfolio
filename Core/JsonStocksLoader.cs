@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Invest.Core.Entities;
+using Invest.Core.Enums;
 
 namespace Invest.Core
 {

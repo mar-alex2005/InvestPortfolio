@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Invest.Core
+namespace Invest.Core.Enums
 {
 	[Flags]
 	public enum PortfolioType

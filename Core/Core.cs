@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using Invest.Core.Entities;
+using Invest.Core.Enums;
 using log4net;
 
 namespace Invest.Core
@@ -1597,8 +1598,6 @@ namespace Invest.Core
 
 		public Dictionary<Currency, decimal> GetCurRate(DateTime? date = null)
 		{
-			var startDate = new DateTime(2019,1,1);
-
 			var d = date?.Date ?? DateTime.Today.Date;
 
 			while (!CurrencyRates.ContainsKey(d))

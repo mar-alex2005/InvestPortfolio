@@ -1,5 +1,6 @@
 ﻿using System;
 using Invest.Core.Entities;
+using Invest.Core.Enums;
 
 namespace Invest.Core
 {

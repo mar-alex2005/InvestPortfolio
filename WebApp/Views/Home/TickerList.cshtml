@@ -1,15 +1,15 @@
-﻿@using InvApp.Entities
-@using Core = Invest.WebApp.Core
+﻿@using Invest.Core.Entities
+@model Invest.WebApp.Models.OperationViewModel
 
 <div style="padding: 3px; padding-left:5px; border-bottom: 1px solid silver;">
     <span onclick="setTickers()">all</span>&nbsp;
-    <span onclick="setTickersParams(@((int)InvApp.Entities.Currency.Usd))">usd</span>&nbsp;
-    <span onclick="setTickersParams(@((int)InvApp.Entities.Currency.Rur))">rur</span>
+    <span onclick="setTickersParams(@((int)Invest.Core.Enums.Currency.Usd))">usd</span>&nbsp;
+    <span onclick="setTickersParams(@((int)Invest.Core.Enums.Currency.Rur))">rur</span>
 </div>
 <div id="divTickerList" style="overflow-y: scroll; margin: 0; padding: 2px">
     <table class="tbl-ticker">
     @{
-        foreach (var s in Core.Instance.Stocks
+        foreach (var s in Model.Stocks
             .OrderBy(x => !(x.Data.QtyBalance > 0))
             .ThenBy(x => x.Company.Name))
         {
@@ -20,7 +20,7 @@
             }
             <tr>
                 <td class="@nameCssClass" onclick="openTickerDetails('@s.Ticker')">@s.Company.Name (<span class="ticker">@s.Ticker</span>)</td>
-                <td class="td-qty">@Core.KFormat(s.Data.QtyBalance)</td>
+                <td class="td-qty">@Util.KFormat(s.Data.QtyBalance)</td>
                 @*<td class="td-lot">@string.Format("{0:N0}", s.Data.QtyBalance / s.LotSize)</td>*@
             </tr>
         }
