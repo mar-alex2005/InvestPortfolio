@@ -10,6 +10,8 @@ namespace Invest.Core.Entities
 		public string Id;
 		public string Name;
 		public string BrokerName;
+		public int BitCode;
+		public int SortIndex;
 		public AccountType Type;
 	}
 
@@ -33,6 +35,7 @@ namespace Invest.Core.Entities
 	{
 		public string Id;
 		public string Name;
+		public int BitCode;
 		public int SortIndex;
 	}
 
@@ -69,36 +72,36 @@ namespace Invest.Core.Entities
             Ticker = ticker;
         }
 
-        public decimal? TotalFinResult(AccountType? account, Currency? cur) 
-        {
-            if (account != null && cur != null)
-            { 
-                var v = Invest.Core.Core.Instance.Operations
-                    .Where(x => x.Stock == this 
-                        && !x.IsClosed
-                        && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-                        && x.AccountType == account 
-                        && x.Stock.Currency == cur);
+        //public decimal? TotalFinResult(AccountType? account, Currency? cur) 
+        //{
+        //    if (account != null && cur != null)
+        //    { 
+        //        var v = Invest.Core.Core.Instance.Operations
+        //            .Where(x => x.Stock == this 
+        //                && !x.IsClosed
+        //                && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
+        //                && x.AccountType == account 
+        //                && x.Stock.Currency == cur);
 
-                return v.Sum(x => x.FinResult);
-            }
+        //        return v.Sum(x => x.FinResult);
+        //    }
 
-            return Data.FinResultForClosedPositions;    
-        }
+        //    return Data.FinResultForClosedPositions;    
+        //}
 
-        public decimal? TotalFinResultForClosedPositions(AccountType? account, Currency? cur) 
-        {
-            var v = Invest.Core.Core.Instance.Operations
-                .Where(x => x.Stock == this 
-                    && x.IsClosed
-                    && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-                    && (account == null || x.AccountType == account)
-                    && (cur == null || x.Stock.Currency == cur));
+        //public decimal? TotalFinResultForClosedPositions(AccountType? account, Currency? cur) 
+        //{
+        //    var v = Invest.Core.Core.Instance.Operations
+        //        .Where(x => x.Stock == this 
+        //            && x.IsClosed
+        //            && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
+        //            && (account == null || x.AccountType == account)
+        //            && (cur == null || x.Stock.Currency == cur));
                 
-            return v.Sum(x => x.FinResult);
+        //    return v.Sum(x => x.FinResult);
 
-            //return Data.TotalFinResultForClosedPositions;    
-        }
+        //    //return Data.TotalFinResultForClosedPositions;    
+        //}
 
 		public decimal? GetCommission(AccountType? type = null)
 		{
@@ -108,64 +111,64 @@ namespace Invest.Core.Entities
 				return Data.Commission;
 		}
 
-		public DateTime? FirstBuy(AccountType? type = null)
-		{
-			var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
-			                                                          && x.Stock.Ticker == Ticker
-			                                                          && (type == null || x.AccountType == type)
-				);
-			if (r.Any())
-				return r.Min(x => x.Date);
+		//public DateTime? FirstBuy(AccountType? type = null)
+		//{
+		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
+		//	                                                          && x.Stock.Ticker == Ticker
+		//	                                                          && (type == null || x.AccountType == type)
+		//		);
+		//	if (r.Any())
+		//		return r.Min(x => x.Date);
 
-            return null;
-        }
+  //          return null;
+  //      }
 
-		public DateTime? LastBuy(AccountType? type = null)
-		{
-			var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
-			                                                          && x.Stock.Ticker == Ticker
-			                                                          && (type == null || x.AccountType == type)
-				);
+		//public DateTime? LastBuy(AccountType? type = null)
+		//{
+		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
+		//	                                                          && x.Stock.Ticker == Ticker
+		//	                                                          && (type == null || x.AccountType == type)
+		//		);
 				
-			if (r.Any())
-				return r.Max(x => x.Date);
+		//	if (r.Any())
+		//		return r.Max(x => x.Date);
             
-            return null;
-        }
+  //          return null;
+  //      }
 
-		public DateTime? LastSell(AccountType? type = null)
-		{
-			var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Sell
-			                                                          && x.Stock.Ticker == Ticker
-			                                                          && (type == null || x.AccountType == type)
-				);
+		//public DateTime? LastSell(AccountType? type = null)
+		//{
+		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Sell
+		//	                                                          && x.Stock.Ticker == Ticker
+		//	                                                          && (type == null || x.AccountType == type)
+		//		);
 
-			if (r.Any())
-				return r.Max(x => x.Date);
+		//	if (r.Any())
+		//		return r.Max(x => x.Date);
             
-            return null;
-        }
+  //          return null;
+  //      }
 
-		public decimal? MinBuyPrice(AccountType? type = null)
-		{
-			var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
-			                                                          && x.Stock.Ticker == Ticker
-			                                                          && (type == null || x.AccountType == type)
-				);
+		//public decimal? MinBuyPrice(AccountType? type = null)
+		//{
+		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
+		//	                                                          && x.Stock.Ticker == Ticker
+		//	                                                          && (type == null || x.AccountType == type)
+		//		);
 
-			return r.Any() 
-                ? r.Min(x => x.Price) 
-                : null;
-        }
+		//	return r.Any() 
+  //              ? r.Min(x => x.Price) 
+  //              : null;
+  //      }
 
-		public decimal? MaxSellPrice(AccountType? type = null)
-        {
-            var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Sell
-                                                                      && x.Stock.Ticker == Ticker
-                                                                      && (type == null || x.AccountType == type));
+		//public decimal? MaxSellPrice(AccountType? type = null)
+  //      {
+  //          var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Sell
+  //                                                                    && x.Stock.Ticker == Ticker
+  //                                                                    && (type == null || x.AccountType == type));
 
-            return r.Any() ? r.Max(x => x.Price) : null;
-        }
+  //          return r.Any() ? r.Max(x => x.Price) : null;
+  //      }
 	}
 
     public class Stock : BaseStock
@@ -177,7 +180,7 @@ namespace Invest.Core.Entities
     public class Data
     {
 		[JsonIgnore]
-		public Stock Stock;
+		public BaseStock Stock;
         public int BuyQty;
         public int SellQty;
         public DateTime? FirstBuy;
@@ -442,116 +445,116 @@ namespace Invest.Core.Entities
 			}
 		}
 
-		public void CalcFifoResult(AccountData accData)
-		{
-			var stock = accData.Stock;
-	        var notClosedOps = new Queue<PositionItem>();
-			PositionItem lastItem = null;
+		//public void CalcFifoResult(AccountData accData)
+		//{
+		//	var stock = accData.Stock;
+	 //       var notClosedOps = new Queue<PositionItem>();
+		//	PositionItem lastItem = null;
 
-	        foreach(var item in Items)
-	        {
-		        var lots = item.Qty / stock.LotSize;
+	 //       foreach(var item in Items)
+	 //       {
+		//        var lots = item.Qty / stock.LotSize;
 
-		        if (!item.ForCalc)
-		        {
-			        for (var i = 1; i <= lots; i++)
-				        notClosedOps.Enqueue(item);
-		        }
+		//        if (!item.ForCalc)
+		//        {
+		//	        for (var i = 1; i <= lots; i++)
+		//		        notClosedOps.Enqueue(item);
+		//        }
 
-		        //if (stock.Ticker == "PLZL" && pos.StartDate.Date == new DateTime(2022,2,21) && pos.Type == PositionType.Short) { var q = 0;}
+		//        //if (stock.Ticker == "PLZL" && pos.StartDate.Date == new DateTime(2022,2,21) && pos.Type == PositionType.Short) { var q = 0;}
 
-		        if (item.ForCalc)
-		        {
-					lots = item.Qty / stock.LotSize;
-					while (lots > 0)
-					{
-						var opBuy = notClosedOps.Dequeue();
-						if (opBuy == null)
-							throw new Exception("CalcPositionFifoResult(): opBuy in Queue == null");
+		//        if (item.ForCalc)
+		//        {
+		//			lots = item.Qty / stock.LotSize;
+		//			while (lots > 0)
+		//			{
+		//				var opBuy = notClosedOps.Dequeue();
+		//				if (opBuy == null)
+		//					throw new Exception("CalcPositionFifoResult(): opBuy in Queue == null");
 
-						var op = item.Operation;
-						var profit = stock.LotSize * (item.Operation.Price - opBuy.Operation.Price).Value;
-						if (Type == PositionType.Short)
-							profit = stock.LotSize * (opBuy.Operation.Price - item.Operation.Price).Value;
+		//				var op = item.Operation;
+		//				var profit = stock.LotSize * (item.Operation.Price - opBuy.Operation.Price).Value;
+		//				if (Type == PositionType.Short)
+		//					profit = stock.LotSize * (opBuy.Operation.Price - item.Operation.Price).Value;
 
-						var commission = (item.Commission / (item.Qty / stock.LotSize)) + (opBuy.Commission / (opBuy.Qty));
+		//				var commission = (item.Commission / (item.Qty / stock.LotSize)) + (opBuy.Commission / (opBuy.Qty));
 
-						if (stock.Ticker == "PLZL" && StartDate.Date == new DateTime(2022,2,21) && Type == PositionType.Short) { var q = 0;}
+		//				if (stock.Ticker == "PLZL" && StartDate.Date == new DateTime(2022,2,21) && Type == PositionType.Short) { var q = 0;}
 
-						// Fifo result						
-						var result = new FifoResult
-						{
-							Summa = profit,
-							Cur = op.Currency,
-							// buys comm. + sell comm.
-							Commission = Math.Round(commission, 2)
-						};
+		//				// Fifo result						
+		//				var result = new FifoResult
+		//				{
+		//					Summa = profit,
+		//					Cur = op.Currency,
+		//					// buys comm. + sell comm.
+		//					Commission = Math.Round(commission, 2)
+		//				};
 
-						// доход (и налог) считается с Summa - Commission!! (без учета коммисии)
-						if (op.Currency == Currency.Usd || op.Currency == Currency.Eur)
-						{
-							var buyRate = Invest.Core.Core.Instance.GetCurRate(op.Currency, opBuy.Operation.DeliveryDate.Value);
-							var sellRate = Invest.Core.Core.Instance.GetCurRate(op.Currency, op.DeliveryDate.Value);
+		//				// доход (и налог) считается с Summa - Commission!! (без учета коммисии)
+		//				if (op.Currency == Currency.Usd || op.Currency == Currency.Eur)
+		//				{
+		//					var buyRate = Invest.Core.Core.Instance.GetCurRate(op.Currency, opBuy.Operation.DeliveryDate.Value);
+		//					var sellRate = Invest.Core.Core.Instance.GetCurRate(op.Currency, op.DeliveryDate.Value);
 
-							var delta = stock.LotSize * ((op.Price.Value * sellRate) - (opBuy.Operation.Price.Value * buyRate));
-							result.RurSumma = Math.Round(delta, 2);
-							result.RurCommission =
-								Math.Round((opBuy.Commission / (opBuy.Qty / stock.LotSize)) * buyRate + (item.Commission / (item.Qty / stock.LotSize)) * sellRate, 2);
-						}
-						else
-						{
-							result.RurSumma = result.Summa;
-							result.RurCommission = Math.Round(result.Commission, 2);
-						}
+		//					var delta = stock.LotSize * ((op.Price.Value * sellRate) - (opBuy.Operation.Price.Value * buyRate));
+		//					result.RurSumma = Math.Round(delta, 2);
+		//					result.RurCommission =
+		//						Math.Round((opBuy.Commission / (opBuy.Qty / stock.LotSize)) * buyRate + (item.Commission / (item.Qty / stock.LotSize)) * sellRate, 2);
+		//				}
+		//				else
+		//				{
+		//					result.RurSumma = result.Summa;
+		//					result.RurCommission = Math.Round(result.Commission, 2);
+		//				}
 
-						var analitic = new Analytics(op.Stock.Ticker, accData.AccountType, op.Currency, op.DeliveryDate.Value);
+		//				var analitic = new Analytics(op.Stock.Ticker, accData.AccountType, op.Currency, op.DeliveryDate.Value);
 
-						if (!Invest.Core.Core.Instance.FifoResults.ContainsKey(analitic))
-						{
-							Invest.Core.Core.Instance.FifoResults.Add(analitic, result);
-						}
-						else
-						{
-							var r = Invest.Core.Core.Instance.FifoResults[analitic];
-							r.Summa += result.Summa;
-							r.Commission += result.Commission;
-							r.RurSumma += result.RurSumma;
-							r.RurCommission += result.RurCommission;
-						}
+		//				if (!Invest.Core.Core.Instance.FifoResults.ContainsKey(analitic))
+		//				{
+		//					Invest.Core.Core.Instance.FifoResults.Add(analitic, result);
+		//				}
+		//				else
+		//				{
+		//					var r = Invest.Core.Core.Instance.FifoResults[analitic];
+		//					r.Summa += result.Summa;
+		//					r.Commission += result.Commission;
+		//					r.RurSumma += result.RurSumma;
+		//					r.RurCommission += result.RurCommission;
+		//				}
 
-						if (stock.Ticker == "OZONDR" && op.TransId == "S3715404120" /* && op.Date >= new DateTime(2021,3,12)*/)
-						{
-							var R = 0;
-						}
+		//				if (stock.Ticker == "OZONDR" && op.TransId == "S3715404120" /* && op.Date >= new DateTime(2021,3,12)*/)
+		//				{
+		//					var R = 0;
+		//				}
 
-						if (item.FifoResult == null)
-						{
-							item.FifoResult = new FifoResult
-							{
-								Summa = profit,
-								Cur = op.Currency,
-								// buys comm. + sell comm.
-								Commission = Math.Round(((item.Commission) / item.Qty) + ((opBuy.Commission) / opBuy.Qty), 2),
-								RurSumma = result.RurSumma,
-								RurCommission = Math.Round(result.RurCommission, 2),
-								TotalSumma = (lastItem?.FifoResult?.TotalSumma ?? 0) + profit
-							};
-							lastItem = item;
-						}
-						else
-						{
-							item.FifoResult.Summa += profit;
-							item.FifoResult.Commission += Math.Round(commission, 2);
-							item.FifoResult.RurSumma += result.RurSumma;
-							item.FifoResult.RurCommission += Math.Round(result.RurCommission, 2);
-							item.FifoResult.TotalSumma += profit;
-						}
+		//				if (item.FifoResult == null)
+		//				{
+		//					item.FifoResult = new FifoResult
+		//					{
+		//						Summa = profit,
+		//						Cur = op.Currency,
+		//						// buys comm. + sell comm.
+		//						Commission = Math.Round(((item.Commission) / item.Qty) + ((opBuy.Commission) / opBuy.Qty), 2),
+		//						RurSumma = result.RurSumma,
+		//						RurCommission = Math.Round(result.RurCommission, 2),
+		//						TotalSumma = (lastItem?.FifoResult?.TotalSumma ?? 0) + profit
+		//					};
+		//					lastItem = item;
+		//				}
+		//				else
+		//				{
+		//					item.FifoResult.Summa += profit;
+		//					item.FifoResult.Commission += Math.Round(commission, 2);
+		//					item.FifoResult.RurSumma += result.RurSumma;
+		//					item.FifoResult.RurCommission += Math.Round(result.RurCommission, 2);
+		//					item.FifoResult.TotalSumma += profit;
+		//				}
 
-						lots--;
-					}
-		        }
-	        }
-		}
+		//				lots--;
+		//			}
+		//        }
+	 //       }
+		//}
 	}
 
 	public class PositionItem
@@ -579,7 +582,7 @@ namespace Invest.Core.Entities
         public decimal? SellSum;
 
         [JsonIgnore]
-        public Stock Stock;
+        public BaseStock Stock;
 		public AccountType AccountType;
 
         // current result
@@ -602,7 +605,7 @@ namespace Invest.Core.Entities
 		public List<Operation> Operations;
 		public List<PositionData> Positions;
 		
-		public AccountData(AccountType aType, Stock stock)
+		public AccountData(AccountType aType, BaseStock stock)
 		{
 			Stock = stock;
 			AccountType = aType;
@@ -704,7 +707,7 @@ namespace Invest.Core.Entities
 		public DateTime? DeliveryDate; // плановая дата поставки
         public OperationType Type;
 		[JsonIgnore]
-        public Stock Stock;
+        public BaseStock Stock;
         public int? Qty;               // кол-во акций
         public decimal? Price;
 		public decimal? PriceInRur;  // operation price in RUR if currency == usd or eur
@@ -748,7 +751,7 @@ namespace Invest.Core.Entities
 		        : 0;
 
         /// <summary>BankCommission1 + BankCommission2</summary>
-        public decimal? Commission => Invest.Core.Core.SumValues(BankCommission1, BankCommission2);
+        public decimal? Commission => Builder.SumValues(BankCommission1, BankCommission2);
     }
 
 	public class Period
@@ -839,66 +842,10 @@ namespace Invest.Core.Entities
 	}
 
 
-	[Flags]
-	public enum PortfolioType
-	{
-		IIs = 1,
-		Vbr = 2,
-		Usd = 4,
-		Rur = 8,
-		BlueRu = 16,
-		BlueUs = 32,
-		BlueEur = 64
-	}
-
-
-    [Flags]
-    public enum OperationType
-    {
-        //CasheIn = 1,   // not Used
-        Dividend = 2,
-        Buy = 4,
-        Sell = 8,
-        //CasheOut = 16,
-        BrokerCacheIn = 32,
-        BrokerCacheOut = 64,
-        BrokerFee = 128,
-        UsdExchange = 256,
-		Ndfl = 512,
-		UsdRubBuy = 1024,	// Operation: Завершенные в отчетном периоде сделки с иностранной валютой (обязательства прекращены)
-		UsdRubSell = 2048,
-		Coupon = 4096,		// купонный доход
-		EurRubBuy = 8192,	// Operation: Завершенные в отчетном периоде сделки с иностранной валютой (обязательства прекращены)
-		EurRubSell = 16384,
-    }
-
-    [Flags]
-    public enum AccountType
-    {
-        Iis = 1,
-        VBr = 2,
-		SBr = 4
-    }
-
-    [Flags]
-    public enum Currency
-    {
-        Rur = 1,
-        Usd = 2,
-        Eur = 4
-    }
-
-    [Flags]
-    public enum StockType
-    {
-		Share =1,
-		Bond = 2
-	}
-
-	///Type of position
-    public enum PositionType
-    {
-	    Long = 1,
-	    Short = 2
-    }
+	/// <summary></summary>
+	//public class CurRates
+	//{
+	//	public Currency Currency;
+	//	public decimal? Rate;
+	//}
 }

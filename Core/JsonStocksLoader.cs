@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Invest.Core.Entities;
 
 namespace Invest.Core
 {
 	public interface IStocksProvider
 	{
-		List<BaseStock> Load();
+		List<BaseStock> Stocks { get; }
+		List<BaseCompany> Companies { get; }
 	}
 
     public class JsonStocksLoader : IStocksProvider
@@ -17,9 +19,10 @@ namespace Invest.Core
 		public JsonStocksLoader(string fileName)
 		{
 			_fileName = fileName;
+			Load();
 		}
 
-	    public List<BaseStock> Load()
+		private void Load()
 	    {
 			if (!File.Exists(_fileName))
 				throw new Exception($"Load(): file '{_fileName}' not found.");
@@ -28,17 +31,19 @@ namespace Invest.Core
             {
                 var content = fs.ReadToEnd();
                 var data = Newtonsoft.Json.JsonConvert.DeserializeObject(content);
-                
+                if (data == null)
+	                throw new Exception("Load(): stocks data not found.");
                 
                 //Instance.Companies = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Company>>(((Newtonsoft.Json.Linq.JObject)data)["companies"].ToString());
-                Companies = new List<Company>();
+                Companies = new List<BaseCompany>();
+                Stocks = new List<BaseStock>();
 
-				// data
-                foreach(var val in ((Newtonsoft.Json.Linq.JObject)data)["data"])
+                // data
+                foreach(var val in ((Newtonsoft.Json.Linq.JObject)data)["stocks"])
                 {
 	                var companyId = val["id"].ToString();
 	                var company = new Company { Id = companyId, Name = val["name"].ToString(), DivName = val["divName"].ToString() };
-					Instance.Companies.Add(company);
+					Companies.Add(company);
 
 					foreach(var s in val["stocks"])
 					{
@@ -72,8 +77,10 @@ namespace Invest.Core
 					}
 				}
             }
-
-		    return null;
 	    }
+
+	    public List<BaseStock> Stocks { get; private set; }
+
+	    public List<BaseCompany> Companies { get; private set; }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using InvApp.Entities;
+using Invest.Core.Entities;
 using Invest.WebApp;
 using Microsoft.AspNetCore.Html;
 

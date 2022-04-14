@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Invest.Core.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,22 +14,41 @@ namespace Invest.Core.UTest
 	    {
 	    }
 
-        [TestMethod]
-        public void TestMethod1()
-        {
-			var builder = new Core.Builder();
+	    [TestMethod]
+	    public void FillPeriods_Test()
+	    {
+		    //Builder target = new Builder();
+		    //PrivateObject obj = new PrivateObject(target);
+		    //var retVal = obj.Invoke("PrivateMethod");
+		    //Assert.AreEqual(retVal);
+		}
 
-			var accounts = builder.LoadAccountsFromJson(@"C:\\Users\\Alex\\Downloads\\stocks.json");
+        [TestMethod]
+        public void InitTestMethod()
+        {
+			// @"C:\\Users\\Alex\\Downloads\\stocks.json"
+	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			var fileName = Path.Combine(docFolder, "stocksData.json");
+
+			var builder = new Builder();
+
+			var accounts = builder.LoadAccountsFromJson(fileName);
 			builder.SetAccounts(accounts);
 
-			var portolios = builder.LoadPortfoliosFromJson(@"C:\\Users\\Alex\\Downloads\\stocks.json");
+			var portolios = builder.LoadPortfoliosFromJson(fileName);
 			builder.SetPortfolios(portolios);
 			
-			builder.AddStocks(new JsonStocksLoader(@"C:\\Users\\Alex\\Downloads\\stocks.json"));
+			builder.AddStocks(new JsonStocksLoader(fileName));
 
-			builder.AddReport(new VtbBrokerReport(){});
-			builder.AddReport(new SberBrokerReport(){});
-			builder.AddReport(new AlfaBrokerReport(){});
+			Assert.IsNotNull(builder.Companies);
+			Assert.IsNotNull(builder.Stocks);
+
+			Assert.IsTrue(builder.Companies.Count != 0);
+			Assert.IsTrue(builder.Stocks.Count != 0);
+
+			//builder.AddReport(new VtbBrokerReport(){});
+			//builder.AddReport(new SberBrokerReport(){});
+			//builder.AddReport(new AlfaBrokerReport(){});
 			
 			builder.Init();
         }
