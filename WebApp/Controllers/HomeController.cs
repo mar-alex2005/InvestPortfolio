@@ -11,7 +11,8 @@ namespace Invest.WebApp.Controllers
 {
     public class HomeController : Controller
     {
-		private Core.Builder _builder;
+		private readonly Core.Builder _builder;
+
 		public HomeController(Core.Builder builder)
 		{
 			_builder = builder;
@@ -33,272 +34,291 @@ namespace Invest.WebApp.Controllers
             return View(model);
         }
 
-		//       public IActionResult TickerDetails()
-		//       {
-		//           var tickerId = Request.Query.ContainsKey("tickerId") 
-		//            ? Request.Query["tickerId"].ToString() 
-		//            : null;
+		public IActionResult TickerIndex()
+		{
+			var tickerId = Request.Query.ContainsKey("tickerId") ? Request.Query["tickerId"].ToString() : null;
+			var stock = _builder.GetStock(tickerId);
 
-		//           var operations = Invest.WebApp.Core.Instance.Operations
-		//               .Where(
-		//                   x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-		//                       && (tickerId == null || x.Stock.Ticker == tickerId)
-		//               )
-		//               .OrderByDescending(x => x.Date).ThenByDescending(x => x.TransId) // Index
-		//               .ToList();
+			var operations = _builder.Operations
+				.Where(
+					x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Coupon)
+						&& (tickerId == null || x.Stock.Ticker == tickerId)
+				)
+				.OrderByDescending(x => x.Date).ThenByDescending(x => x.TransId).ToList(); // Index
 
-		//           var model = new OperationViewModel {
-		//               Ticker = tickerId,
-		//               Operations = operations
-		//           };
+			var model = new OperationViewModel
+			{
+				Ticker = tickerId,
+				Stock = stock,
+				Stocks = _builder.Stocks,
+				Accounts = _builder.Accounts,
+				Operations = operations,
+				//FifoResults = _builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker).ToList()
+			};
 
-		//           return View(model);
-		//       }
+			return View(model);
+		}
 
-		//	public IActionResult TickerIndex()
-		//       {
-		//           var tickerId = Request.Query.ContainsKey("tickerId") ? Request.Query["tickerId"].ToString() : null;
-		//           var operations = Invest.WebApp.Core.Instance.Operations
-		//               .Where(
-		//                   x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Coupon)
-		//                       && (tickerId == null || x.Stock.Ticker == tickerId)
-		//               )
-		//               .OrderByDescending(x => x.Date).ThenByDescending(x => x.TransId).ToList(); // Index
 
-		//           var model = new OperationViewModel {
-		//               Ticker = tickerId,
-		//               Operations = operations
-		//           };
+		public IActionResult TickerDetails()
+		{
+			var tickerId = Request.Query.ContainsKey("tickerId")
+			 ? Request.Query["tickerId"].ToString()
+			 : null;
 
-		//           return View(model);
-		//       }
+			var stock = _builder.GetStock(tickerId);
 
-		//       public IActionResult Stocks(string country, string orderBy = "company")
-		//       {
-		//		var list = new List<StockItem>();
-		//		foreach (var s in Invest.WebApp.Core.Instance.Stocks.Where(x => x.Data.BuyQty > 0))
+			var operations = _builder.Operations
+				.Where(
+					x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
+						//&& (tickerId == null || x.Stock.Ticker == tickerId)
+				)
+				.OrderByDescending(x => x.Date).ThenByDescending(x => x.TransId) // Index
+				.ToList();
+
+			var model = new OperationViewModel
+			{
+				Ticker = tickerId,
+				Stock = stock,
+				Accounts = _builder.Accounts,
+				Operations = operations
+			};
+
+			return View(model);
+		}
+
+		//public IActionResult Stocks(string country, string orderBy = "company")
+		//{
+		//	var list = new List<StockItem>();
+		//	foreach (var s in Invest.WebApp.Core.Instance.Stocks.Where(x => x.Data.BuyQty > 0))
+		//	{
+		//		var item = new StockItem
 		//		{
-		//               var item = new StockItem {
-		//                   Stock = s,
-		//                   BuyQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty),
-		//                   SellQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty)
-		//               };
+		//			Stock = s,
+		//			BuyQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty),
+		//			SellQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty)
+		//		};
 
-		//			//var qL = string.Format("{0}", q);
-		//			//if (q >= 1000 && s.LotSize > 1)
-		//			//	qL = string.Format("{0:N0}K", q / 1000);
-		//			//else if (q == 0)				
-		//			//	qL = null;				
+		//		//var qL = string.Format("{0}", q);
+		//		//if (q >= 1000 && s.LotSize > 1)
+		//		//	qL = string.Format("{0:N0}K", q / 1000);
+		//		//else if (q == 0)				
+		//		//	qL = null;				
 
-		//			Currency cur = Currency.Rur;
+		//		Currency cur = Currency.Rur;
 
-		//			var opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).ToList();
-		//			if (opp.Any())
-		//			{
-		//				item.FirstBuy = opp.Min(x => x.Date);
-		//				item.LastBuy = opp.Max(x => x.Date);
-		//				cur = opp[0].Currency;
-		//			}
+		//		var opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).ToList();
+		//		if (opp.Any())
+		//		{
+		//			item.FirstBuy = opp.Min(x => x.Date);
+		//			item.LastBuy = opp.Max(x => x.Date);
+		//			cur = opp[0].Currency;
+		//		}
 
-		//			opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).ToList();
-		//			if (opp.Any()) {
-		//				item.FirstSell = opp.Max(x => x.Date);	
-		//				item.LastSell = opp.Max(x => x.Date);
-		//			}
+		//		opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).ToList();
+		//		if (opp.Any())
+		//		{
+		//			item.FirstSell = opp.Max(x => x.Date);
+		//			item.LastSell = opp.Max(x => x.Date);
+		//		}
 
-		//			item.BuySum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
-		//			item.SellSum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell)?.Sum(x => x.Summa);
-		//			item.TotalSum = item.BuySum + (item.SellSum ?? 0);
+		//		item.BuySum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
+		//		item.SellSum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell)?.Sum(x => x.Summa);
+		//		item.TotalSum = item.BuySum + (item.SellSum ?? 0);
+		//		item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
+		//			&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.Summa);
+
+		//		if (cur == Currency.Usd)
+		//		{
+		//			item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
+		//				&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.RurSumma);
+		//		}
+		//		else
+		//		{
 		//			item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
 		//				&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.Summa);
-
-		//			if (cur == Currency.Usd)
-		//			{
-		//				item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
-		//					&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.RurSumma);
-		//			}
-		//			else {
-		//				item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
-		//					&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.Summa);
-		//			}
-
-		//			//notloss
-		//			var notClosedOps = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && !x.IsClosed).OrderByDescending(x => x.Date);
-		//			if (notClosedOps.Count() == 0)
-		//			{
-		//				var lastOp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.PositionNum != null).OrderByDescending(x => x.Date).FirstOrDefault();
-		//				if (lastOp != null)
-		//				{
-		//					//var posNum = lastOp.PositionNum;
-		//					notClosedOps = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Date >= lastOp.Date).OrderByDescending(x => x.Date);
-		//				}
-		//			}
-
-		//			var notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
-		//			var notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
-
-		//			var notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
-		//			var notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
-		//			var notClosedSaldo = notClosedSellSum - notClosedBuySum;
-
-		//			var qty = notClosedBuyOps.Sum(x => x.Qty) - notClosedSellOps.Sum(x => x.Qty);
-		//			if (qty != 0)
-		//				item.NotLossPrice = Math.Abs(notClosedSaldo.Value) / qty;
-
-		//			//min, avg (at  months)
-		//			var ops = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy && x.Date >= DateTime.Today.AddMonths(-6));
-		//			if (ops.Count() == 0 || ops.Count() < 2)
-		//				ops = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).OrderByDescending(x => x.Date).Take(6);
-
-		//			item.LastMinBuyPrice = ops.Min(x => x.Price);
-
-		//			qty = ops.Sum(x => x.Qty);
-		//			if (qty.HasValue && qty != 0)
-		//				item.LastAvgBuyPrice = Math.Abs(ops.Sum(x => x.Price.Value * x.Qty.Value)) / qty.Value; 
-
-
-		//			//foreach (var a in Core.Instance.Accounts)
-		//			//{
-		//			//	notClosedOps = Core.Instance.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type).OrderByDescending(x => x.Date);
-
-		//			//	notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
-		//			//	notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
-
-		//			//	notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
-		//			//	notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
-		//			//	notClosedSaldo = notClosedSellSum - notClosedBuySum;
-
-		//			//	item.NotLossPrice = notClosedSaldo / s.Data.QtyBalance;
-		//			//}
-
-		//			if (string.IsNullOrEmpty(country) || (country == "Rur" && cur == Currency.Rur) || (country == "Usd" && cur == Currency.Usd))
-		//				list.Add(item);
 		//		}
 
-		//		var model = new StockViewModel {
-		//               Country = country
-		//           };
-
-		//		if (!string.IsNullOrEmpty(orderBy))
+		//		//notloss
+		//		var notClosedOps = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && !x.IsClosed).OrderByDescending(x => x.Date);
+		//		if (notClosedOps.Count() == 0)
 		//		{
-		//			if (orderBy.ToLower() == "company")
-		//				model.StockItems = list.OrderBy(x => x.Stock.Company.Name);
-		//			else if (orderBy.ToLower() == "ticker")
-		//				model.StockItems = list.OrderBy(x => x.Stock.Ticker);
-		//			else if (orderBy.ToLower() == "qty")
-		//				model.StockItems = list.OrderBy(x => x.Stock.Data.QtyBalance);
-		//			else
-		//				model.StockItems = list.OrderBy(x => x.Stock.Ticker);
+		//			var lastOp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.PositionNum != null).OrderByDescending(x => x.Date).FirstOrDefault();
+		//			if (lastOp != null)
+		//			{
+		//				//var posNum = lastOp.PositionNum;
+		//				notClosedOps = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Date >= lastOp.Date).OrderByDescending(x => x.Date);
+		//			}
 		//		}
-		//		else 
+
+		//		var notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
+		//		var notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
+
+		//		var notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
+		//		var notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
+		//		var notClosedSaldo = notClosedSellSum - notClosedBuySum;
+
+		//		var qty = notClosedBuyOps.Sum(x => x.Qty) - notClosedSellOps.Sum(x => x.Qty);
+		//		if (qty != 0)
+		//			item.NotLossPrice = Math.Abs(notClosedSaldo.Value) / qty;
+
+		//		//min, avg (at  months)
+		//		var ops = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy && x.Date >= DateTime.Today.AddMonths(-6));
+		//		if (ops.Count() == 0 || ops.Count() < 2)
+		//			ops = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).OrderByDescending(x => x.Date).Take(6);
+
+		//		item.LastMinBuyPrice = ops.Min(x => x.Price);
+
+		//		qty = ops.Sum(x => x.Qty);
+		//		if (qty.HasValue && qty != 0)
+		//			item.LastAvgBuyPrice = Math.Abs(ops.Sum(x => x.Price.Value * x.Qty.Value)) / qty.Value;
+
+
+		//		//foreach (var a in Core.Instance.Accounts)
+		//		//{
+		//		//	notClosedOps = Core.Instance.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type).OrderByDescending(x => x.Date);
+
+		//		//	notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
+		//		//	notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
+
+		//		//	notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
+		//		//	notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
+		//		//	notClosedSaldo = notClosedSellSum - notClosedBuySum;
+
+		//		//	item.NotLossPrice = notClosedSaldo / s.Data.QtyBalance;
+		//		//}
+
+		//		if (string.IsNullOrEmpty(country) || (country == "Rur" && cur == Currency.Rur) || (country == "Usd" && cur == Currency.Usd))
+		//			list.Add(item);
+		//	}
+
+		//	var model = new StockViewModel
+		//	{
+		//		Country = country
+		//	};
+
+		//	if (!string.IsNullOrEmpty(orderBy))
+		//	{
+		//		if (orderBy.ToLower() == "company")
+		//			model.StockItems = list.OrderBy(x => x.Stock.Company.Name);
+		//		else if (orderBy.ToLower() == "ticker")
 		//			model.StockItems = list.OrderBy(x => x.Stock.Ticker);
+		//		else if (orderBy.ToLower() == "qty")
+		//			model.StockItems = list.OrderBy(x => x.Stock.Data.QtyBalance);
+		//		else
+		//			model.StockItems = list.OrderBy(x => x.Stock.Ticker);
+		//	}
+		//	else
+		//		model.StockItems = list.OrderBy(x => x.Stock.Ticker);
 
-		//           return View(model);
-		//       }
+		//	return View(model);
+		//}
 
-		//       public IActionResult Profit(Portfolio? portfolio, bool isJson = false, string column = "ticker", string orderBy = "asc")
-		//       {
-		//		var model = new ProfitViewModel {
-		//               Portfolio = portfolio, Tickers = new List<string>()			
-		//           };
+		//public IActionResult Profit(Portfolio? portfolio, bool isJson = false, string column = "ticker", string orderBy = "asc")
+		//{
+		//	var model = new ProfitViewModel
+		//	{
+		//		Portfolio = portfolio,
+		//		Tickers = new List<string>()
+		//	};
 
-		//		var list = new List<ProfitViewModel.StockItem>();
-		//		var stocks = Invest.WebApp.Core.Instance.Stocks
-		//			.Where(x => portfolio == null 
-		//					|| (portfolio == Entities.Portfolio.IIs && Invest.WebApp.Core.Instance.Operations.Any(o => o.Stock == x && o.AccountType == AccountType.Iis))
-		//					|| (portfolio == Entities.Portfolio.Vbr && Invest.WebApp.Core.Instance.Operations.Any(o => o.Stock == x && o.AccountType == AccountType.VBr))
-		//					|| (portfolio == Entities.Portfolio.Usd && x.Currency == Currency.Usd)
-		//					|| (portfolio == Entities.Portfolio.Rur && x.Currency == Currency.Rur)
-		//					|| (portfolio == Entities.Portfolio.BlueUs && x.Currency == Currency.Usd 
-		//						&& (Invest.WebApp.Core.Instance.BlueUsList.Contains(x.Ticker))
-		//					|| (portfolio == Entities.Portfolio.BlueRu && x.Currency == Currency.Rur 
-		//						&& (Invest.WebApp.Core.Instance.BlueRuList.Contains(x.Ticker))))
-		//		            || (portfolio == Entities.Portfolio.BlueEur && x.Currency == Currency.Eur 
-		//		                && (Invest.WebApp.Core.Instance.BlueEurList.Contains(x.Ticker))))
-		//			.ToList();
+		//	var list = new List<ProfitViewModel.StockItem>();
+		//	var stocks = Invest.WebApp.Core.Instance.Stocks
+		//		.Where(x => portfolio == null
+		//				|| (portfolio == Entities.Portfolio.IIs && Invest.WebApp.Core.Instance.Operations.Any(o => o.Stock == x && o.AccountType == AccountType.Iis))
+		//				|| (portfolio == Entities.Portfolio.Vbr && Invest.WebApp.Core.Instance.Operations.Any(o => o.Stock == x && o.AccountType == AccountType.VBr))
+		//				|| (portfolio == Entities.Portfolio.Usd && x.Currency == Currency.Usd)
+		//				|| (portfolio == Entities.Portfolio.Rur && x.Currency == Currency.Rur)
+		//				|| (portfolio == Entities.Portfolio.BlueUs && x.Currency == Currency.Usd
+		//					&& (Invest.WebApp.Core.Instance.BlueUsList.Contains(x.Ticker))
+		//				|| (portfolio == Entities.Portfolio.BlueRu && x.Currency == Currency.Rur
+		//					&& (Invest.WebApp.Core.Instance.BlueRuList.Contains(x.Ticker))))
+		//				|| (portfolio == Entities.Portfolio.BlueEur && x.Currency == Currency.Eur
+		//					&& (Invest.WebApp.Core.Instance.BlueEurList.Contains(x.Ticker))))
+		//		.ToList();
 
-		//           foreach (var s in stocks)
-		//           {
-		//               var item = new ProfitViewModel.StockItem
-		//               {
-		//                   Stock = s,
-		//                   BuyQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty),
-		//                   SellQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty)
-		//               };
+		//	foreach (var s in stocks)
+		//	{
+		//		var item = new ProfitViewModel.StockItem
+		//		{
+		//			Stock = s,
+		//			BuyQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty),
+		//			SellQty = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty)
+		//		};
 
-		//               var cur = Currency.Rur;
+		//		var cur = Currency.Rur;
 
-		//               var opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).ToList();
-		//               if (opp.Any())
-		//               {
-		//                   item.FirstBuy = opp.Min(x => x.Date);
-		//                   item.LastBuy = opp.Max(x => x.Date);
-		//                   cur = opp[0].Currency;
-		//               }
+		//		var opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).ToList();
+		//		if (opp.Any())
+		//		{
+		//			item.FirstBuy = opp.Min(x => x.Date);
+		//			item.LastBuy = opp.Max(x => x.Date);
+		//			cur = opp[0].Currency;
+		//		}
 
-		//               opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).ToList();
-		//               if (opp.Any())
-		//               {
-		//                   item.FirstSell = opp.Max(x => x.Date);
-		//                   item.LastSell = opp.Max(x => x.Date);
-		//               }
+		//		opp = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).ToList();
+		//		if (opp.Any())
+		//		{
+		//			item.FirstSell = opp.Max(x => x.Date);
+		//			item.LastSell = opp.Max(x => x.Date);
+		//		}
 
-		//               item.BuySum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
-		//               item.SellSum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell)?.Sum(x => x.Summa);
-		//               item.TotalSum = item.BuySum + (item.SellSum ?? 0);
-		//               item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
-		//                   && (x.Type == OperationType.Sell || x.Type == OperationType.Buy))?.Sum(x => x.Summa);
+		//		item.BuySum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
+		//		item.SellSum = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell)?.Sum(x => x.Summa);
+		//		item.TotalSum = item.BuySum + (item.SellSum ?? 0);
+		//		item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
+		//			&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy))?.Sum(x => x.Summa);
 
-		//			item.Commission = Invest.WebApp.Core.Instance.FinIndicators.Where(x => x.Key.Ticker == s.Ticker).Sum(x => x.Value.Commission);
-		//			item.FifoUsd = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker && x.Key.Cur == Currency.Usd).Sum(x => x.Value.Summa);
-		//			item.FifoRur = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker && x.Key.Cur == Currency.Rur).Sum(x => x.Value.Summa);
-		//			item.FifoInRur = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker).Sum(x => x.Value.RurSumma);
-		//			item.FifoRurComm = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker).Sum(x => x.Value.RurCommission);
-		//			item.FifoBaseRur = item.FifoInRur - item.FifoRurComm;
+		//		item.Commission = Invest.WebApp.Core.Instance.FinIndicators.Where(x => x.Key.Ticker == s.Ticker).Sum(x => x.Value.Commission);
+		//		item.FifoUsd = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker && x.Key.Cur == Currency.Usd).Sum(x => x.Value.Summa);
+		//		item.FifoRur = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker && x.Key.Cur == Currency.Rur).Sum(x => x.Value.Summa);
+		//		item.FifoInRur = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker).Sum(x => x.Value.RurSumma);
+		//		item.FifoRurComm = Invest.WebApp.Core.Instance.FifoResults.Where(x => x.Key.Ticker == s.Ticker).Sum(x => x.Value.RurCommission);
+		//		item.FifoBaseRur = item.FifoInRur - item.FifoRurComm;
 
-		//			var divs = Invest.WebApp.Core.Instance.FinIndicators.Where(x => x.Value.DivSumma != null);
-		//			item.DivUsd = divs.Where(x => x.Key.Ticker == item.Stock.Ticker && x.Key.Cur == Currency.Usd).Sum(x => x.Value.DivSumma);
-		//			item.DivRur = divs.Where(x => x.Key.Ticker == item.Stock.Ticker && x.Key.Cur == Currency.Rur).Sum(x => x.Value.DivSumma);
+		//		var divs = Invest.WebApp.Core.Instance.FinIndicators.Where(x => x.Value.DivSumma != null);
+		//		item.DivUsd = divs.Where(x => x.Key.Ticker == item.Stock.Ticker && x.Key.Cur == Currency.Usd).Sum(x => x.Value.DivSumma);
+		//		item.DivRur = divs.Where(x => x.Key.Ticker == item.Stock.Ticker && x.Key.Cur == Currency.Rur).Sum(x => x.Value.DivSumma);
 
-		//               if (cur == Currency.Usd)
-		//               {
-		//                   item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
-		//                       && (x.Type == OperationType.Sell || x.Type == OperationType.Buy))?.Sum(x => x.RurSumma);
-		//               }
-		//               else
-		//               {
-		//                   item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
-		//                       && (x.Type == OperationType.Sell || x.Type == OperationType.Buy))?.Sum(x => x.Summa);
-		//               }
+		//		if (cur == Currency.Usd)
+		//		{
+		//			item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
+		//				&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy))?.Sum(x => x.RurSumma);
+		//		}
+		//		else
+		//		{
+		//			item.TotalSumInRur = Invest.WebApp.Core.Instance.Operations.Where(x => x.Stock == s
+		//				&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy))?.Sum(x => x.Summa);
+		//		}
 
-		//               list.Add(item);
-		//			model.Tickers.Add(item.Stock.Ticker);
-		//           }            
+		//		list.Add(item);
+		//		model.Tickers.Add(item.Stock.Ticker);
+		//	}
 
-		//           if (!string.IsNullOrEmpty(column))
-		//           {
-		//               if (column.ToLower() == "ticker")
-		//                   model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.Stock.Ticker) : list.OrderByDescending(x => x.Stock.Ticker);
-		//               else if (column.ToLower() == "qty")
-		//                   model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.Stock.Data.QtyBalance) : list.OrderByDescending(x => x.Stock.Data.QtyBalance);
-		//			else if (column.ToLower() == "FifoUsd".ToLower())
-		//                   model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.FifoUsd): list.OrderByDescending(x => x.FifoUsd);
-		//			else if (column.ToLower() == "FifoRur".ToLower())
-		//                   model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.FifoRur): list.OrderByDescending(x => x.FifoRur);
-		//			else if (column.ToLower() == "FifoInRur".ToLower())
-		//                   model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.FifoInRur): list.OrderByDescending(x => x.FifoInRur);
-		//			else if (column.ToLower() == "DivUsd".ToLower())
-		//                   model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.DivUsd): list.OrderByDescending(x => x.DivUsd);
-		//			else if (column.ToLower() == "DivRur".ToLower())
-		//                   model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.DivRur): list.OrderByDescending(x => x.DivRur);
-		//               else
-		//                   model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.Stock.Ticker): list.OrderByDescending(x => x.Stock.Ticker);
-		//           }
-		//           else
-		//               model.StockItems = list.OrderBy(x => x.Stock.Ticker);
+		//	if (!string.IsNullOrEmpty(column))
+		//	{
+		//		if (column.ToLower() == "ticker")
+		//			model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.Stock.Ticker) : list.OrderByDescending(x => x.Stock.Ticker);
+		//		else if (column.ToLower() == "qty")
+		//			model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.Stock.Data.QtyBalance) : list.OrderByDescending(x => x.Stock.Data.QtyBalance);
+		//		else if (column.ToLower() == "FifoUsd".ToLower())
+		//			model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.FifoUsd) : list.OrderByDescending(x => x.FifoUsd);
+		//		else if (column.ToLower() == "FifoRur".ToLower())
+		//			model.StockItems = orderBy == "asc" ? list.OrderBy(x => x.FifoRur) : list.OrderByDescending(x => x.FifoRur);
+		//		else if (column.ToLower() == "FifoInRur".ToLower())
+		//			model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.FifoInRur) : list.OrderByDescending(x => x.FifoInRur);
+		//		else if (column.ToLower() == "DivUsd".ToLower())
+		//			model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.DivUsd) : list.OrderByDescending(x => x.DivUsd);
+		//		else if (column.ToLower() == "DivRur".ToLower())
+		//			model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.DivRur) : list.OrderByDescending(x => x.DivRur);
+		//		else
+		//			model.StockItems = (orderBy == "asc") ? list.OrderBy(x => x.Stock.Ticker) : list.OrderByDescending(x => x.Stock.Ticker);
+		//	}
+		//	else
+		//		model.StockItems = list.OrderBy(x => x.Stock.Ticker);
 
-		//           return View(model);
-		//       }
+		//	return View(model);
+		//}
 
 
 
@@ -911,47 +931,5 @@ namespace Invest.WebApp.Controllers
 		//	}
 		//   }
 
-
-		//   public class BondsViewModel : BaseViewModel
-		//   {
-		//    public Portfolio? Portfolio;
-		//    public List<Stock> Stocks;
-		//    public List<AccountType?> Accounts;
-		//    public decimal? TotalProfitUsd, TotalProfitRur, TotalProfitInRur, TotalSaldo;
-		//    public Dictionary<AccountType, decimal> TotalProfits;
-		//    public decimal TotalProfitPercentUsd, TotalProfitPercentRur, TotalProfitPercent;
-		//	public List<Item> Items;
-
-		//    public BondsViewModel()
-		//    {
-		//	    Items = new List<Item>();
-		//	    //TotalStockSum = new Dictionary<Currency, decimal> {{Currency.Usd, 0}, {Currency.Rur, 0}};
-		//    }
-
-		//    public class Item
-		//    {			
-		//	    public Stock Stock;
-		//	    public int Qty;
-		//	    public int LotCount;
-		//	    public decimal BuyTotalSum;
-		//	    public int BuyQty;
-		//	    public int SellQty;
-		//	    public int CurrentQty;
-		//	    public DateTime? FirstBuy, LastBuy;
-		//	    public DateTime? FirstSell, LastSell;
-		//	    public decimal? BuySum;
-		//	    public decimal? Coupon;
-		//	    public decimal? Nkd;
-		//	    public decimal? SellSum;
-		//	    public decimal? TotalSum;
-		//	    public decimal? TotalSumInRur;
-		//	    public decimal ProfitUsd;
-		//	    public decimal ProfitRur;
-		//	    public decimal Commission;
-		//	    public decimal CloseFinResult, FinResult, TotalFinResult, Profit, ProfitInRur, ProfitPercent;
-		//	    public decimal StockSum, CurStockSum;
-		//	    // % in portfolio of Total Sum
-		//	    public decimal SaldoPercent;
-		//    }
 	}
 }

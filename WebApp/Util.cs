@@ -18,5 +18,33 @@ namespace Invest.WebApp
             
 		    return qty.ToString("N0");
 	    }
+
+	    public static string GetSum(decimal? value, string emptyValue = "")
+	    {
+		    if (value != null && value != 0 && value != .0m)
+			    return $"{value:N2}";
+
+		    return emptyValue;
+	    }
+
+	    public static string GetSumWithZnak(decimal? value, string emptyValue = "")
+	    {
+		    if (value != null && value != 0) 
+			    return value > 0 
+				    ? $"+{value:N2}" 
+				    : $"{value:N2}";
+
+		    return emptyValue;
+	    }
+
+	    public static string GetPercent(decimal? value, string emptyValue = "", bool isZnak = true)
+	    {
+		    if (value != null && value != 0) 
+			    return value > 0 
+				    ? $"+{value:N2}%" 
+				    : $"{value:N2}%";
+
+		    return emptyValue;
+	    }
     }
 }

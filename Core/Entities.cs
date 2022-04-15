@@ -10,7 +10,8 @@ namespace Invest.Core.Entities
 	{
 		public string Id;
 		public string Name;
-		public string BrokerName;
+		public string Broker;
+		public string BrokerName; //todo: delete in future
 		public int BitCode;
 		public int SortIndex;
 		public AccountType Type;
@@ -66,7 +67,7 @@ namespace Invest.Core.Entities
 		public DateTime LastHistotyDate;
 
         public Data Data;   
-        public Dictionary<AccountType, AccountData> AccountData;
+        public Dictionary<int, AccountData> AccountData;
 
         public BaseStock() { }
         public BaseStock(string ticker) {
@@ -104,10 +105,10 @@ namespace Invest.Core.Entities
         //    //return Data.TotalFinResultForClosedPositions;    
         //}
 
-		public decimal? GetCommission(AccountType? type = null)
+		public decimal? GetCommission(int? acCode = null)
 		{
-			if (type != null)
-				return AccountData[type.Value].Commission;
+			if (acCode != null)
+				return AccountData[acCode.Value].Commission;
 			else
 				return Data.Commission;
 		}
@@ -703,6 +704,7 @@ namespace Invest.Core.Entities
 
     public class Operation
     {
+	    public BaseAccount Account;
         public AccountType AccountType;
         public DateTime Date;
 		public DateTime? DeliveryDate; // плановая дата поставки

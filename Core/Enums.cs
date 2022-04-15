@@ -33,14 +33,11 @@ namespace Invest.Core.Enums
 
 		Ndfl = 512,
 
-		UsdRubBuy = 1024,	// Operation: Завершенные в отчетном периоде сделки с иностранной валютой (обязательства прекращены)
-		UsdRubSell = 2048,
+		CurBuy = 1024,	// Operation: Завершенные в отчетном периоде сделки с иностранной валютой (обязательства прекращены)
+		CurSell = 2048,
 
 		/// <summary>coupon income</summary>
-		Coupon = 4096,
-		
-		EurRubBuy = 8192,	// Operation: Завершенные в отчетном периоде сделки с иностранной валютой (обязательства прекращены)
-		EurRubSell = 16384,
+		Coupon = 4096
 	}
 
 	[Flags]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Html;
 using Invest.Core.Entities;
+using Invest.Core.Enums;
 
 namespace Invest.WebApp.Models
 {
@@ -37,9 +38,54 @@ namespace Invest.WebApp.Models
 	public class OperationViewModel : BaseViewModel
 	{
 		public string Ticker;
+		public BaseStock Stock;
 		public List<Operation> Operations;
 		public List<BaseStock> Stocks;
+		public List<BaseAccount> Accounts;
+		public FifoResult FifoResults;
 	}
 
 
+	public class BondsViewModel : BaseViewModel
+	{
+		//public Portfolio? Portfolio;
+		public List<Stock> Stocks;
+		public List<AccountType?> Accounts;
+		public decimal? TotalProfitUsd, TotalProfitRur, TotalProfitInRur, TotalSaldo;
+		public Dictionary<AccountType, decimal> TotalProfits;
+		public decimal TotalProfitPercentUsd, TotalProfitPercentRur, TotalProfitPercent;
+		public List<Item> Items;
+
+		public BondsViewModel()
+		{
+			Items = new List<Item>();
+			//TotalStockSum = new Dictionary<Currency, decimal> {{Currency.Usd, 0}, {Currency.Rur, 0}};
+		}
+
+		public class Item
+		{
+			public Stock Stock;
+			public int Qty;
+			public int LotCount;
+			public decimal BuyTotalSum;
+			public int BuyQty;
+			public int SellQty;
+			public int CurrentQty;
+			public DateTime? FirstBuy, LastBuy;
+			public DateTime? FirstSell, LastSell;
+			public decimal? BuySum;
+			public decimal? Coupon;
+			public decimal? Nkd;
+			public decimal? SellSum;
+			public decimal? TotalSum;
+			public decimal? TotalSumInRur;
+			public decimal ProfitUsd;
+			public decimal ProfitRur;
+			public decimal Commission;
+			public decimal CloseFinResult, FinResult, TotalFinResult, Profit, ProfitInRur, ProfitPercent;
+			public decimal StockSum, CurStockSum;
+			// % in portfolio of Total Sum
+			public decimal SaldoPercent;
+		}
+	}
 }

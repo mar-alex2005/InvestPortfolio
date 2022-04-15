@@ -33,7 +33,7 @@ namespace Invest.WebApp
             services.AddMvc();
         }
 
-        private Builder InitLayer()
+        private static Builder InitLayer()
         {
 	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 	        var fileName = Path.Combine(docFolder, "stocksData.json");
@@ -48,11 +48,13 @@ namespace Invest.WebApp
 			
 	        builder.AddStocks(new JsonStocksLoader(fileName));
 			
-	        //builder.AddReport(new VtbBrokerReport(){});
+	        var dir = Path.Combine(Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal)), "Downloads");
+	        builder.AddReport(new VtbBrokerReport(dir, builder));
+
 	        //builder.AddReport(new SberBrokerReport(){});
 	        //builder.AddReport(new AlfaBrokerReport(){});
 			
-	        builder.Init();
+	        builder.Calc();
 
 			return builder;
         }
@@ -79,7 +81,7 @@ namespace Invest.WebApp
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Home}/{action=TickerIndex}/{id?}");
             });
         }
     }

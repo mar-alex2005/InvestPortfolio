@@ -1,41 +1,42 @@
-﻿@model Invest.WebApp.Controllers.OperationViewModel
-@using Invest.Core.Entities
+﻿@model Invest.WebApp.Models.OperationViewModel
 @using Invest.Core.Enums
+@using Invest.WebApp
 
 @{
-    Layout = null;
-    ViewData["Title"] = "Operations";
-    var stock = Core.Instance.Stocks.FirstOrDefault(x => x.Ticker.ToUpper() == Model.Ticker.ToUpper());
+	Layout = null;
+	ViewData["Title"] = "Operations";
 
-    var notClosedOps = Model.Operations.Where(x => !x.IsClosed).OrderByDescending(x => x.Date);
+	var stock = Model.Stock;
 
-    var notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
-    var notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
+	var notClosedOps = Model.Operations.Where(x => !x.IsClosed).OrderByDescending(x => x.Date);
 
-    var notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
-    var notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
-    var notClosedSaldo = notClosedSellSum - notClosedBuySum;
-    decimal? notClosedPrice = 0;
+	var notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
+	var notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
 
-    if (stock.Data.QtyBalance != 0) {
-        notClosedPrice = notClosedSaldo / stock.Data.QtyBalance;
-    }
+	var notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
+	var notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
+	var notClosedSaldo = notClosedSellSum - notClosedBuySum;
+	decimal? notClosedPrice = 0;
 
-    foreach (var a in Core.Instance.Accounts)
-    {
-        notClosedOps = Model.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type).OrderByDescending(x => x.Date);
+	if (stock.Data.QtyBalance != 0) {
+		notClosedPrice = notClosedSaldo / Model.Stock.Data.QtyBalance;
+	}
 
-        notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
-        notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
+	foreach (var a in Model.Accounts)
+	{
+		notClosedOps = Model.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type).OrderByDescending(x => x.Date);
 
-        notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
-        notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
-        notClosedSaldo = notClosedSellSum - notClosedBuySum;
+		notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
+		notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
 
-        if (stock.Data.QtyBalance != 0) {
-            stock.AccountData[a.Type].NotLossPrice = notClosedSaldo / stock.Data.QtyBalance;
-        }
-    }
+		notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
+		notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
+		notClosedSaldo = notClosedSellSum - notClosedBuySum;
+
+		if (stock.Data.QtyBalance != 0) {
+			stock.AccountData[a.BitCode].NotLossPrice = notClosedSaldo / stock.Data.QtyBalance;
+		}
+	}
 }
 <style>
 	.td-acc-name {
@@ -94,12 +95,12 @@
         </tr>
         <tr>
             <td colspan="4"></td>
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
                 <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
             }
             <td></td>
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
                 <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
             }
@@ -108,31 +109,31 @@
 
         <tr>
             <td>Total buy:</td>            
-            <td style="text-align: right; color:red">@Core.GetSum(stock.Data.BuySum)</td>            
+            <td style="text-align: right; color:red">@Util.GetSum(stock.Data.BuySum)</td>            
             <td></td>
             <td></td>
             <td></td>
             <td></td>
             <td></td>
             <td class="" style="text-align:right;">com b.:</td>            
-            @foreach (var a in Core.Instance.Accounts) {
-                <td style="text-align: right; color:red;">@Core.GetSum(stock.AccountData[a.Type].BuyCommission)</td>
+            @foreach (var a in Model.Accounts) {
+                <td style="text-align: right; color:red;">@Util.GetSum(stock.AccountData[a.BitCode].BuyCommission)</td>
             }
-            <td style="text-align: right; color:red;">@Core.GetSum(stock.Data.BuyCommission)</td>
+            <td style="text-align: right; color:red;">@Util.GetSum(stock.Data.BuyCommission)</td>
         </tr>
         <tr>
             <td>Total sell:</td>
-            <td style="text-align: right; color: green;" class="">@Core.GetSum(stock.Data.SellSum)</td>
+            <td style="text-align: right; color: green;" class="">@Util.GetSum(stock.Data.SellSum)</td>
             <td></td>
             <td></td>
             <td></td>
             <td></td>
             <td></td>
             <td class="" style="text-align:right;">com s.:</td>            
-            @foreach (var a in Core.Instance.Accounts) {
-                <td style="text-align: right; color:red;">@Core.GetSum(stock.AccountData[a.Type].SellCommission)</td>
+            @foreach (var a in Model.Accounts) {
+                <td style="text-align: right; color:red;">@Util.GetSum(stock.AccountData[a.BitCode].SellCommission)</td>
             }
-            <td style="text-align: right; color:red;" class="">@Core.GetSum(stock.Data.SellCommission)</td>
+            <td style="text-align: right; color:red;" class="">@Util.GetSum(stock.Data.SellCommission)</td>
         </tr>
         <tr>
             <td>saldo:</td>
@@ -143,8 +144,8 @@
             <td></td>
             <td></td>
             <td style="text-align:right;">total com:</td>
-            @foreach (var a in Core.Instance.Accounts) {
-                <td style="text-align: right; color:red;">@Core.GetSum(stock.AccountData[a.Type].Commission)</td>
+            @foreach (var a in Model.Accounts) {
+                <td style="text-align: right; color:red;">@Util.GetSum(stock.AccountData[a.BitCode].Commission)</td>
             }
             <td style="text-align: right; color: red;">@($"{stock.Data.Commission:N2}")</td>
         </tr>
@@ -154,10 +155,10 @@
             <td style="text-align: right">@($"{stock.Data.QtyBalance * stock.CurPrice:N2}")</td>
             <td style="text-align: right">= (<span>@stock.Data.QtyBalance</span> * <span>@($"{stock.CurPrice:N5}")</span>)</td>
             <td></td>                        
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
                 <td style="color:dimgrey; font-weight: bold; text-align:right;">
-                    @Core.GetSum(stock.AccountData[a.Type].QtyBalance * stock.CurPrice)
+                    @Util.GetSum(stock.AccountData[a.BitCode].QtyBalance * stock.CurPrice)
                 </td>
             }
         </tr>
@@ -167,15 +168,15 @@
             <td></td>
             <td></td>
             <td></td>
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
                 <td style="color:limegreen; font-weight: bold; text-align:right; border: 1px solid limegreen; background-color: lightgoldenrodyellow;">
-                    @Core.GetSum(stock.AccountData[a.Type].NotLossPrice)
+                    @Util.GetSum(stock.AccountData[a.BitCode].NotLossPrice)
                 </td>
             }
 
             <td style="color:limegreen; font-weight: bold; text-align:right; border: 1px solid limegreen; background-color: lightgoldenrodyellow;">
-                @string.Format("{0:N2}", notClosedPrice)
+                @($"{notClosedPrice:N2}")
             </td>
         </tr>
 
@@ -190,23 +191,23 @@
             }
             <td class="@cssResEstimate">@Model.Value(stock.Data.FinResultForClosedPositions, true)</td>
             <td style="text-align: right;" colspan="2"></td>
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
                 <td style="color:cornflowerblue; font-weight: bold; text-align:right;" >
-                    @Core.GetSum(stock.AccountData[a.Type].FinResultForClosedPositions, "-")
+                    @Util.GetSum(stock.AccountData[a.BitCode].FinResultForClosedPositions, "-")
                 </td>
             }
         </tr>
         <tr>
             <td><b>open position result:</b></td>            
-            <td class="@(stock.Data.FinResult > 0 ? "td-saldo-plus" : "td-saldo-minus")">@Core.GetSum(stock.Data.FinResult, "-")</td>            
+            <td class="@(stock.Data.FinResult > 0 ? "td-saldo-plus" : "td-saldo-minus")">@Util.GetSum(stock.Data.FinResult, "-")</td>            
             <td style="text-align: right;">with comm:</td>
             <td style="text-align: right;"></td>
 
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
                 <td style="color:cornflowerblue; font-weight: bold; text-align:right;">
-                    @Core.GetSum(stock.AccountData[a.Type].TotalFinResult, "-")
+                    @Util.GetSum(stock.AccountData[a.BitCode].TotalFinResult, "-")
                 </td>
             }
         </tr>
@@ -222,13 +223,13 @@
             <td class="@cssResEstimate" style="@(stock.Data.Profit > 0 ? "color:limegreen" : "color:red"); text-align: right;">
                 @Model.Value(stock.Data.Profit)
             </td>
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
-                var val = stock.AccountData[a.Type].Profit;
+                var val = stock.AccountData[a.BitCode].Profit;
                 <td class="@cssResEstimate" style="@(val > 0 ? "color:limegreen" : "color:red"); text-align: right;">@Model.Value(val)</td>
             }
 
-            <td class="@cssResEstimate" colspan="5">@string.Format("{0:N2}%", stock.Data.ProfitPercent)</td>
+            <td class="@cssResEstimate" colspan="5">@($"{stock.Data.ProfitPercent:N2}%")</td>
         </tr>
 
         <tr>
@@ -236,12 +237,12 @@
             <td></td>
             <td style="text-align: right;">Divs:</td>
             <td class="td-divs" style="text-align: right; color:cornflowerblue;">
-                @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker).Sum(x => x.Value.DivSumma))
+                @*@Util.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker).Sum(x => x.Value.DivSumma))*@
             </td>
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
             {
                 <td style="text-align: right; color:cornflowerblue;">
-                    @Core.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker && x.Key.AccountType == a.Type).Sum(x => x.Value.DivSumma))
+                    @*@Util.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker && x.Key.AccountType == a.Type).Sum(x => x.Value.DivSumma))*@
                 </td>
             }
         </tr>
@@ -265,11 +266,11 @@
                 <td class="td-name" colspan="7"></td>
             </tr>
             
-            @foreach (var a in Core.Instance.Accounts)
+            @foreach (var a in Model.Accounts)
 			{
-				if (stock.AccountData[a.Type].QtyBalance == 0) { continue; }
+				if (stock.AccountData[a.BitCode].QtyBalance == 0) { continue; }
 
-				var accData = stock.AccountData[a.Type];
+				var accData = stock.AccountData[a.BitCode];
 
 				var lastPos = accData.Positions.LastOrDefault();
 				var notClosedItems = lastPos.Items;
@@ -284,9 +285,9 @@
 				notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
 				notClosedSaldo = notClosedSellSum - notClosedBuySum;
 
-				if (stock.AccountData[a.Type].QtyBalance != 0) {
-					stock.AccountData[a.Type].NotLossPrice = notClosedSaldo / stock.Data.QtyBalance;
-					notClosedPrice = notClosedSaldo / stock.AccountData[a.Type].QtyBalance;
+				if (stock.AccountData[a.BitCode].QtyBalance != 0) {
+					stock.AccountData[a.BitCode].NotLossPrice = notClosedSaldo / stock.Data.QtyBalance;
+					notClosedPrice = notClosedSaldo / stock.AccountData[a.BitCode].QtyBalance;
 				}
 
 				if (notClosedSaldo > 0) {
@@ -311,13 +312,13 @@
                 </tr>
                 <tr>
                     <td></td>
-                    <td class="td-qty">@(stock.AccountData[a.Type].QtyBalance)</td>
+                    <td class="td-qty">@(stock.AccountData[a.BitCode].QtyBalance)</td>
                     <td class="td-cur-sum buy">@($"{notClosedBuySum:N2}")</td>
                     <td class="td-cur-sum sell">@($"{notClosedSellSum:N2}")</td>
                     <td></td>
                     <td class="td-cur-sum">@($"{notClosedBuyOps.Min(x => x.Price):N2}")</td>
                     <td class="td-cur-sum">@($"{notClosedBuyOps.Max(x => x.Price):N2}")</td>
-                    <td class="td-cur-pos-price">@($"{stock.AccountData[a.Type].PosPrice:N4}")</td>
+                    <td class="td-cur-pos-price">@($"{stock.AccountData[a.BitCode].PosPrice:N4}")</td>
                     <td class="td-cur-pos-notloss" title="saldo: @($"{notClosedSaldo:N2}")">@($"{Math.Abs(notClosedPrice.Value):N2}")</td>
                 </tr>
             }
@@ -350,12 +351,12 @@
             css1 = "minus";
         }
 
-        var fifo = Core.Instance.FifoResults.Where(x => x.Key.Ticker == stock.Ticker);
+        //var fifo = Core.Instance.FifoResults.Where(x => x.Key.Ticker == stock.Ticker);
     }
     <td class="@css1" style="text-align: right;">@Model.Value(stock.Data.TotalFinResult, true, "")</td>
     <td></td>
-    <td class="@css1" style="text-align: right;">@Model.Value(fifo.Sum(x => x.Value.Summa), true, "")</td>
-    <td class="@css1" style="text-align: right;">@Model.Value(fifo.Sum(x => x.Value.RurSumma), true, "")</td>
+    <td class="@css1" style="text-align: right;">@*@Model.Value(fifo.Sum(x => x.Value.Summa), true, "")*@</td>
+    <td class="@css1" style="text-align: right;">@*@Model.Value(fifo.Sum(x => x.Value.RurSumma), true, "")*@</td>
 </tr>
 <tr>
     <th></th>
@@ -383,7 +384,7 @@
 	var operations = Model.Operations;
 	DateTime? lastDate = null;
 
-	foreach (var a in Core.Instance.Accounts)
+	foreach (var a in Model.Accounts)
 	{
 		var ops = operations.Where(x => x.AccountType == a.Type).ToList();
 		if (!ops.Any())
@@ -391,7 +392,7 @@
 			continue;
 		}
 
-		var accData = stock.AccountData[a.Type];
+		var accData = stock.AccountData[a.BitCode];
 
 	    <tr>
             <td class="td-acc-name" colspan="14">@a.Name</td>
@@ -440,14 +441,14 @@
 
                 <td class="@(posFinTotal > 0 ? "td-plus" : "td-minus")" style="font-weight: bold;">
                     <div class="pos-data-fin-total">@($"{posFinTotal:N2}")</div><br/>
-                    <span style="@(pos.FinResult < 0 ? "color:red" : "");">@(Core.GetSumWithZnak(pos.FinResult))</span>
+                    <span style="@(pos.FinResult < 0 ? "color:red" : "");">@(Util.GetSumWithZnak(pos.FinResult))</span>
                 </td>
                 
                 <td class=""></td>
 
                 <td class="@(posFifoTotal > 0 ? "td-plus" : "td-minus")" style="font-weight: bold;">
                     <div class="pos-data-fin-total">@($"{posFifoTotal:N2}")</div><br/>
-                    <span style="color: @(pos.FifoResult.TotalSumma < 0 ? "red" : "green");">@(Core.GetSumWithZnak(pos.FifoResult.TotalSumma))</span>
+                    <span style="color: @(pos.FifoResult.TotalSumma < 0 ? "red" : "green");">@(Util.GetSumWithZnak(pos.FifoResult.TotalSumma))</span>
                 </td>
             </tr> 
 
@@ -560,14 +561,14 @@
                     <td title="bank comm: @($"{o.Operation.BankCommission1:N4}, {o.Operation.BankCommission2:N4}")" class="td-result-comm minus" style="font-weight:normal; @trCss">
                         @($"{item.Commission:N4}")
                     </td>
-                    <td class="td-result @cssFinResult" style="@trCss">@Core.GetSumWithZnak(item.FinResult)</td>
+                    <td class="td-result @cssFinResult" style="@trCss">@Util.GetSumWithZnak(item.FinResult)</td>
                     
                     @{
                         var cssFinResulTotal = item.TotalFinResult > 0 ? "td-result-total-plus" : "td-result-total-minus";
                         if (item.TotalFinResult == 0) { cssFinResulTotal = "td-result-total-zero"; }
                     }
                     <td class="td-result total @cssFinResulTotal" style="@trCss">
-                        @Core.GetSumWithZnak(item.TotalFinResult)
+                        @Util.GetSumWithZnak(item.TotalFinResult)
                     </td>
                     
                     @{
@@ -576,9 +577,9 @@
 
 						decimal curRate = 0;
 
-						if (o.Operation.Currency != Currency.Rur) {
-							curRate = Core.Instance.GetCurRate(o.Operation.Currency, o.Operation.DeliveryDate);
-						}
+						//if (o.Operation.Currency != Currency.Rur) {
+						//	curRate = Core.Instance.GetCurRate(o.Operation.Currency, o.Operation.DeliveryDate);
+						//}
                     }
                     <td title="@($"rur: {item.FifoResult?.RurSumma:N2}"), @($"rurComm: {item.FifoResult?.RurCommission:N2}"), @($"rurBase: {item.FifoResult?.RurSumma - item.FifoResult?.RurCommission:N2}"), @($"curs: {curRate:N4}")" 
                         class="td-result @cssFinResulTotal" style="@trCss">
@@ -586,7 +587,7 @@
                     </td>
                     
                     <td class="td-result total @cssFinResulTotal" style="@trCss" title="">
-                        @Core.GetSumWithZnak(item.FifoResult?.TotalSumma)
+                        @Util.GetSumWithZnak(item.FifoResult?.TotalSumma)
                     </td>
                     
                     <td></td>

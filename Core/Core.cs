@@ -12,7 +12,7 @@ using log4net;
 
 namespace Invest.Core
 {
-    public partial class Builder
+    public class Builder
     {
         protected readonly ILog Log;
 
@@ -80,30 +80,37 @@ namespace Invest.Core
             Log = LogManager.GetLogger("InvApp.Core");
             _startOperationDate = new DateTime(2019, 12, 1);
 
-			//BlueUsList = LoadPortfolioData(Portfolio.BlueUs);
+            //Accounts = new List<Account>(),
+            //Companies = new List<Company>(),
+            //Stocks = new List<Stock>(),
+            Operations = new List<Operation>();
+
+            CurrencyRates = new Dictionary<DateTime, Dictionary<Currency, decimal>>();
+            //UsdRate = new Dictionary<DateTime, decimal>();
+            //EurRate = new Dictionary<DateTime, decimal>();
+            FifoResults = new Dictionary<Analytics, FifoResult>();
+            FinIndicators = new Dictionary<Analytics, FinIndicator>();
+            History = new List<History>();
+
+            FillPeriods();
+
+            // For excel cells
+            //FillExcelCellsDictionary();
+
+            // Load rates (usd, eur)
+            try {
+	            foreach (Currency cur in Enum.GetValues(typeof(Currency)))
+		            if (cur != Currency.Rur)
+			            LoadCurrencyRates(cur);
+            }
+            catch (Exception ex)
+            {
+	            Log.Error($"LoadCurrencyRates(): {ex.Message}");
+            }
+
+            //BlueUsList = LoadPortfolioData(Portfolio.BlueUs);
 			//BlueRuList = LoadPortfolioData(Portfolio.BlueRu);
 			//BlueEurList = LoadPortfolioData(Portfolio.BlueEur);
-        }
-
-        private void FillExcelCellsDictionary()
-        {
-            _excelCells = new Dictionary<string, int>();
-
-            const string letters = "abcdefghijklmnopqrstuvwxyz";
-            const int size = 15;
-            var offsetCh = "";
-            var index = 0;
-
-            for (var offset = 0; offset <= size; offset++)
-            {
-                for (var i = 0; i < letters.Length; i++)
-                {
-                    var ch = offsetCh + letters[i];
-                    _excelCells.Add(ch.ToUpper(), index++);
-                }
-
-                offsetCh = letters[offset].ToString();
-            }
         }
 
         public Dictionary<Analytics, FifoResult> FifoResults;
@@ -121,35 +128,7 @@ namespace Invest.Core
 
         public void Init() 
         {
-	        //Accounts = new List<Account>(),
-            //Companies = new List<Company>(),
-            //Stocks = new List<Stock>(),
-            Operations = new List<Operation>();
-
-            CurrencyRates = new Dictionary<DateTime, Dictionary<Currency, decimal>>();
-            //UsdRate = new Dictionary<DateTime, decimal>();
-            //EurRate = new Dictionary<DateTime, decimal>();
-            FifoResults = new Dictionary<Analytics, FifoResult>();
-			FinIndicators = new Dictionary<Analytics, FinIndicator>();
-			History = new List<History>();
-
-			FillPeriods();
-
-            // For excel cells
-            //FillExcelCellsDictionary();
-
-            // Load rates (usd, eur)
-			try {
-				foreach (Currency cur in Enum.GetValues(typeof(Currency)))
-					if (cur != Currency.Rur)
-						LoadCurrencyRates(cur);
-			}
-			catch (Exception ex)
-			{
-				Log.Error($"LoadCurrencyRates(): {ex.Message}");
-			}
-
-            //Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
+	        //Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
 
 			//load broker reports by year (since 2019)
 			//for(var year = _startOperationDate.Year; year <= DateTime.Today.Year; year++)
@@ -168,7 +147,7 @@ namespace Invest.Core
 			var hist = new HistoryData();
 			//hist.Load();
 
-            Calc();
+            //Calc();
         }
 
         /// <summary>
@@ -239,7 +218,7 @@ namespace Invest.Core
             }
         }
 
-        private int ExcelCell(string cellName)
+        public int ExcelCell(string cellName)
         {
             if (!_excelCells.ContainsKey(cellName))
                 throw new Exception($"Not found cell by name {cellName}");
@@ -264,7 +243,7 @@ namespace Invest.Core
             return null;
         }
 
-        private BaseStock GetStockByName(string name) {
+        public BaseStock GetStockByName(string name) {
 
             for (var i = 0; i < Stocks.Count; i++)
             {
@@ -275,7 +254,7 @@ namespace Invest.Core
             return null;
         }
 
-		private BaseStock GetStockByIsin(string isin) {
+		public BaseStock GetStockByIsin(string isin) {
 
             for (var i = 0; i < Stocks.Count; i++)
             {
@@ -623,276 +602,10 @@ namespace Invest.Core
 	 //       }
 		//}
 
-        /// <summary>Load operations</summary>
-        /// <param name="rd"></param>
-        /// <param name="accountType"></param>
-        /// <param name="cellMapping"></param>
-        private void ReadOperations(ExcelDataReader.IExcelDataReader rd, AccountType accountType, ExcelMapping.ExcelCellsMappingOperation cellMapping)
-        {
-			var index = 0;
-
-            // "Заключенные в отчетном периоде сделки с ценными бумагами"
-            while(rd.Read())
-            {
-                var cellName = GetCellValue("B", rd);
-                if (cellName == null || cellName.Trim() == "")
-                    break;
-
-				//if (cellName.Equals("Завершенные в отчетном периоде сделки с ценными бумагами (обязательства прекращены)", StringComparison.OrdinalIgnoreCase))
-				//{	var r = 0; }
-				//if (cellName == "TSM US, US8740391003, US8740391003") { var rr=0;  }
-
-                string name;  // Сбербанк ао, 10301481B, RU0009029540
-				string isin;  // RU0009029540
-
-                var cellArr = cellName.Split(new[]{","}, StringSplitOptions.RemoveEmptyEntries);
-                if (cellArr.Length == 3) {
-                    name = cellArr[0].Trim();
-					isin = cellArr[2].Trim();
-				}
-				else
-					throw new Exception("CellName d`not contain three count literals");
-
-                if (string.IsNullOrEmpty(name))
-                    continue;
-
-				if (name.Equals("Наименование ценной бумаги", StringComparison.OrdinalIgnoreCase))
-					continue;
-
-                var s = GetStockByName(name) ?? GetStockByIsin(isin);
-                if (s == null) {
-					throw new Exception($"ReadOperations(): stock '{name}', '{isin}' not found. Cell = '{cellName}'");
-				}
-
-				// add company from ticker
-				//AddCompany(s);
-
-                var opDate = GetCellValue(cellMapping.Date, rd);
-                var opType = GetCellValue(cellMapping.Type, rd);
-                var opQty = GetCellValue(cellMapping.Qty, rd);      //rd.GetValue(10);
-                var opPrice = GetCellValue(cellMapping.Price, rd);  //rd.GetValue(17);
-                var opBankCommission1 = GetCellValue(cellMapping.BankCommission1, rd);
-                var opBankCommission2 = GetCellValue(cellMapping.BankCommission2, rd);
-				var deliveryDate = GetCellValue(cellMapping.DeliveryDate, rd);
-				var nkd = GetCellValue(cellMapping.Nkd, rd);
-
-                //if (s.Ticker == "ATVI" && opDate.StartsWith("21.01.2022")) { var rr1 =1;}
-                
-                //45 - Плановая дата поставки //48 - Плановая дата оплаты
-                //52 - № заявки //55 - № сделки
-
-                if (!string.IsNullOrEmpty(opType) && !(opType == "Покупка" || opType == "Продажа"))
-	                throw new Exception($"ReadOperations(): stock '{name}'. Wtong opType = '{opType}'");
-
-                if (string.IsNullOrEmpty(opDate) || opType == null || opPrice == null)
-                    continue;
-
-                var op = new Operation
-                {
-					Index = ++index,
-                    AccountType = accountType,
-                    Date = DateTime.Parse(opDate),
-                    Stock = s,
-                    Qty = int.Parse(opQty),
-                    Price = decimal.Parse(opPrice),
-                    Type = opType == "Покупка" ? OperationType.Buy : OperationType.Sell,
-                    QtySaldo = int.Parse(opQty),
-					Currency = s.Currency,
-					DeliveryDate = DateTime.Parse(deliveryDate),
-
-                    OrderId = GetCellValue(cellMapping.OrderId, rd),
-                    TransId = GetCellValue(cellMapping.TransId, rd)					
-                };
-
-				//if (op.TransId == null && accountType == AccountType.VBr && op.Date.Year == 2021)
-				//	op.TransId = GetCellValue("BG", rd);
-
-                if (op.TransId == null)
-                    throw new Exception($"ReadOperations(): op.TransId == null. {accountType}, {op.Date.Year}, {op}");
-                if (op.TransId != null && op.TransId.Length < 5)
-	                throw new Exception($"ReadOperations(): op.TransId is not correct string, value: {op.TransId}");
-
-				//if (op.Stock.Ticker == "PLZL") { var r = 0; }
-
-				op.Summa = s.Type == StockType.Bond 
-					? op.Price * 10 * op.Qty 
-					: op.Price * op.Qty;
-
-				if ((op.Currency == Currency.Usd || op.Currency == Currency.Eur) && op.Date >= _startOperationDate)
-				{
-					op.PriceInRur = op.Price * GetCurRate(op.Currency, op.Date);
-                    op.RurSumma = op.PriceInRur * op.Qty;
-				}
-
-                if (s.Type == StockType.Bond && !string.IsNullOrEmpty(nkd))
-	                op.Nkd = decimal.Parse(nkd);
-
-                if (opBankCommission1 != null)
-                    op.BankCommission1 = decimal.Parse(opBankCommission1);
-                if (opBankCommission2 != null)
-                    op.BankCommission2 = decimal.Parse(opBankCommission2);
-
-                if (!string.IsNullOrEmpty(op.TransId) && GetOperation(op.TransId) == null)
-                    Operations.Add(op);                
-            }
-        }
-
-		private void ReadCacheIn(ExcelDataReader.IExcelDataReader rd, AccountType accountType, ExcelMapping.ExcelCellsMappingCache cellMapping)
-        {
-            var ops = new List<Operation>();
-            while(rd.Read())
-            { 
-                var opDate = GetCellValue(cellMapping.Date, rd);
-                if (opDate == null)
-                    break;
-                
-                if (!DateTime.TryParse(opDate, out var date))
-                    continue;
-
-                var opSumma = GetCellValue(cellMapping.Summa, rd); //rd.GetValue(3);
-                var opCur= GetCellValue(cellMapping.Cur, rd);
-                var opType = GetCellValue(cellMapping.Type, rd); // 15
-                var opComment = GetCellValue(cellMapping.Comment, rd); //rd.GetValue(33);
-
-                if (!string.IsNullOrEmpty(opType))
-                {
-                    OperationType? type = null;
-
-                    if (opType == "Зачисление денежных средств")
-                        type = OperationType.BrokerCacheIn;
-                    if (opType == "Вознаграждение Брокера")
-                        type = OperationType.BrokerFee;
-                    if (opType == "Дивиденды" 
-                        || (opType.Equals("Зачисление денежных средств", StringComparison.OrdinalIgnoreCase) 
-                                && !string.IsNullOrEmpty(opComment) && opComment.ToLower().Contains("дивиденды"))
-					)
-                        type = OperationType.Dividend;
-
-                    if (opType == "Сальдо расчётов по сделкам с иностранной валютой")
-                    {
-                        if (!string.IsNullOrEmpty(opCur) && opCur == "USD")
-                            type = OperationType.UsdExchange;
-                    }
-
-					if (opType == "НДФЛ")
-					{
-						if (!string.IsNullOrEmpty(opCur) && opCur == "RUR")
-                            type = OperationType.Ndfl;
-					}
-
-					if (opType == "Купонный доход")
-						type = OperationType.Coupon;
-
-                    if (type == null)
-                        continue;
-
-					if (opCur == null)
-						throw new Exception($"ReadCacheIn(): opCur == null. a: {accountType}, t: {type}, {date}");
-
-					if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.BrokerCacheIn))
-						throw new Exception($"ReadCacheIn(): opComment == null. a: {accountType}, t: {type}, {date}");
-
-                    var op = new Operation {
-                        AccountType = accountType,
-                        Date = date,
-                        Summa = decimal.Parse(opSumma),
-						Currency = (Currency)Enum.Parse(typeof(Currency), opCur, true),
-                        Type = type.Value,
-                        Comment = opComment
-                    };
-
-                    ops.Add(op); //Instance.Operations.Add(op);
-                }                
-            }
-
-            // Add to global OperationList
-            if (ops.Count > 0)
-            {
-                var d = _startOperationDate;
-                var dEnd = DateTime.Now.AddDays(1);
-                while(d <= dEnd)
-                {
-                    if (Operations.Count(x => x.Date == d 
-                        && x.AccountType == accountType
-                        && (x.Type == OperationType.BrokerCacheIn || x.Type == OperationType.BrokerCacheOut || x.Type == OperationType.BrokerFee || x.Type == OperationType.Dividend)) == 0)
-                    {
-                        foreach(var o in ops.Where(x => x.Date == d))
-                        {
-                            Operations.Add(o);
-                        }
-                    }
-
-                    d = d.AddDays(1);
-                }
-            }
-        }
-		
-		private void ReadUsdRubOperations(ExcelDataReader.IExcelDataReader rd, AccountType accountType, ExcelMapping.ExcelCellsMappingCurrencyOperation cellMapping)
-        {
-            while(rd.Read())
-            { 
-                var opDate = GetCellValue(cellMapping.OrderDate, rd); //date
-                if (opDate == null)
-                    break;
-                
-                if (!DateTime.TryParse(opDate, out var date))
-                    continue;
-
-                var opSumma = GetCellValue(cellMapping.Summa, rd); //rd.GetValue(3);
-                var opType = GetCellValue(cellMapping.Type, rd); // 15
-                var opFinIns = GetCellValue(cellMapping.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM"
-                //var opCur = GetCellValue(cellMapping.Cur, rd);
-                //var opComment = GetCellValue(cellMapping.Comment, rd); //rd.GetValue(33);
-
-                if (!string.IsNullOrEmpty(opType))
-                {
-                    OperationType? type = null;
-
-					if (opFinIns.StartsWith("USDRUB", StringComparison.OrdinalIgnoreCase))
-					{
-	                    if (opType == "Покупка")
-	                        type = OperationType.UsdRubBuy;
-						if (opType == "Продажа")
-	                        type = OperationType.UsdRubSell;
-					}
-
-					if (opFinIns.StartsWith("EURRUB", StringComparison.OrdinalIgnoreCase)) {
-	                    if (opType == "Покупка")
-	                        type = OperationType.EurRubBuy;
-	                    if (opType == "Продажа")
-							type = OperationType.EurRubSell;
-					}
-
-                    if (type == null)
-                        continue;
-
-                    var bankCommission1Str = GetCellValue(cellMapping.BankCommission1, rd);
-                    var bankCommission2Str = GetCellValue(cellMapping.BankCommission2, rd);
-
-                    var op = new Operation {
-                        AccountType = accountType,
-                        Date = date,
-                        Summa = decimal.Parse(opSumma),
-						Qty = int.Parse(GetCellValue(cellMapping.Qty, rd)),
-                        Type = type.Value,
-						Price = decimal.Parse(GetCellValue(cellMapping.Price, rd)),
-						OrderId = GetCellValue(cellMapping.OrderId, rd),
-						TransId = GetCellValue(cellMapping.TransId, rd),
-						BankCommission1 = !string.IsNullOrEmpty(bankCommission1Str) ? decimal.Parse(GetCellValue(cellMapping.BankCommission1, rd)) : (decimal?) null,
-						BankCommission2 = !string.IsNullOrEmpty(bankCommission2Str) ? decimal.Parse(GetCellValue(cellMapping.BankCommission2, rd)) : (decimal?) null,
-                        Comment = "Дата: " + GetCellValue(cellMapping.OrderDate, rd) + " (" + GetCellValue(cellMapping.FinInstrument, rd) + ")"
-                    };
-
-					if (!string.IsNullOrEmpty(op.TransId) && GetOperation(op.TransId) == null)
-						Operations.Add(op);
-                }                
-            }            
-        }
         
 
 
-
-        private void Calc() 
+        public void Calc() 
         { 
             foreach(var s in Stocks)
             {
@@ -900,12 +613,12 @@ namespace Invest.Core
 					Stock = s
                 };
 
-                s.AccountData = new Dictionary<AccountType, AccountData>();
+                s.AccountData = new Dictionary<int, AccountData>();
 
                 foreach(var a in Accounts) 
                 {
                     var accData = new AccountData((AccountType)a.BitCode, s);
-                    s.AccountData.Add((AccountType)a.BitCode, accData);
+                    s.AccountData.Add(a.BitCode, accData);
 
                     accData.Operations = Operations
                         .Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase) 
@@ -1050,7 +763,7 @@ namespace Invest.Core
                         foreach(var a in Accounts)
                         {
 							//if (s.Ticker == "CLF") { var r122 =1; }
-                            var accData = s.AccountData[a.Type];
+                            var accData = s.AccountData[a.BitCode];
                             if (accData.QtyBalance != 0 && accData.PosPrice != null)
 							{
 								accData.StockSum = accData.PosPrice.Value * accData.QtyBalance;
@@ -1586,7 +1299,7 @@ namespace Invest.Core
         }
 
 
-		public decimal GetCurRate(Currency currency, DateTime? date = null)
+        public decimal GetCurRate(Currency currency, DateTime? date = null)
         {
 	        var rates = GetCurRate(date);
 
@@ -1656,7 +1369,7 @@ namespace Invest.Core
 			return Periods.Single(x => x.Start <= date.Date && x.End >= date.Date);			
         }
 
-		protected void FillPeriods(DateTime? start = null, DateTime? end = null)
+		private void FillPeriods(DateTime? start = null, DateTime? end = null)
         { 
             if (start == null)
                 start = _startOperationDate;
@@ -1824,7 +1537,8 @@ namespace Invest.Core
 							Id = item["id"].ToString(), 
 							BrokerName = item["brokerName"].ToString(), 
 							SortIndex = int.Parse(item["sortIndex"].ToString()),
-							BitCode = int.Parse(item["bitCode"].ToString())
+							BitCode = int.Parse(item["bitCode"].ToString()),
+							Broker = item["broker"].ToString()
 							//Type = (AccountType)Enum.Parse(typeof(AccountType), acc["type"].ToString(), true)
 						});
 				}
@@ -1888,6 +1602,25 @@ namespace Invest.Core
 		public void SetPortfolios(List<BasePortfolio> portolios)
 		{
 			Portfolios = portolios;
+		}
+
+		public Builder AddReport(IBrokerReport vtbBrokerReport)
+		{
+			vtbBrokerReport.Process();
+
+			return this;
+		}
+
+		public void AddOperation(Operation op)
+		{
+			if (op.Type == OperationType.Buy || op.Type == OperationType.Sell
+				|| op.Type == OperationType.CurBuy || op.Type == OperationType.CurSell)
+			{
+				if (!string.IsNullOrEmpty(op.TransId) && GetOperation(op.TransId) == null)
+					Operations.Add(op);
+				//else 
+				//	throw new Exception($"AddOperation(): Double transId detected: trId: {op.TransId}, type: {op.Type}, {op.Account.Id}, {op.Date}");
+			}
 		}
     }
 }
