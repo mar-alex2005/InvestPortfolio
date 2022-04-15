@@ -24,7 +24,7 @@
 
 	foreach (var a in Model.Accounts)
 	{
-		notClosedOps = Model.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type).OrderByDescending(x => x.Date);
+		notClosedOps = Model.Operations.Where(x => !x.IsClosed && x.Account.BitCode == a.BitCode).OrderByDescending(x => x.Date);
 
 		notClosedBuyOps = notClosedOps.Where(x => x.Type == OperationType.Buy).ToList();
 		notClosedSellOps = notClosedOps.Where(x => x.Type == OperationType.Sell).ToList();
@@ -97,12 +97,12 @@
             <td colspan="4"></td>
             @foreach (var a in Model.Accounts)
             {
-                <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
+                <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Id</td>
             }
             <td></td>
             @foreach (var a in Model.Accounts)
             {
-                <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
+                <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Id</td>
             }
             <td style="color:cornflowerblue; font-weight: bold; text-align:center;">Total</td>
         </tr>

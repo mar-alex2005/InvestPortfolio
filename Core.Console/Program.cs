@@ -25,7 +25,7 @@ namespace ConsoleApp1
 	        //builder.AddReport(new SberBrokerReport(){});
 	        //builder.AddReport(new AlfaBrokerReport(){});
 			
-	        builder.Init();
+	        builder.Calc();
 
 			var r = builder.GetCurRate(new DateTime(2022, 4,1));
 

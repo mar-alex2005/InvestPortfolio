@@ -45,6 +45,8 @@ namespace Invest.Core
 						LoadReportFile(a, year);
 				}
 			}
+
+			AddExtOperations();
 		}
 		
 		private void LoadReportFile(BaseAccount account, int year)
@@ -176,6 +178,7 @@ namespace Invest.Core
 
                     var op = new Operation {
                         AccountType = (AccountType)account.BitCode,
+                        Account = account,
                         Date = date,
                         Summa = decimal.Parse(opSumma),
 						Currency = (Currency)Enum.Parse(typeof(Currency), opCur, true),
@@ -395,5 +398,121 @@ namespace Invest.Core
 				}
 			}
 		}
+
+
+		private void AddExtOperations()
+        {
+			var index = 1000000;
+
+			var op = new Operation {
+				Index = ++index,
+				AccountType = AccountType.VBr,
+				Account = _builder.GetAccountByCode((int)AccountType.VBr),
+				Date = new DateTime(2021, 8, 2, 2,0,1),
+				Stock = _builder.GetStock("SWI"),
+				Qty = 1,
+				Price = 22,
+				Type = OperationType.Buy,
+				Currency = Currency.Usd,
+				DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
+				TransId = "M036440389",
+				Summa = 22,
+				PriceInRur = 1635.73m,
+				RurSumma = 0,
+				BankCommission1 = 2.94m,
+				BankCommission2 = 0,
+				Comment = "Конвертация"
+			};
+			_builder.AddOperation(op);
+
+			op = new Operation {
+				Index = ++index,
+				AccountType = AccountType.VBr,
+				Account = _builder.GetAccountByCode((int)AccountType.VBr),
+				Date = new DateTime(2021, 8, 4, 21,0,0),
+				Stock = _builder.GetStock("SWI"),
+				Qty = 2,
+				Price = 0,
+				Type = OperationType.Sell,
+				Currency = Currency.Usd,
+				DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
+				TransId = "M036435998",
+				Summa = 0,
+				PriceInRur = 0,
+				RurSumma = 0,
+				BankCommission1 = 0,
+				BankCommission2 = 0,
+				Comment = "Конвертация"
+			};
+			_builder.AddOperation(op);
+
+
+			//TSVT
+			op = new Operation {
+				Index = ++index,
+				AccountType = AccountType.VBr,
+				Account = _builder.GetAccountByCode((int)AccountType.VBr),
+				Date = new DateTime(2021, 11, 10, 21,0,1),
+				Stock = _builder.GetStock("TSVT"),
+				Qty = 1,
+				Price = 0,
+				Type = OperationType.Buy,
+				Currency = Currency.Usd,
+				DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
+				TransId = "M037531193",
+				Summa = 0,
+				PriceInRur = 0,
+				RurSumma = 0,
+				BankCommission1 = 0,
+				BankCommission2 = 0,
+				Comment = "Конвертация"
+			};
+			_builder.AddOperation(op);
+
+			op = new Operation {
+				Index = ++index,
+				Account = _builder.GetAccountByCode((int)AccountType.VBr),
+				AccountType = AccountType.VBr,
+				Date = new DateTime(2021, 11, 10, 21,0,1),
+				Stock = _builder.GetStock("TSVT"),
+				Qty = 1,
+				Price = 0,
+				Type = OperationType.Buy,
+				Currency = Currency.Usd,
+				DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
+				TransId = "M037531195",
+				Summa = 0,
+				PriceInRur = 0,
+				RurSumma = 0,
+				BankCommission1 = 0,
+				BankCommission2 = 0,
+				Comment = "Конвертация"
+			};
+			_builder.AddOperation(op);
+			
+
+			op = new Operation
+            {
+				Index = ++index,
+				Account = _builder.GetAccountByCode((int)AccountType.VBr),
+                AccountType = AccountType.VBr,
+                Date = new DateTime(2022, 1, 25, 21,0,2),
+                Stock = _builder.GetStock("ZYXI"),
+                Qty = 1,
+                Price = 0,
+                Type = OperationType.Buy,
+                QtySaldo = 1,
+				Currency = Currency.Usd,
+				DeliveryDate = new DateTime(2022, 1, 25, 21,0,2),
+				TransId = "M037906453",
+				Summa = 0,
+				PriceInRur = 0,
+				RurSumma = 0,
+				BankCommission1 = 0,
+				BankCommission2 = 0,
+				Comment = "Зачисение 1 акции в качестве дивидендов"
+            };
+	        _builder.AddOperation(op);
+        }
 	}
 }

@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Xml;
 using Invest.Core.Entities;
 using Invest.Core.Enums;
@@ -15,87 +14,23 @@ namespace Invest.Core
     public class Builder
     {
         protected readonly ILog Log;
-
-        // xsl files directory
-        private readonly string[] _excelFilePath = { @"C:\Users\Alex\Downloads",  @"C:\Users\....\Downloads" };
-        private Dictionary<string, int> _excelCells;
-
+		
         /// <summary>Time of first operftion in portfolio</summary>
         private static DateTime _startOperationDate;
         
-		public List<string> BlueUsList;
-		public List<string> BlueRuList;
-		public List<string> BlueEurList;
-
-        /// <summary>Kilo</summary>
-        public static string KFormat(int qty) {
-            //if (qty >= 100000)
-            //    return (qty / 100000) + "M";
-            //if (qty >= 10000) {
-            //    return (qty / 1000D).ToString("0.#") + "K";
-            //}
-            if (qty >= 1000)
-                return (qty / 1000D).ToString("N0") + "K";
-            
-            return qty.ToString("N0");
-        }
-
-		public static string GetSum(decimal? value, string emptyValue = "")
-		{
-			if (value != null && value != 0 && value != .0m)
-				return $"{value:N2}";
-
-			return emptyValue;
-		}
-
-        public static string GetSumWithZnak(decimal? value, string emptyValue = "")
-        {
-            if (value != null && value != 0) 
-	            return value > 0 
-		            ? $"+{value:N2}" 
-		            : $"{value:N2}";
-
-            return emptyValue;
-        }
-
-        public static string GetPercent(decimal? value, string emptyValue = "", bool isZnak = true)
-        {
-            if (value != null && value != 0) 
-	            return value > 0 
-		            ? $"+{value:N2}%" 
-		            : $"{value:N2}%";
-
-            return emptyValue;
-        }
-
-		public static decimal? SumValues(params decimal?[] values)
-		{
-			var r = values.Where(x => x != null).ToList();
-			return r.Any() 
-				? r.Sum() 
-				: null;
-		}
-
 		public Builder() {
-            Log = LogManager.GetLogger("InvApp.Core");
+            Log = LogManager.GetLogger("Invest.Core: start");
+
             _startOperationDate = new DateTime(2019, 12, 1);
 
-            //Accounts = new List<Account>(),
-            //Companies = new List<Company>(),
-            //Stocks = new List<Stock>(),
             Operations = new List<Operation>();
 
             CurrencyRates = new Dictionary<DateTime, Dictionary<Currency, decimal>>();
-            //UsdRate = new Dictionary<DateTime, decimal>();
-            //EurRate = new Dictionary<DateTime, decimal>();
             FifoResults = new Dictionary<Analytics, FifoResult>();
             FinIndicators = new Dictionary<Analytics, FinIndicator>();
             History = new List<History>();
 
             FillPeriods();
-
-            // For excel cells
-            //FillExcelCellsDictionary();
 
             // Load rates (usd, eur)
             try {
@@ -121,34 +56,9 @@ namespace Invest.Core
         public List<BaseStock> Stocks;
         public List<BasePortfolio> Portfolios;
         public List<Operation> Operations;
-        //public Dictionary<DateTime, decimal> UsdRate;
-        //public Dictionary<DateTime, decimal> EurRate;
+
         public Dictionary<DateTime, Dictionary<Currency, decimal>> CurrencyRates;
 		public List<History> History;
-
-        public void Init() 
-        {
-	        //Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
-
-			//load broker reports by year (since 2019)
-			//for(var year = _startOperationDate.Year; year <= DateTime.Today.Year; year++)
-			//{
-			//	//Instance.LoadBrokerReports(AccountType.Iis, $"7101NME0_{year}*.xls", year);
-			//	//Instance.LoadBrokerReports(AccountType.VBr, $"7101NMC0_{year}*.xls", year);
-
-			//	//Instance.LoadBrokerReports(AccountType.SBr, $"Сделки_{year}*.xlsx", year);
-			//}
-
-            // Prices
-            var priceMgr = new PriceManager();
-            //priceMgr.Load();
-
-			// History
-			var hist = new HistoryData();
-			//hist.Load();
-
-            //Calc();
-        }
 
         /// <summary>
         /// Load currency rates from cbr
@@ -218,19 +128,6 @@ namespace Invest.Core
             }
         }
 
-        public int ExcelCell(string cellName)
-        {
-            if (!_excelCells.ContainsKey(cellName))
-                throw new Exception($"Not found cell by name {cellName}");
-
-            return _excelCells[cellName];
-        }
-
-        private string GetCellValue(string cellName, ExcelDataReader.IExcelDataReader reader)
-        {
-            return reader.GetValue(ExcelCell(cellName))?.ToString().Trim();
-        }
-
 
         public BaseStock GetStock(string ticker) {
 
@@ -276,6 +173,17 @@ namespace Invest.Core
             return null;
         }
 
+        public BaseAccount GetAccountByCode(int code) {
+
+	        for (var i = 0; i < Accounts.Count; i++)
+	        {
+		        if (Accounts[i].BitCode == code)
+			        return Accounts[i];
+	        }
+
+	        return null;
+        }
+
         private Operation GetOperation(string transId) {
 
             for (var i = 0; i < Operations.Count; i++)
@@ -288,323 +196,8 @@ namespace Invest.Core
         }
 
 
-        private static FileInfo[] GetFiles(string[] paths, string patern)
-        {
-            // xlsx file
-            var dir = new DirectoryInfo(paths[0]);
-            if (!dir.Exists)
-                dir = new DirectoryInfo(paths[1]);
-
-            var files = dir.GetFiles(patern);
-            return files.Length == 0 
-	            ? null 
-	            : files;
-        }
-
-        /// <summary>Load all data from json file</summary>
-   //     private void LoadBaseData(string fileName)
-   //     {
-			//if (!File.Exists(fileName))
-			//	throw new Exception($"LoadBaseData(): file {fileName} no found.");
-
-   //         using(var fs = File.OpenText(fileName))
-   //         {
-   //             var content = fs.ReadToEnd();
-   //             var data = Newtonsoft.Json.JsonConvert.DeserializeObject(content);
-                
-   //             foreach(var acc in ((Newtonsoft.Json.Linq.JObject)data)["accounts"])
-   //             {
-   //                 Accounts.Add( 
-   //                     new Account{ 
-   //                         Name = acc["name"].ToString(), 
-   //                         Id = acc["id"].ToString(), 
-   //                         BrokerName = acc["brokerName"].ToString(), 
-   //                         Type = (AccountType)Enum.Parse(typeof(AccountType), acc["type"].ToString(), true) 
-   //                         //Currency = (Currency)Enum.Parse(typeof(Currency), acc["cur"].ToString(), true) 
-   //                     });
-   //             }
-
-   //             //Instance.Companies = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Company>>(((Newtonsoft.Json.Linq.JObject)data)["companies"].ToString());
-   //             Instance.Companies = new List<Company>();
-
-			//	// data
-   //             foreach(var val in ((Newtonsoft.Json.Linq.JObject)data)["data"])
-   //             {
-	  //              var companyId = val["id"].ToString();
-	  //              var company = new Company { Id = companyId, Name = val["name"].ToString(), DivName = val["divName"].ToString() };
-			//		Instance.Companies.Add(company);
-
-			//		foreach(var s in val["stocks"])
-			//		{
-			//			var stock = new Stock
-			//			{
-			//				Name = s["brokerName"].ToString(),
-			//				Company = company,
-			//				Currency = s["cur"] != null && s["cur"].ToString() != ""
-			//					? (Currency)Enum.Parse(typeof(Currency), s["cur"].ToString(), true)
-			//					: Currency.Rur,
-			//				LotSize = s["lot"] != null && s["lot"].ToString() != "" ? int.Parse(s["lot"].ToString()) : 1,
-			//				Ticker = s["t"].ToString(),
-			//				Type = s["type"] != null && !string.IsNullOrEmpty(s["type"].ToString())
-			//					? (StockType) Enum.ToObject(typeof(StockType), (int)s["type"])
-			//					: StockType.Share
-			//			};
-
-			//			if (!string.IsNullOrEmpty(s["isin"].ToString()))	
-			//			{
-			//				var isins = s["isin"].ToString().Replace(" ", "");
-			//				stock.Isin = isins.Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries);
-			//			}
-
-			//			if (s["regNum"] != null && !string.IsNullOrEmpty(s["regNum"].ToString()))	
-			//				stock.RegNum = s["regNum"].ToString();
-
-			//			if (Stocks.FirstOrDefault(x => x.Ticker == stock.Ticker) != null)
-			//				throw new Exception("Attempt to add a stock with a duplicate ticker.");
-
-			//			Stocks.Add(stock);
-			//		}
-			//	}
-   //         }
-
-			////
-			////AddTestData();
-   //     }
-
         
-        private void LoadBrokerReports(AccountType accountType, string fileMask, int year)
-        {
-	        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-	        var xslFiles = GetFiles(_excelFilePath, fileMask);
-            if (xslFiles == null)
-                return;
-
-			if (xslFiles.Length > 1)
-				throw new Exception($"There is more one xsl file found in directory by {accountType}, {year}");
-
-            foreach(var file in xslFiles.OrderBy(x => x.LastWriteTime))
-            {
-                using(var fs = File.Open(file.FullName, FileMode.Open, FileAccess.Read))
-                {
-	                //if (accountType == AccountType.SBr)
-		               // ParseSberFile(accountType, year, fs);
-					//else
-					//	ParseVtbFile(accountType, year, fs);
-                }
-            }
-        }
-
-   //     private void ParseVtbFile(AccountType accountType, int year, FileStream fs)
-   //     {
-	  //      var cellMappingCache = GetExcelCellsMappingForCache(accountType, year);
-	  //      var cellMapping = GetExcelCellsMappingForOperation(accountType, year);
-	  //      var cellMappingUsdRubOperation = GetExcelCellsMappingForUsdRubOperation(accountType, year);
-
-	  //      using (var reader = ExcelDataReader.ExcelReaderFactory.CreateReader(fs))
-	  //      {
-		 //       var emptyCellCount = 200;
-		 //       const int startIndex = 8;
-		 //       var rowIndex = 0;
-
-		 //       while (reader.Read())
-		 //       {
-			//        if (rowIndex >= startIndex)
-			//        {
-			//	        var titleCell = reader.GetValue(ExcelCell("B"));
-			//	        if (titleCell != null)
-			//	        {
-			//		        var title = titleCell.ToString().Trim();
-
-			//		        if (title.Equals("Движение денежных средств", StringComparison.OrdinalIgnoreCase))
-			//			        ReadCacheIn(reader, accountType, cellMappingCache);
-                                    
-			//		        if (title.Equals("Заключенные в отчетном периоде сделки с ценными бумагами", StringComparison.OrdinalIgnoreCase))
-			//			        ReadOperations(reader, accountType, cellMapping);                                    
-
-			//		        if (title.Equals("Завершенные в отчетном периоде сделки с иностранной валютой (обязательства прекращены)", StringComparison.OrdinalIgnoreCase)
-			//		            || title.Equals("Заключенные в отчетном периоде сделки с иностранной валютой", StringComparison.OrdinalIgnoreCase))
-			//			        ReadUsdRubOperations(reader, accountType, cellMappingUsdRubOperation);
-			//	        }
-
-			//	        if (titleCell == null)
-			//		        emptyCellCount--;
-
-			//	        if (emptyCellCount == 0)
-			//		        break;
-			//        }
-			//        rowIndex++;
-		 //       }
-		//      }
-
-			//AddExtOperations(accountType, year);
-		//     }
-
-        private void AddExtOperations(AccountType accountType, int year)
-        {
-			var index = 1000000;
-
-			if (accountType == AccountType.VBr && year == 2021)
-			{
-				var op = new Operation {
-					Index = ++index,
-					AccountType = accountType,
-					Date = new DateTime(2021, 8, 2, 2,0,1),
-					Stock = GetStock("SWI"),
-					Qty = 1,
-					Price = 22,
-					Type = OperationType.Buy,
-					Currency = Currency.Usd,
-					DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
-					TransId = "M036440389",
-					Summa = 22,
-					PriceInRur = 1635.73m,
-					RurSumma = 0,
-					BankCommission1 = 2.94m,
-					BankCommission2 = 0,
-					Comment = "Конвертация"
-				};
-				Operations.Add(op);
-
-				op = new Operation {
-					Index = ++index,
-					AccountType = accountType,
-					Date = new DateTime(2021, 8, 4, 21,0,0),
-					Stock = GetStock("SWI"),
-					Qty = 2,
-					Price = 0,
-					Type = OperationType.Sell,
-					Currency = Currency.Usd,
-					DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
-					TransId = "M036435998",
-					Summa = 0,
-					PriceInRur = 0,
-					RurSumma = 0,
-					BankCommission1 = 0,
-					BankCommission2 = 0,
-					Comment = "Конвертация"
-				};
-				Operations.Add(op);
-
-
-				//TSVT
-				op = new Operation {
-					Index = ++index,
-					AccountType = accountType,
-					Date = new DateTime(2021, 11, 10, 21,0,1),
-					Stock = GetStock("TSVT"),
-					Qty = 1,
-					Price = 0,
-					Type = OperationType.Buy,
-					Currency = Currency.Usd,
-					DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
-					TransId = "M037531193",
-					Summa = 0,
-					PriceInRur = 0,
-					RurSumma = 0,
-					BankCommission1 = 0,
-					BankCommission2 = 0,
-					Comment = "Конвертация"
-				};
-				Operations.Add(op);
-
-				op = new Operation {
-					Index = ++index,
-					AccountType = accountType,
-					Date = new DateTime(2021, 11, 10, 21,0,1),
-					Stock = GetStock("TSVT"),
-					Qty = 1,
-					Price = 0,
-					Type = OperationType.Buy,
-					Currency = Currency.Usd,
-					DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
-					TransId = "M037531195",
-					Summa = 0,
-					PriceInRur = 0,
-					RurSumma = 0,
-					BankCommission1 = 0,
-					BankCommission2 = 0,
-					Comment = "Конвертация"
-				};
-				Operations.Add(op);
-			}
-
-
-
-
-
-	        if (accountType == AccountType.VBr && year == 2022)
-	        {
-		        var op = new Operation
-                {
-					Index = ++index,
-                    AccountType = accountType,
-                    Date = new DateTime(2022, 1, 25, 21,0,2),
-                    Stock = GetStock("ZYXI"),
-                    Qty = 1,
-                    Price = 0,
-                    Type = OperationType.Buy,
-                    QtySaldo = 1,
-					Currency = Currency.Usd,
-					DeliveryDate = new DateTime(2022, 1, 25, 21,0,2),
-					TransId = "M037906453",
-					Summa = 0,
-					PriceInRur = 0,
-					RurSumma = 0,
-					BankCommission1 = 0,
-					BankCommission2 = 0,
-					Comment = "Зачисение 1 акции в качестве дивидендов"
-                };
-                Operations.Add(op);
-	        }
-        }
-
-  //      private void ParseSberFile(AccountType accountType, int year, FileStream fs)
-  //      {
-	 //       var cellMappingCache = GetExcelCellsMappingForCache(accountType, year);
-	 //       var cellMapping = GetExcelCellsMappingForOperation(accountType, year);
-	 //       var cellMappingUsdRubOperation = GetExcelCellsMappingForUsdRubOperation(accountType, year);
-
-	 //       using (var reader = ExcelDataReader.ExcelReaderFactory.CreateReader(fs))
-	 //       {
-		//        var emptyCellCount = 200;
-		//        const int startIndex = 8;
-		//        var rowIndex = 0;
-
-		//        while (reader.Read())
-		//        {
-		//	        if (rowIndex >= startIndex)
-		//	        {
-		//		        var titleCell = reader.GetValue(ExcelCell("B"));
-		//		        if (titleCell != null)
-		//		        {
-		//			        var title = titleCell.ToString().Trim();
-
-		//			        //if (title.Equals("Движение денежных средств", StringComparison.OrdinalIgnoreCase))
-		//				       // ReadCacheIn(reader, accountType, cellMappingCache);
-                                    
-		//			        //if (title.Equals("Заключенные в отчетном периоде сделки с ценными бумагами", StringComparison.OrdinalIgnoreCase))
-		//				    //    ReadOperations(reader, accountType, cellMapping);
-
-		//			        //if (title.Equals("Завершенные в отчетном периоде сделки с иностранной валютой (обязательства прекращены)", StringComparison.OrdinalIgnoreCase)
-		//			        //    || title.Equals("Заключенные в отчетном периоде сделки с иностранной валютой", StringComparison.OrdinalIgnoreCase))
-		//				       // ReadUsdRubOperations(reader, accountType, cellMappingUsdRubOperation);
-		//		        }
-
-		//		        if (titleCell == null)
-		//			        emptyCellCount--;
-
-		//		        if (emptyCellCount == 0)
-		//			        break;
-		//	        }
-		//	        rowIndex++;
-		//        }
-	 //       }
-		//}
-
-        
-
-
+		
         public void Calc() 
         { 
             foreach(var s in Stocks)
@@ -623,7 +216,7 @@ namespace Invest.Core
                     accData.Operations = Operations
                         .Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase) 
                             && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-                            && x.AccountType == a.Type)
+                            && x.Account.BitCode == a.BitCode)
                         .OrderBy(x => x.Date).ThenBy(x => x.TransId)
                         .ToList();
 
@@ -648,8 +241,8 @@ namespace Invest.Core
 						//pos.CalcFifoResult(accData);
 					}
 
-     //               //foreach (var o in ops)
-     //               {
+				     // //foreach (var o in ops)
+				     // {
 					//	//qty += o.Type == OperationType.Buy ? o.Qty.Value : -o.Qty.Value;
 					//	//accData.CurrentQty = qty;
 
@@ -729,7 +322,7 @@ namespace Invest.Core
                 if (oppSell.Any())
                 {
                     decimal item = 0;
-                    int q = 0;
+                    var q = 0;
                     foreach(var o in operations.Where(x => x.Stock == s && x.Type == OperationType.Sell && !x.IsClosed))
                     {
                         q += o.Qty.Value;
@@ -1044,7 +637,7 @@ namespace Invest.Core
             if (accData.CurrentQty > 0)
                 return;
 
-            if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
+            //if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
 
             op.FinResult = (op.Price - op.PosPrice).Value * op.Qty.Value * -1;
             //op.TotalFinResult = accData.FinResult.Value + op.FinResult;
@@ -1085,7 +678,7 @@ namespace Invest.Core
             {
                 op.QtySaldo -= s.LotSize;
 
-                if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
+                //if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
 
 				// find buy operation with saldo value
                 var opBuy = ops.Where(x => x.Type == OperationType.Buy && x.QtySaldo > 0 && x.Date < op.Date).OrderBy(x => x.Date).FirstOrDefault();
@@ -1134,10 +727,10 @@ namespace Invest.Core
                     r.RurCommission += result.RurCommission;
                 }
 
-                if (s.Ticker == "OZONDR" && op.TransId == "S3715404120" /* && op.Date >= new DateTime(2021,3,12)*/)
-                {
-	                var R = 0;
-                }
+                //if (s.Ticker == "OZONDR" && op.TransId == "S3715404120" /* && op.Date >= new DateTime(2021,3,12)*/)
+                //{
+	               // var R = 0;
+                //}
 
                 if (op.FifoResult == null) {
                     op.FifoResult = new FifoResult {
@@ -1173,7 +766,7 @@ namespace Invest.Core
 	            .ThenByDescending(x => x.TransId)
 	            .FirstOrDefault();
 
-            if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
+            //if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
 
             // only for sales
             while (op.QtySaldo > 0)
@@ -1622,5 +1215,21 @@ namespace Invest.Core
 				//	throw new Exception($"AddOperation(): Double transId detected: trId: {op.TransId}, type: {op.Type}, {op.Account.Id}, {op.Date}");
 			}
 		}
+
+		public static decimal? SumValues(params decimal?[] values)
+		{
+			var r = values.Where(x => x != null).ToList();
+			return r.Any() 
+				? r.Sum() 
+				: null;
+		}
+
+		//// Prices
+		////var priceMgr = new PriceManager();
+		////priceMgr.Load();
+
+		//// History
+		////var hist = new HistoryData();
+		////hist.Load();
     }
 }
