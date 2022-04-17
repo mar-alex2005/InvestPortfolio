@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Invest.Core;
+using Invest.Core.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -45,6 +46,9 @@ namespace Invest.WebApp
 
 	        var portolios = builder.LoadPortfoliosFromJson(fileName);
 	        builder.SetPortfolios(portolios);
+
+	        builder.AddCurRates(
+		        new CbrCurrencyRate(new[]{ Currency.Usd, Currency.Eur }){ StartDate = new DateTime(2019, 1,1), EndDate = DateTime.Today });
 			
 	        builder.AddStocks(new JsonStocksLoader(fileName));
 			

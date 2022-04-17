@@ -81,7 +81,8 @@ namespace Invest.WebApp.Controllers
 				Ticker = tickerId,
 				Stock = stock,
 				Accounts = _builder.Accounts,
-				Operations = operations
+				Operations = operations,
+				FifoResults = _builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker)
 			};
 
 			return View(model);
@@ -704,60 +705,60 @@ namespace Invest.WebApp.Controllers
 		//       }
 
 
-		//	public IActionResult Bonds()
-		//       {
-		//		var	stocks = Invest.WebApp.Core.Instance.Stocks
-		//			.Where(x => x.Type == StockType.Bond)
-		//				//&& (x.Ticker == "MTSS" || x.Ticker == "NVTK" || x.Ticker == "TDC" || x.Ticker == "AAL" || x.Ticker == "CLF" )
-		//				//&& (currency == null || (int)x.Currency == currency)
-		//				//&& (account == null || Core.Instance.Operations.Any(o => o.Stock == x && (int)o.AccountType == account))
-		//			.ToList();
+		public IActionResult Bonds()
+		{
+			var stocks = _builder.Stocks
+				.Where(x => x.Type == StockType.Bond)
+				//&& (x.Ticker == "MTSS" || x.Ticker == "NVTK" || x.Ticker == "TDC" || x.Ticker == "AAL" || x.Ticker == "CLF" )
+				//&& (currency == null || (int)x.Currency == currency)
+				//&& (account == null || Core.Instance.Operations.Any(o => o.Stock == x && (int)o.AccountType == account))
+				.ToList();
 
-		//		var model = new BondsViewModel {
-		//               Stocks = stocks,
-		//               Accounts = new List<AccountType?> { AccountType.Iis, AccountType.VBr, null }
-		//           };
+			var model = new BondsViewModel
+			{
+				Stocks = stocks,
+				Accounts = new List<AccountType?> { AccountType.Iis, AccountType.VBr, null }
+			};
 
-		//		decimal buyStockSumUsd = 0, buyStockSumRur = 0;
+			decimal buyStockSumUsd = 0, buyStockSumRur = 0;
 
-		//		model.Items = new List<BondsViewModel.Item>();
-		//		model.TotalSaldo = 0;
+			model.Items = new List<BondsViewModel.Item>();
+			model.TotalSaldo = 0;
 
-		//		foreach (var s in stocks)
-		//           {
-		//			var ops = Invest.WebApp.Core.Instance.Operations
-		//				.Where(x => x.Stock == s 
-		//					//&& s.Data.QtyBalance > 0
-		//					//&& s.Data.PosPrice != null
-		//					&& (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Coupon)
-		//                   )
-		//                   .ToList();
+			foreach (var s in stocks)
+			{
+				var ops = _builder.Operations
+					.Where(x => x.Stock == s
+						//&& s.Data.QtyBalance > 0
+						//&& s.Data.PosPrice != null
+						&& (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Coupon)
+					   )
+					   .ToList();
 
-		//			if (!ops.Any())
-		//				continue;
+				if (!ops.Any())
+					continue;
 
-		//			var item = new BondsViewModel.Item();
+				var item = new BondsViewModel.Item
+				{
+					Stock = s,
+					BuyQty = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Qty) ?? 0,
+					BuySum = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Summa) ?? 0,
+					Nkd = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Nkd) ?? 0,
+					SellSum = ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Summa) ?? 0,
+					Coupon = ops.Where(x => x.Type == OperationType.Coupon).Sum(x => x.Summa) ?? 0,
+					Commission = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Commission) ?? 0
+				};
 
-		//			item.Stock = s;
-		//			item.BuyQty = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Qty) ?? 0;
-		//			item.BuySum = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Summa) ?? 0;
-		//			item.Nkd = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Nkd) ?? 0;
-		//			item.SellSum = ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Summa) ?? 0;
-		//			item.Coupon = ops.Where(x => x.Type == OperationType.Coupon).Sum(x => x.Summa) ?? 0;
-		//			item.Commission = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Commission) ?? 0;
-		//			//item.SaldoPercent
+				model.TotalSaldo += (item.BuySum - item.SellSum);
 
-		//			model.TotalSaldo += (item.BuySum - item.SellSum);
+				model.Items.Add(item);
+			}
 
-		//			model.Items.Add(item);
-		//		}
+			//if (isJson)
+			//	 return new JsonResult(model.Items.OrderByDescending(x => x.ProfitInRur));
 
-
-		//           //if (isJson)
-		//		//	 return new JsonResult(model.Items.OrderByDescending(x => x.ProfitInRur));
-
-		//           return View(model);
-		//       }
+			return View(model);
+		}
 
 
 

@@ -198,12 +198,13 @@ namespace Invest.Core
                 while(d <= dEnd)
                 {
                     if (_builder.Operations.Count(x => x.Date == d 
-                        && (int)x.AccountType == account.BitCode
-                        && (x.Type == OperationType.BrokerCacheIn || x.Type == OperationType.BrokerCacheOut || x.Type == OperationType.BrokerFee || x.Type == OperationType.Dividend)) == 0)
+                        && x.Account == account
+                        && (x.Type == OperationType.BrokerCacheIn || x.Type == OperationType.BrokerCacheOut 
+                            || x.Type == OperationType.BrokerFee || x.Type == OperationType.Dividend)) == 0)
                     {
                         foreach(var o in ops.Where(x => x.Date == d))
                         {
-                            _builder.AddOperation(o);
+	                        _builder.AddOperation(o);
                         }
                     }
 
@@ -305,7 +306,7 @@ namespace Invest.Core
 
 				if ((op.Currency == Currency.Usd || op.Currency == Currency.Eur) && op.Date >= _startOperationDate)
 				{
-					op.PriceInRur = op.Price * _builder.GetCurRate(op.Currency, op.Date);
+					op.PriceInRur = op.Price * Builder.GetCurRate(op.Currency, op.Date);
 					op.RurSumma = op.PriceInRur * op.Qty;
 				}
 

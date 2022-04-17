@@ -24,24 +24,11 @@ namespace Invest.Core
             _startOperationDate = new DateTime(2019, 12, 1);
 
             Operations = new List<Operation>();
-
-            CurrencyRates = new Dictionary<DateTime, Dictionary<Currency, decimal>>();
             FifoResults = new Dictionary<Analytics, FifoResult>();
             FinIndicators = new Dictionary<Analytics, FinIndicator>();
             History = new List<History>();
 
             FillPeriods();
-
-            // Load rates (usd, eur)
-            try {
-	            foreach (Currency cur in Enum.GetValues(typeof(Currency)))
-		            if (cur != Currency.Rur)
-			            LoadCurrencyRates(cur);
-            }
-            catch (Exception ex)
-            {
-	            Log.Error($"LoadCurrencyRates(): {ex.Message}");
-            }
 
             //BlueUsList = LoadPortfolioData(Portfolio.BlueUs);
 			//BlueRuList = LoadPortfolioData(Portfolio.BlueRu);
@@ -57,7 +44,7 @@ namespace Invest.Core
         public List<BasePortfolio> Portfolios;
         public List<Operation> Operations;
 
-        public Dictionary<DateTime, Dictionary<Currency, decimal>> CurrencyRates;
+        public static Dictionary<DateTime, Dictionary<Currency, decimal>> CurrencyRates;
 		public List<History> History;
 
         /// <summary>
@@ -238,32 +225,8 @@ namespace Invest.Core
                     {
 	                    pos.CalcPosPrice();
 						pos.CalcFinResult();
-						//pos.CalcFifoResult(accData);
+						CalcFifoResult(pos, accData);
 					}
-
-				     // //foreach (var o in ops)
-				     // {
-					//	//qty += o.Type == OperationType.Buy ? o.Qty.Value : -o.Qty.Value;
-					//	//accData.CurrentQty = qty;
-
-					//	////if (s.Ticker == "PLZL" && o.AccountType == AccountType.VBr){ var r = 0; }
-
-					//	////pos price
-					//	//CalcPosPrice(o, prevOper, ops, s, qty, accData);
-
-					//	////Calc FinResult and close position
-					//	//CalcFinResult(ref ops, o, s, qty, accData);
-					//	//CalcFinResultForShort(ref ops, o, s, qty, accData);
-
-					//	//accData.AddCommission(o);
-
-					//	////Fifo
-					//	//CalcFifoResult(ref ops, o, s, accData, a.Type);
-					//	//CalcFifoResultForShort(ref ops, o, s, accData, a.Type);
-
-					//	////Save commission
-					//	//AddCommissionIndicator(o);
-					//}
 				}
 
                 var operations = Operations.Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase))
@@ -406,6 +369,114 @@ namespace Invest.Core
 			LinkCouponsToTickers();
         }
 
+		private void CalcFifoResult(PositionData pos, AccountData accData)
+		{
+			var stock = accData.Stock;
+			var notClosedOps = new Queue<PositionItem>();
+			PositionItem lastItem = null;
+
+			foreach (var item in pos.Items)
+			{
+				var lots = item.Qty / stock.LotSize;
+
+				if (!item.ForCalc)
+				{
+					for (var i = 1; i <= lots; i++)
+						notClosedOps.Enqueue(item);
+				}
+
+				//if (stock.Ticker == "PLZL" && pos.StartDate.Date == new DateTime(2022,2,21) && pos.Type == PositionType.Short) { var q = 0;}
+
+				if (item.ForCalc)
+				{
+					lots = item.Qty / stock.LotSize;
+					while (lots > 0)
+					{
+						var opBuy = notClosedOps.Dequeue();
+						if (opBuy == null)
+							throw new Exception("CalcPositionFifoResult(): opBuy in Queue == null");
+
+						var op = item.Operation;
+						var profit = stock.LotSize * (item.Operation.Price - opBuy.Operation.Price).Value;
+						if (pos.Type == PositionType.Short)
+							profit = stock.LotSize * (opBuy.Operation.Price - item.Operation.Price).Value;
+
+						var commission = (item.Commission / (item.Qty / stock.LotSize)) + (opBuy.Commission / (opBuy.Qty));
+
+						//if (stock.Ticker == "PLZL" && pos.StartDate.Date == new DateTime(2022, 2, 21) && pos.Type == PositionType.Short) { var q = 0; }
+
+						// Fifo result						
+						var result = new FifoResult
+						{
+							Summa = profit,
+							Cur = op.Currency,
+							// buys comm. + sell comm.
+							Commission = Math.Round(commission, 2)
+						};
+
+						// доход (и налог) считается с Summa - Commission!! (без учета коммисии)
+						if (op.Currency == Currency.Usd || op.Currency == Currency.Eur)
+						{
+							var buyRate = GetCurRate(op.Currency, opBuy.Operation.DeliveryDate.Value);
+							var sellRate = GetCurRate(op.Currency, op.DeliveryDate.Value);
+
+							var delta = stock.LotSize * ((op.Price.Value * sellRate) - (opBuy.Operation.Price.Value * buyRate));
+							result.RurSumma = Math.Round(delta, 2);
+							result.RurCommission =
+								Math.Round((opBuy.Commission / (opBuy.Qty / stock.LotSize)) * buyRate + (item.Commission / (item.Qty / stock.LotSize)) * sellRate, 2);
+						}
+						else
+						{
+							result.RurSumma = result.Summa;
+							result.RurCommission = Math.Round(result.Commission, 2);
+						}
+
+						var analitic = new Analytics(op.Stock.Ticker, accData.AccountType, op.Currency, op.DeliveryDate.Value);
+
+						if (!FifoResults.ContainsKey(analitic))
+						{
+							FifoResults.Add(analitic, result);
+						}
+						else
+						{
+							var r = FifoResults[analitic];
+							r.Summa += result.Summa;
+							r.Commission += result.Commission;
+							r.RurSumma += result.RurSumma;
+							r.RurCommission += result.RurCommission;
+						}
+
+						//if (stock.Ticker == "OZONDR" && op.TransId == "S3715404120" /* && op.Date >= new DateTime(2021,3,12)*/) { var R = 0; }
+
+						if (item.FifoResult == null)
+						{
+							item.FifoResult = new FifoResult
+							{
+								Summa = profit,
+								Cur = op.Currency,
+								// buys comm. + sell comm.
+								Commission = Math.Round(((item.Commission) / item.Qty) + ((opBuy.Commission) / opBuy.Qty), 2),
+								RurSumma = result.RurSumma,
+								RurCommission = Math.Round(result.RurCommission, 2),
+								TotalSumma = (lastItem?.FifoResult?.TotalSumma ?? 0) + profit
+							};
+							lastItem = item;
+						}
+						else
+						{
+							item.FifoResult.Summa += profit;
+							item.FifoResult.Commission += Math.Round(commission, 2);
+							item.FifoResult.RurSumma += result.RurSumma;
+							item.FifoResult.RurCommission += Math.Round(result.RurCommission, 2);
+							item.FifoResult.TotalSumma += profit;
+						}
+
+						lots--;
+					}
+				}
+			}
+		}
+
         private void ClosePosition(PositionData pos)
         {
 	        pos.IsClosed = true;
@@ -514,7 +585,7 @@ namespace Invest.Core
 
 						var commission = (item.Commission / (item.Qty / stock.LotSize)) + (opBuy.Commission / (opBuy.Qty));
 
-						if (stock.Ticker == "PLZL" && pos.StartDate.Date == new DateTime(2022,2,21) && pos.Type == PositionType.Short) { var q = 0;}
+						//if (stock.Ticker == "PLZL" && pos.StartDate.Date == new DateTime(2022,2,21) && pos.Type == PositionType.Short) { var q = 0;}
 
 						// Fifo result						
 						var result = new FifoResult
@@ -557,10 +628,7 @@ namespace Invest.Core
 							r.RurCommission += result.RurCommission;
 						}
 
-						if (stock.Ticker == "OZONDR" && op.TransId == "S3715404120" /* && op.Date >= new DateTime(2021,3,12)*/)
-						{
-							var R = 0;
-						}
+						//if (stock.Ticker == "OZONDR" && op.TransId == "S3715404120" /* && op.Date >= new DateTime(2021,3,12)*/) { var R = 0; }
 
 						if (item.FifoResult == null)
 						{
@@ -604,14 +672,14 @@ namespace Invest.Core
 			if (accData.CurrentQty < 0)
 				return;  // for short position
 
-            if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
+            //if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr && op.Date.Date == new DateTime(2021,12,1) ){ var r = 0; }
 
             op.FinResult = (op.Price - op.PosPrice).Value * op.Qty.Value;
             //op.TotalFinResult = accData.FinResult.Value + op.FinResult;
 
             //accData.FinResult = op.TotalFinResult;
 			
-            if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr){ var r = 0; }
+            //if (s.Ticker == "PLZL" && op.AccountType == AccountType.VBr){ var r = 0; }
 
             // close position
             if (currentQty == 0)
@@ -892,7 +960,7 @@ namespace Invest.Core
         }
 
 
-        public decimal GetCurRate(Currency currency, DateTime? date = null)
+        public static decimal GetCurRate(Currency currency, DateTime? date = null)
         {
 	        var rates = GetCurRate(date);
 
@@ -902,7 +970,7 @@ namespace Invest.Core
 			throw new Exception($"GetCurRate(): null value detected for '{currency}' at '{date}'");
         }
 
-		public Dictionary<Currency, decimal> GetCurRate(DateTime? date = null)
+		public static Dictionary<Currency, decimal> GetCurRate(DateTime? date = null)
 		{
 			var d = date?.Date ?? DateTime.Today.Date;
 
@@ -1058,53 +1126,23 @@ namespace Invest.Core
 		}
 
 
-		//private void AddTestData()
-		//{
-		//	var sb = new StringBuilder();
-		//	sb.AppendLine("\"data\": [");
-
-		//	foreach(var c in Instance.Companies)
-		//	{
-		//		sb.AppendFormat("{{\n \"id\": \"{0}\", \"name\": \"{1}\", \"divName\": \"{2}\", ",
-		//			c.Id, c.Name, c.DivName);
-
-		//		var stocks = Instance.Stocks.Where(x => x.Company == c).ToList();
-		//		if (!stocks.Any())
-		//			sb.AppendFormat("\"stocks\": []");
-		//		else 
-		//		{
-		//			sb.AppendLine("\"stocks\": [");
-		//			for (var x=0; x < stocks.Count; x++)
-		//			{
-		//				var s = stocks[x];
-		//				var isin = "";
-		//				if (s.Isin != null && s.Isin.Length != 0)
-		//				{
-		//					for(var k=0; k < s.Isin.Length; k++)
-		//					{
-		//						isin += k > 0 
-		//							? ", " + s.Isin[k] 
-		//							: s.Isin[k];
-		//					}
-		//				}
-
-		//				sb.AppendFormat("{{ \"ticker\": \"{0}\", \"brokerName\": \"{1}\", \"lotSize\": \"{2}\", \"cur\": \"{3}\", \"isin\": \"{4}\" }} {5} \n",
-		//					s.Ticker, s.Name, s.LotSize, s.Currency.ToString().ToLower(), isin, x < stocks.Count-1 ? ", " : "");
-		//			}
-		//			sb.AppendLine("] },\n");
-		//		}
-
-		//		sb.AppendFormat("");
-		//	}
-
-		//	sb.AppendLine("]");
-		//}
-
 		public void AddStocks(JsonStocksLoader jsonStocksLoader)
 		{
 			Companies = jsonStocksLoader.Companies;
 			Stocks = jsonStocksLoader.Stocks;
 			// Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
+		}
+
+		public void AddCurRates(ICurrencyRate instance)
+		{
+			// Load rates (usd, eur)
+			try {
+				CurrencyRates = instance.Load();
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"AddCurRates(): {ex.Message}");
+			}
 		}
 
 
@@ -1214,6 +1252,8 @@ namespace Invest.Core
 				//else 
 				//	throw new Exception($"AddOperation(): Double transId detected: trId: {op.TransId}, type: {op.Type}, {op.Account.Id}, {op.Date}");
 			}
+			else 
+				Operations.Add(op);
 		}
 
 		public static decimal? SumValues(params decimal?[] values)

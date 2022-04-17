@@ -1,7 +1,7 @@
-﻿@model Invest.WebApp.Controllers.BondsViewModel
-@using Invest.Core.Entities;
+﻿@model Invest.WebApp.Models.BondsViewModel
 @using DevExtreme.AspNet.Mvc
 @using Invest.Core.Enums
+@using Invest.WebApp
 @{
     ViewData["Title"] = "Home Page";
 
@@ -64,7 +64,7 @@
             </td>
             <td class="td-ticker" title="@s.Company.Name" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
             <td class="td-lot" style="white-space: nowrap; text-align: center;" title="">
-                @($"{Core.KFormat(item.BuyQty)}")
+                @($"{Util.KFormat(item.BuyQty)}")
             </td>
 
             <td class="" style="color: blueviolet; background-color: antiquewhite; font-weight: bold; text-align: center;">
@@ -119,40 +119,14 @@
         var currencies = new List<Currency> { Currency.Usd, Currency.Rur };
         foreach(var cur in currencies)
         {
-            @*<tr class="total">
-                <td colspan="10" style="border: 1px solid white;"></td>
-                <td>@cur</td>
-                <td colspan="2"></td>
-                <td>@Core.GetSum(Model.TotalStockSum[cur])</td>
-                <td style="background-color: azure; @(Model.TotalCurStockSum[cur] > 0 ? "color:limegreen" : "color:red")">@Core.GetSum(Model.TotalCurStockSum[cur])</td>
-                <td style="background-color: azure;">@(cur == Currency.Usd ? Core.GetSum(Model.TotalCloseFinResultUsd) : Core.GetSum(Model.TotalCloseFinResultRur))</td>
-                <td style="background-color: azure;">@(cur == Currency.Usd ? Core.GetSum(Model.TotalFinResultUsd) : Core.GetSum(Model.TotalFinResultRur))</td>
-                <td style="background-color: azure;">@(cur == Currency.Usd 
-                        ? Core.GetSum(Model.TotalCloseFinResultUsd + Model.TotalFinResultUsd) 
-                        : Core.GetSum(Model.TotalCloseFinResultRur + Model.TotalFinResultRur) 
-                    )
-                </td>
-                <td style="background-color: azure; @(Model.TotalProfitUsd > 0 ? "color:limegreen" : "color:red")">@(cur == Currency.Usd ? Core.GetSum(Model.TotalProfitUsd) : "")</td>
-                <td style="background-color: azure; @(Model.TotalProfitRur > 0 ? "color:limegreen" : "color:red")">@(cur == Currency.Rur ? Core.GetSum(Model.TotalProfitRur) : "")</td>
-                <td style="background-color: azure;"></td>
-
-                @if (cur == Currency.Usd)
-                {
-                    <td style="background-color: azure; @(Model.TotalProfitPercentUsd > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(Model.TotalProfitPercentUsd)</td>
-                }
-                else if (cur == Currency.Rur)
-                { 
-                    <td style="background-color: azure; @(Model.TotalProfitPercentRur > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(Model.TotalProfitPercentRur)</td>
-                }
-            </tr>*@
         }
     }
     <tr class="total">
         <td colspan="13" style="border: 1px solid transparent;"></td>
         <td>-</td>
         <td colspan="6" style="border: 1px solid transparent;"></td>
-        <td style="border: 1px solid silver; background-color: azure; @(Model.TotalProfitInRur > 0 ? "color:limegreen" : "color:red")">@Core.GetSum(Model.TotalProfitInRur)</td>
-        <td style="border: 1px solid silver; background-color: azure; @(Model.TotalProfitInRur > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(Model.TotalProfitPercent)</td>
+        <td style="border: 1px solid silver; background-color: azure; @(Model.TotalProfitInRur > 0 ? "color:limegreen" : "color:red")">@Util.GetSum(Model.TotalProfitInRur)</td>
+        <td style="border: 1px solid silver; background-color: azure; @(Model.TotalProfitInRur > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(Model.TotalProfitPercent)</td>
     </tr>
     </table><br/>
 
@@ -183,116 +157,116 @@
     <tr>
         <td>Close result:</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.Iis]?.FinResultForClosedPositions))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.Iis]?.FinResultForClosedPositions))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.FinResultForClosedPositions))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.FinResultForClosedPositions))</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.VBr]?.FinResultForClosedPositions))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.VBr]?.FinResultForClosedPositions))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.FinResultForClosedPositions))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.FinResultForClosedPositions))</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
     </tr>
     <tr>
         <td>Current result:</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.Iis]?.TotalFinResult))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.Iis]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.VBr]?.TotalFinResult))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.VBr]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.Data.FinResult))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.Data.FinResult))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.FinResult))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.FinResult))</td>
     </tr>
 
     <tr>
         <td>Total result:</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.Iis]?.TotalFinResult))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.Iis]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.VBr]?.TotalFinResult))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.VBr]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
 
-        <td class="td-total">@Core.GetSum(usdStocks?.Sum(x => x.Data.TotalFinResult))</td>
-        <td class="td-total">@Core.GetSum(rurStocks?.Sum(x => x.Data.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.TotalFinResult))</td>
+        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.TotalFinResult))</td>
     </tr>
 
     <tr>
         <td>Profit, summa:</td>
 
-        <td class="td-total" style="color: blue;">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.Iis]?.Profit))</td>
-        <td class="td-total" style="color: blue;">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.Iis]?.Profit))</td>
+        <td class="td-total" style="color: blue;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit))</td>
+        <td class="td-total" style="color: blue;">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit))</td>
 
-        <td class="td-total" style="color: blue;">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.VBr]?.Profit))</td>
-        <td class="td-total" style="color: blue;">@Core.GetSum(rurStocks?.Sum(x => x.AccountData[AccountType.VBr]?.Profit))</td>
+        <td class="td-total" style="color: blue;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit))</td>
+        <td class="td-total" style="color: blue;">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit))</td>
 
-        <td class="td-total" style="color: blue; font-weight: bold;">@Core.GetSum(usdStocks?.Sum(x => x.Data.Profit))</td>
-        <td class="td-total" style="color: blue; font-weight: bold;">@Core.GetSum(rurStocks?.Sum(x => x.Data.Profit))</td>
+        <td class="td-total" style="color: blue; font-weight: bold;">@Util.GetSum(usdStocks?.Sum(x => x.Data.Profit))</td>
+        <td class="td-total" style="color: blue; font-weight: bold;">@Util.GetSum(rurStocks?.Sum(x => x.Data.Profit))</td>
     </tr>
         
     <tr>
         <td>Profit, summa in rur:</td>
 
-        <td class="td-total" style="color: navy;">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.Iis]?.Profit) * Core.Instance.GetCurRate(Currency.Usd))</td>
+        <td class="td-total" style="color: navy;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
         <td class="td-total" style="color: navy;"></td>
 
-        <td class="td-total" style="color: navy;">@Core.GetSum(usdStocks?.Sum(x => x.AccountData[AccountType.VBr]?.Profit) * Core.Instance.GetCurRate(Currency.Usd))</td>
+        <td class="td-total" style="color: navy;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
         <td class="td-total" style="color: navy;"></td>
 
-        <td class="td-total" style="color: navy; font-weight: bold;">@Core.GetSum(usdStocks?.Sum(x => x.Data.Profit) * Core.Instance.GetCurRate(Currency.Usd))</td>
+        <td class="td-total" style="color: navy; font-weight: bold;">@Util.GetSum(usdStocks?.Sum(x => x.Data.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
         <td class="td-total" style="color: navy; font-weight: bold;"></td>
     </tr>
 
     <tr>
         @*accData.Profit / buySumInAcc * 100*@
         @{
-            var ppUsdIis = usdStocks?.Sum(x => x.AccountData[AccountType.Iis]?.Profit / x.AccountData[AccountType.Iis].StockSum * 100);
-            var ppRurIis = rurStocks?.Sum(x => x.AccountData[AccountType.Iis]?.Profit / x.AccountData[AccountType.Iis].StockSum * 100);
+            var ppUsdIis = usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit / x.AccountData[(int)AccountType.Iis].StockSum * 100);
+            var ppRurIis = rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit / x.AccountData[(int)AccountType.Iis].StockSum * 100);
 
-            var ppUsdVbr = usdStocks?.Sum(x => x.AccountData[AccountType.VBr]?.Profit / x.AccountData[AccountType.VBr].StockSum * 100);
-            var ppRurVbr = rurStocks?.Sum(x => x.AccountData[AccountType.VBr]?.Profit / x.AccountData[AccountType.VBr].StockSum * 100);
+            var ppUsdVbr = usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit / x.AccountData[(int)AccountType.VBr].StockSum * 100);
+            var ppRurVbr = rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit / x.AccountData[(int)AccountType.VBr].StockSum * 100);
 
             var ppUsdTotal = usdStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
             var ppRurTotal = 0; //rurStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
         }
         <td>Profit, %:</td>
-        <td class="td-total" style="@(ppUsdIis > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppUsdIis)</td>
-        <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppRurIis)</td>
+        <td class="td-total" style="@(ppUsdIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdIis)</td>
+        <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurIis)</td>
 
-        <td class="td-total" style="@(ppUsdVbr > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppUsdVbr)</td>
-        <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppRurVbr)</td>
+        <td class="td-total" style="@(ppUsdVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdVbr)</td>
+        <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurVbr)</td>
 
-        <td class="td-total" style="@(ppUsdTotal > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppUsdTotal)</td>
-        <td class="td-total" style="@(ppRurTotal > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppRurTotal)</td>
+        <td class="td-total" style="@(ppUsdTotal > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdTotal)</td>
+        <td class="td-total" style="@(ppRurTotal > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurTotal)</td>
     </tr>
         
     <tr>
         <td>Profit in rur, %:</td>
         <td class="td-total"></td>
-        <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppRurIis)</td>
+        <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurIis)</td>
 
         <td class="td-total"></td>
-        <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(ppRurVbr)</td>
+        <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurVbr)</td>
 
         <td class="td-total"></td>
-        <td class="td-total" style="@(Model.TotalProfitPercent > 0 ? "color:limegreen" : "color:red")">@Core.GetPercent(Model.TotalProfitPercent)</td>
+        <td class="td-total" style="@(Model.TotalProfitPercent > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(Model.TotalProfitPercent)</td>
     </tr>
 </table>
     </td>
     <td>
-        <div style="border: 1px solid lightgrey; background-color:  #f0f0f0; padding: 7px;">
+        @*<div style="border: 1px solid lightgrey; background-color:  #f0f0f0; padding: 7px;">
             <div style="border: 1px solid lightgrey; background-color: white; padding: 8px;">
                 @(Html.DevExtreme().Chart().ID("piePortfolio"))
             </div>
-        </div>
+        </div>*@
     </td>
     </tr>
     </table>
 
-    <div style="border: 1px solid lightgrey; margin-top: 6px; background-color:  #f0f0f0; padding: 7px;">
+    @*<div style="border: 1px solid lightgrey; margin-top: 6px; background-color:  #f0f0f0; padding: 7px;">
         <div style="border: 1px solid lightgrey; background-color: white; padding: 14px;">
             @(Html.DevExtreme().Chart().ID("chartPortfolio"))
         </div>
-    </div>
+    </div>*@
 </div>

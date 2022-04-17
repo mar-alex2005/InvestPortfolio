@@ -42,14 +42,14 @@ namespace Invest.WebApp.Models
 		public List<Operation> Operations;
 		public List<BaseStock> Stocks;
 		public List<BaseAccount> Accounts;
-		public FifoResult FifoResults;
+		public IEnumerable<KeyValuePair<Analytics, FifoResult>> FifoResults;
 	}
 
 
 	public class BondsViewModel : BaseViewModel
 	{
 		//public Portfolio? Portfolio;
-		public List<Stock> Stocks;
+		public List<BaseStock> Stocks;
 		public List<AccountType?> Accounts;
 		public decimal? TotalProfitUsd, TotalProfitRur, TotalProfitInRur, TotalSaldo;
 		public Dictionary<AccountType, decimal> TotalProfits;
@@ -64,7 +64,7 @@ namespace Invest.WebApp.Models
 
 		public class Item
 		{
-			public Stock Stock;
+			public BaseStock Stock;
 			public int Qty;
 			public int LotCount;
 			public decimal BuyTotalSum;

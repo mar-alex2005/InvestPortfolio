@@ -351,12 +351,12 @@
             css1 = "minus";
         }
 
-        //var fifo = Core.Instance.FifoResults.Where(x => x.Key.Ticker == stock.Ticker);
+        var fifo = Model.FifoResults;
     }
     <td class="@css1" style="text-align: right;">@Model.Value(stock.Data.TotalFinResult, true, "")</td>
     <td></td>
-    <td class="@css1" style="text-align: right;">@*@Model.Value(fifo.Sum(x => x.Value.Summa), true, "")*@</td>
-    <td class="@css1" style="text-align: right;">@*@Model.Value(fifo.Sum(x => x.Value.RurSumma), true, "")*@</td>
+    <td class="@css1" style="text-align: right;">@Model.Value(fifo.Sum(x => x.Value.Summa), true, "")</td>
+    <td class="@css1" style="text-align: right;">@Model.Value(fifo.Sum(x => x.Value.RurSumma), true, "")</td>
 </tr>
 <tr>
     <th></th>
@@ -386,7 +386,7 @@
 
 	foreach (var a in Model.Accounts)
 	{
-		var ops = operations.Where(x => x.AccountType == a.Type).ToList();
+		var ops = operations.Where(x => x.Account == a).ToList();
 		if (!ops.Any())
 		{
 			continue;
@@ -395,7 +395,7 @@
 		var accData = stock.AccountData[a.BitCode];
 
 	    <tr>
-            <td class="td-acc-name" colspan="14">@a.Name</td>
+            <td class="td-acc-name" colspan="14">@a.Id</td>
         </tr>
 
 		foreach (var pos in accData.Positions.OrderByDescending(x => x.Num))

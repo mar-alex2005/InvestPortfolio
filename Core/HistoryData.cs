@@ -11,7 +11,7 @@ namespace Invest.Core
 {
     public class HistoryData
     {
-		private string _fileName = "history.json";
+		//private string _fileName = "history.json";
 
 		//public void Load()
 		//{
