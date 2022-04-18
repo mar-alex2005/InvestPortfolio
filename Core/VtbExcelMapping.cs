@@ -8,14 +8,11 @@ namespace Invest.Core
 	{
 		private readonly int _accountCode;
 		private readonly int _year;
-		private static Dictionary<string, int> _excelCells;
-
+		
 		public VtbExcelMapping(int accountCode, int year)
 		{
 			_accountCode = accountCode;
 			_year = year;
-
-			FillExcelCellsDictionary();
 		}
 
 		public class OperationMap
@@ -408,6 +405,17 @@ namespace Invest.Core
 				throw new Exception("ExcelCellsMappingUsdRubOperation(): wrong account id");
 
 			return m;
+		}
+	}
+
+	public class ExcelUtil 
+	{
+		private static Dictionary<string, int> _excelCells;
+
+		static ExcelUtil()
+		{
+			_excelCells = new Dictionary<string, int>();
+			FillExcelCellsDictionary();
 		}
 
 		public static int ExcelCell(string cellName)

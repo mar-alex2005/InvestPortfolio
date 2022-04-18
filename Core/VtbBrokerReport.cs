@@ -87,7 +87,7 @@ namespace Invest.Core
 				{
 					if (rowIndex >= startIndex)
 					{
-						var titleCell = reader.GetValue(VtbExcelMapping.ExcelCell("B"));
+						var titleCell = reader.GetValue(ExcelUtil.ExcelCell("B"));
 						if (titleCell != null)
 						{
 							var title = titleCell.ToString().Trim();
@@ -125,17 +125,17 @@ namespace Invest.Core
 
             while(rd.Read())
             { 
-                var opDate = VtbExcelMapping.GetCellValue(cells.Date, rd);
+                var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
                 if (opDate == null)
                     break;
                 
                 if (!DateTime.TryParse(opDate, out var date))
                     continue;
 
-                var opSumma = VtbExcelMapping.GetCellValue(cells.Summa, rd);		//rd.GetValue(3);
-                var opCur= VtbExcelMapping.GetCellValue(cells.Cur, rd);
-                var opType = VtbExcelMapping.GetCellValue(cells.Type, rd);			// 15
-                var opComment = VtbExcelMapping.GetCellValue(cells.Comment, rd);	//rd.GetValue(33);
+                var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd);		//rd.GetValue(3);
+                var opCur= ExcelUtil.GetCellValue(cells.Cur, rd);
+                var opType = ExcelUtil.GetCellValue(cells.Type, rd);			// 15
+                var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);	//rd.GetValue(33);
 
                 if (!string.IsNullOrEmpty(opType))
                 {
@@ -227,7 +227,7 @@ namespace Invest.Core
 			// "Заключенные в отчетном периоде сделки с ценными бумагами"
 			while (rd.Read())
 			{
-				var cellName = VtbExcelMapping.GetCellValue("B", rd);
+				var cellName = ExcelUtil.GetCellValue("B", rd);
 				if (cellName == null || cellName.Trim() == "")
 					break;
 
@@ -256,14 +256,14 @@ namespace Invest.Core
 				// add company from ticker
 				//AddCompany(s);
 
-				var opDate = VtbExcelMapping.GetCellValue(cells.Date, rd);
-				var opType = VtbExcelMapping.GetCellValue(cells.Type, rd);
-				var opQty = VtbExcelMapping.GetCellValue(cells.Qty, rd);			//rd.GetValue(10);
-				var opPrice = VtbExcelMapping.GetCellValue(cells.Price, rd);		//rd.GetValue(17);
-				var opBankCommission1 = VtbExcelMapping.GetCellValue(cells.BankCommission1, rd);
-				var opBankCommission2 = VtbExcelMapping.GetCellValue(cells.BankCommission2, rd);
-				var deliveryDate = VtbExcelMapping.GetCellValue(cells.DeliveryDate, rd);
-				var nkd = VtbExcelMapping.GetCellValue(cells.Nkd, rd);
+				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
+				var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);			//rd.GetValue(10);
+				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);		//rd.GetValue(17);
+				var opBankCommission1 = ExcelUtil.GetCellValue(cells.BankCommission1, rd);
+				var opBankCommission2 = ExcelUtil.GetCellValue(cells.BankCommission2, rd);
+				var deliveryDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
+				var nkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
 
 				//if (s.Ticker == "ATVI" && opDate.StartsWith("21.01.2022")) { var rr1 =1;}
 
@@ -290,8 +290,8 @@ namespace Invest.Core
 					Currency = s.Currency,
 					DeliveryDate = DateTime.Parse(deliveryDate),
 
-					OrderId = VtbExcelMapping.GetCellValue(cells.OrderId, rd),
-					TransId = VtbExcelMapping.GetCellValue(cells.TransId, rd)
+					OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
+					TransId = ExcelUtil.GetCellValue(cells.TransId, rd)
 				};
 
 				if (op.TransId == null)
@@ -329,16 +329,16 @@ namespace Invest.Core
 
 			while (rd.Read())
 			{
-				var opDate = VtbExcelMapping.GetCellValue(cells.OrderDate, rd); //date
+				var opDate = ExcelUtil.GetCellValue(cells.OrderDate, rd); //date
 				if (opDate == null)
 					break;
 
 				if (!DateTime.TryParse(opDate, out var date))
 					continue;
 
-				var opSumma = VtbExcelMapping.GetCellValue(cells.Summa, rd); //rd.GetValue(3);
-				var opType = VtbExcelMapping.GetCellValue(cells.Type, rd); // 15
-				var opFinIns = VtbExcelMapping.GetCellValue(cells.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM"
+				var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd); //rd.GetValue(3);
+				var opType = ExcelUtil.GetCellValue(cells.Type, rd); // 15
+				var opFinIns = ExcelUtil.GetCellValue(cells.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM"
 				var cur = Currency.Usd;
 				//var opCur = VtbExcelMapping.GetCellValue(cells.Cur, rd);
 				//var opComment = GetCellValue(cellMapping.Comment, rd); //rd.GetValue(33);
@@ -370,8 +370,8 @@ namespace Invest.Core
 					if (type == null)
 						continue;
 
-					var bankCommission1Str = VtbExcelMapping.GetCellValue(cells.BankCommission1, rd);
-					var bankCommission2Str = VtbExcelMapping.GetCellValue(cells.BankCommission2, rd);
+					var bankCommission1Str = ExcelUtil.GetCellValue(cells.BankCommission1, rd);
+					var bankCommission2Str = ExcelUtil.GetCellValue(cells.BankCommission2, rd);
 
 					var op = new Operation
 					{
@@ -380,19 +380,19 @@ namespace Invest.Core
 						Date = date,
 						Summa = decimal.Parse(opSumma),
 						Currency = cur,
-						Qty = int.Parse(VtbExcelMapping.GetCellValue(cells.Qty, rd)),
+						Qty = int.Parse(ExcelUtil.GetCellValue(cells.Qty, rd)),
 						Type = type.Value,
-						Price = decimal.Parse(VtbExcelMapping.GetCellValue(cells.Price, rd)),
-						OrderId = VtbExcelMapping.GetCellValue(cells.OrderId, rd),
-						TransId = VtbExcelMapping.GetCellValue(cells.TransId, rd),
+						Price = decimal.Parse(ExcelUtil.GetCellValue(cells.Price, rd)),
+						OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
+						TransId = ExcelUtil.GetCellValue(cells.TransId, rd),
 						BankCommission1 = !string.IsNullOrEmpty(bankCommission1Str) 
-							? decimal.Parse(VtbExcelMapping.GetCellValue(cells.BankCommission1, rd)) 
+							? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission1, rd)) 
 							: (decimal?)null,
 						BankCommission2 = !string.IsNullOrEmpty(bankCommission2Str) 
-							? decimal.Parse(VtbExcelMapping.GetCellValue(cells.BankCommission2, rd)) 
+							? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission2, rd)) 
 							: (decimal?)null,
 						
-						Comment = "Дата: " + VtbExcelMapping.GetCellValue(cells.OrderDate, rd) + " (" + VtbExcelMapping.GetCellValue(cells.FinInstrument, rd) + ")"
+						Comment = "Дата: " + ExcelUtil.GetCellValue(cells.OrderDate, rd) + " (" + ExcelUtil.GetCellValue(cells.FinInstrument, rd) + ")"
 					};
 
 					_builder.AddOperation(op);
