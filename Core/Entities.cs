@@ -15,11 +15,22 @@ namespace Invest.Core.Entities
 		public int BitCode;
 		public int SortIndex;
 		public AccountType Type;
+		public VirtualAccount VirtualAccount;
 	}
 
     public class Account : BaseAccount
     {
     }
+
+	/// <summary>The virtual account that union any broker accounts</summary>
+    public class VirtualAccount
+    {
+	    public string Id;
+	    public string Name;
+	    public int BitCode;
+	    public int SortIndex;
+    }
+
 
     public abstract class BaseCompany
     {

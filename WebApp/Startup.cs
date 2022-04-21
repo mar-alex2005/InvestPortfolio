@@ -55,7 +55,7 @@ namespace Invest.WebApp
 	        var dir = Path.Combine(Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal)), "Downloads");
 	        builder.AddReport(new VtbBrokerReport(dir, builder));
 	        builder.AddReport(new SberBrokerReport(dir, builder));
-	        //builder.AddReport(new AlfaBrokerReport(){});
+	        builder.AddReport(new AlfaBrokerReport(dir, builder));
 			
 	        builder.Calc();
 

@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Xml;
 using Invest.Core.Entities;
 using Invest.Core.Enums;
 using log4net;
@@ -17,12 +14,13 @@ namespace Invest.Core
 		
         /// <summary>Time of first operftion in portfolio</summary>
         private static DateTime _startOperationDate;
-        
+
 		public Builder() {
             Log = LogManager.GetLogger("Invest.Core: start");
 
             _startOperationDate = new DateTime(2019, 12, 1);
 
+            VirtualAccounts = new List<VirtualAccount>();
             Operations = new List<Operation>();
             FifoResults = new Dictionary<Analytics, FifoResult>();
             FinIndicators = new Dictionary<Analytics, FinIndicator>();
@@ -38,6 +36,8 @@ namespace Invest.Core
         public Dictionary<Analytics, FifoResult> FifoResults;
 		public Dictionary<Analytics, FinIndicator> FinIndicators;
         public List<Period> Periods;		
+
+        public List<VirtualAccount> VirtualAccounts;
         public List<BaseAccount> Accounts;
         public List<BaseCompany> Companies;
         public List<BaseStock> Stocks;
@@ -47,74 +47,25 @@ namespace Invest.Core
         public static Dictionary<DateTime, Dictionary<Currency, decimal>> CurrencyRates;
 		public List<History> History;
 
-        /// <summary>
-        /// Load currency rates from cbr
-        /// </summary>
-        private void LoadCurrencyRates(Currency cur)
-        {
-	        // https://cbr.ru/development/SXML/
-	        // http://www.cbr.ru/scripts/XML_dynamic.asp?date_req1=02/03/2019&date_req2=14/03/2021&VAL_NM_RQ=R01235 usd
-	        // http://www.cbr.ru/scripts/XML_dynamic.asp?date_req1=02/03/2019&date_req2=14/03/2021&VAL_NM_RQ=R01239 eur
 
-	        var curCode = "1235";
+		public void AddVirtualAccount(VirtualAccount account)
+		{
+			if (GetVirtualAccountById(account.Id) != null)
+				throw new Exception($"The virtual Account with Id={account.Id} is alreade exist");
 
-	        if (cur == Currency.Usd)
-				curCode = "1235";
-			else if (cur == Currency.Eur)
-				curCode = "1239";
-			
-            var url = string.Format("http://www.cbr.ru/scripts/XML_dynamic.asp?date_req1={0:dd/MM/yyyy}&date_req2={1:dd/MM/yyyy}&VAL_NM_RQ=R0{2}",
-                _startOperationDate, // "01/12/2019", 
-                DateTime.Today,
-                curCode
-            );
+			VirtualAccounts.Add(account);
+		}
 
-            var req = (HttpWebRequest)WebRequest.Create(url);
-            req.UseDefaultCredentials = true;
-            req.UserAgent = "Chrome"; // error 403
-            //req.Proxy.Credentials = CredentialCache.DefaultCredentials;
-            var resp = (HttpWebResponse)req.GetResponse();
+		public VirtualAccount GetVirtualAccountById(string id) {
 
-            using (var stream = new StreamReader(resp.GetResponseStream()))
-            {
-                var response = stream.ReadToEnd();
-                var doc = new XmlDocument();
-                doc.LoadXml(response);
+			for (var i = 0; i < VirtualAccounts.Count; i++)
+			{
+				if (VirtualAccounts[i].Id.Equals(id, StringComparison.OrdinalIgnoreCase))
+					return VirtualAccounts[i];
+			}
 
-                var nodes = doc.SelectNodes("//Record");
-                if (nodes == null) 
-                    return;
-
-                foreach (XmlNode d in nodes)
-                {
-                    if (d.Attributes?["Date"] == null) 
-                        continue;
-
-                    var date = DateTime.Parse(d.Attributes?["Date"].Value);
-                    var valueNode = d.ChildNodes[1];
-                    if (valueNode != null)
-                    {
-                        var f = new CultureInfo("en-US", false).NumberFormat;
-                        f.NumberDecimalSeparator = ",";
-                        if (decimal.TryParse(valueNode.InnerText, NumberStyles.AllowDecimalPoint, f, out var v))
-                        {
-	                        Dictionary<Currency, decimal> rate;
-
-							if (CurrencyRates.ContainsKey(date))
-								rate = CurrencyRates[date];
-							else 
-							{
-								rate = new Dictionary<Currency, decimal>();
-								CurrencyRates.Add(date, rate);
-							}
-
-							rate.Add(cur, v);
-						}
-                    }
-                }
-            }
-        }
-
+			return null;
+		}
 
         public BaseStock GetStock(string ticker) {
 
@@ -1151,31 +1102,57 @@ namespace Invest.Core
 			if (!File.Exists(fileName))
 				throw new Exception($"LoadAccounts(): file '{fileName}' not found.");
 
-			List<BaseAccount> list;
+			List<BaseAccount> accList;
 
 			using(var fs = File.OpenText(fileName))
 			{
 				var content = fs.ReadToEnd();
 				var data = Newtonsoft.Json.JsonConvert.DeserializeObject(content);
 
-				list = new List<BaseAccount>();
-                
-				foreach(var item in ((Newtonsoft.Json.Linq.JObject)data)["accounts"])
+				if (data == null)
+					throw new Exception($"LoadAccounts(): data content not found into file '{fileName}'.");
+
+				var virtualAccounts = new List<VirtualAccount>();
+				var virAccounts = ((Newtonsoft.Json.Linq.JObject)data)["virtualAccounts"];
+				if (virAccounts != null)
 				{
-					list.Add( 
-						new Account{ 
-							Name = item["name"].ToString(), 
+					foreach(var item in virAccounts)
+					{
+						virtualAccounts.Add(
+							new VirtualAccount{ 
+								Id = item["id"].ToString(), Name = item["name"].ToString(), 
+								SortIndex = int.Parse(item["sortIndex"].ToString()),
+								BitCode = int.Parse(item["bitCode"].ToString())
+							}
+						);
+					}
+				}
+
+				accList = new List<BaseAccount>();
+
+				var accountsData = ((Newtonsoft.Json.Linq.JObject)data)["accounts"];
+				if (accountsData == null)
+					throw new Exception($"LoadAccounts(): content block 'accounts' not exist into file '{fileName}'");
+
+				foreach(var item in accountsData)
+				{
+					var vaId = item["vAcc"].ToString();
+					var va = virtualAccounts.Single(x => x.Id == vaId);
+
+					accList.Add( 
+						new Account {
 							Id = item["id"].ToString(), 
+							Name = item["name"].ToString(),
 							BrokerName = item["brokerName"].ToString(), 
 							SortIndex = int.Parse(item["sortIndex"].ToString()),
 							BitCode = int.Parse(item["bitCode"].ToString()),
-							Broker = item["broker"].ToString()
-							//Type = (AccountType)Enum.Parse(typeof(AccountType), acc["type"].ToString(), true)
+							Broker = item["broker"].ToString(),
+							VirtualAccount = va
 						});
 				}
 			}
 
-			return list;
+			return accList;
 		}
 
 		/// <summary></summary>
@@ -1228,6 +1205,16 @@ namespace Invest.Core
 		public void SetAccounts(List<BaseAccount> accounts)
 		{
 			Accounts = accounts;
+
+			if (VirtualAccounts == null)
+				VirtualAccounts = new List<VirtualAccount>();
+
+			// add each virtual account to the list
+			foreach(var a in Accounts)
+			{
+				if (GetVirtualAccountById(a.Id) == null)
+					VirtualAccounts.Add(a.VirtualAccount);
+			}
 		}
 
 		public void SetPortfolios(List<BasePortfolio> portolios)
