@@ -262,32 +262,42 @@
     <td>
         <table class="tbl-ticker-d">
             <tr>
-                <td>Last Position:</td>
-                <td class="td-name" colspan="7"></td>
+                <td colspan="2">Positions:</td>
+                <td class="td-name" colspan="6"></td>
             </tr>
             
-            @foreach (var a in Model.Accounts)
+            @foreach (var va in Model.VirtualAccounts)
 			{
-				if (stock.AccountData[a.BitCode].QtyBalance == 0) { continue; }
+				var qty = 0;
+				decimal? notLossPrice;
+				foreach (var a in Model.Accounts.Where(x => x.VirtualAccount == va))
+				{
+					if (stock.AccountData[a.BitCode].QtyBalance == 0) { continue; }
 
-				var accData = stock.AccountData[a.BitCode];
+					var accData = stock.AccountData[a.BitCode];
 
-				var lastPos = accData.Positions.LastOrDefault();
-				var notClosedItems = lastPos.Items;
+					qty += stock.AccountData[a.BitCode].QtyBalance;
+				}
 
-				//notClosedOps = Model.Operations.Where(x => !x.IsClosed && x.AccountType == a.Type)
-				//	.OrderByDescending(x => x.Date);
+                //if (qty == 0){ continue; }
 
-			    notClosedBuyOps = notClosedItems.Where(x => x.Operation.Type == OperationType.Buy).Select(x => x.Operation).ToList();
-				notClosedSellOps = notClosedItems.Where(x => x.Operation.Type == OperationType.Sell).Select(x => x.Operation).ToList();
+				var positions = stock.Positions.Where(x => x.VirtualAccount == va).ToList();
+				var lastPos = positions.LastOrDefault();
+				//var notClosedItems = lastPos.Items;
+
+				if (lastPos != null)
+				{
+					notClosedBuyOps = lastPos.Items.Where(x => x.Operation.Type == OperationType.Buy).Select(x => x.Operation).ToList();
+					notClosedSellOps = lastPos.Items.Where(x => x.Operation.Type == OperationType.Sell).Select(x => x.Operation).ToList();
+				}
 
 				notClosedBuySum = notClosedBuyOps.Sum(x => x.Price * x.Qty);
 				notClosedSellSum = notClosedSellOps.Sum(x => x.Price * x.Qty);
 				notClosedSaldo = notClosedSellSum - notClosedBuySum;
 
-				if (stock.AccountData[a.BitCode].QtyBalance != 0) {
-					stock.AccountData[a.BitCode].NotLossPrice = notClosedSaldo / stock.Data.QtyBalance;
-					notClosedPrice = notClosedSaldo / stock.AccountData[a.BitCode].QtyBalance;
+				if (qty != 0) {
+					notLossPrice = notClosedSaldo / stock.Data.QtyBalance;
+					notClosedPrice = notClosedSaldo / qty;
 				}
 
 				if (notClosedSaldo > 0) {
@@ -300,7 +310,7 @@
 				//}
 
                 <tr>
-                    <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@a.Name</td>
+                    <td style="color:cornflowerblue; font-weight: bold; text-align:center;">@va.Name</td>
                     <td>Qty</td>
                     <td>Buy</td>
                     <td>Sell</td>
@@ -312,13 +322,13 @@
                 </tr>
                 <tr>
                     <td></td>
-                    <td class="td-qty">@(stock.AccountData[a.BitCode].QtyBalance)</td>
+                    <td class="td-qty">@(lastPos?.CurentQty)</td>
                     <td class="td-cur-sum buy">@($"{notClosedBuySum:N2}")</td>
                     <td class="td-cur-sum sell">@($"{notClosedSellSum:N2}")</td>
                     <td></td>
                     <td class="td-cur-sum">@($"{notClosedBuyOps.Min(x => x.Price):N2}")</td>
                     <td class="td-cur-sum">@($"{notClosedBuyOps.Max(x => x.Price):N2}")</td>
-                    <td class="td-cur-pos-price">@($"{stock.AccountData[a.BitCode].PosPrice:N4}")</td>
+                    <td class="td-cur-pos-price">@($"{lastPos?.PosPrice:N4}")</td>
                     <td class="td-cur-pos-notloss" title="saldo: @($"{notClosedSaldo:N2}")">@($"{Math.Abs(notClosedPrice.Value):N2}")</td>
                 </tr>
             }
@@ -384,26 +394,22 @@
 	var operations = Model.Operations;
 	DateTime? lastDate = null;
 
-	foreach (var a in Model.Accounts)
-	{
-		var ops = operations.Where(x => x.Account == a).ToList();
-		if (!ops.Any())
-		{
-			continue;
-		}
-
-		var accData = stock.AccountData[a.BitCode];
-
-	    <tr>
-            <td class="td-acc-name" colspan="14">@a.Id</td>
+    foreach (var va in Model.VirtualAccounts)
+    {
+        <tr>
+            <td class="td-acc-name" colspan="14">@va.Id</td>
         </tr>
 
-		foreach (var pos in accData.Positions.OrderByDescending(x => x.Num))
-		{
-			var posItems = pos.Items.OrderByDescending(x => x.Operation.Date).ThenByDescending(x => x.Operation.TransId).ToList(); //ops.Where(x => x.PositionNum == num).ToList();
+		//var ops = operations.Where(x => x.Account == a).ToList();
+		//if (!ops.Any()) { continue; }
+        //var accData = stock.AccountData[a.BitCode];
 
-			var posFinTotal = accData.Positions.Where(x => x.Num <= pos.Num).Sum(x => x.FinResult);
-			var posFifoTotal = accData.Positions.Where(x => x.Num <= pos.Num).Sum(x => x.FifoResult?.TotalSumma);
+		foreach (var pos in stock.Positions.Where(x => x.VirtualAccount == va).OrderByDescending(x => x.Num))
+		{
+			var posItems = pos.Items.OrderByDescending(x => x.Operation.Date).ThenByDescending(x => x.Operation.TransId).ToList();
+
+			var posFinTotal = stock.Positions.Where(x => x.VirtualAccount == va && x.Num <= pos.Num).Sum(x => x.FinResult);
+			var posFifoTotal = stock.Positions.Where(x => x.VirtualAccount == va && x.Num <= pos.Num).Sum(x => x.FifoResult?.TotalSumma);
 
 			if (stock.Type == StockType.Bond)
 			{
@@ -422,8 +428,8 @@
             </tr>
 		    <tr class="tr-pos">
                 <td class="td-pos">
-                    @($"п. {pos.Num} ({a.Type})")<br>
-                    <span class="@(!pos.IsClosed ? "icon-minus-squared" : "icon-plus-squared") icon" onclick="showHidePos('@a.Type', @pos.Num, this)"></span>
+                    @($"п. {pos.Num} ({va.Id})")<br>
+                    <span class="@(!pos.IsClosed ? "icon-minus-squared" : "icon-plus-squared") icon" onclick="showHidePos('@va.BitCode', @pos.Num, this)"></span>
                 </td>
                 <td class="td-start-date" colspan="1">Период:<br>@($"{pos.StartDate:dd.MM.yyyy} - {pos.CloseDate:dd.MM.yyyy}")</td>
                 <td class="" style="text-align:right;" colspan="3">
@@ -469,7 +475,7 @@
 					cssSum = "td-sum-div";
 				}
 
-		        <tr class="tr-pos-oper" posNum="@pos.Num" accType="@a.Type" style="@(pos.IsClosed ? "display: none;" : "")">
+		        <tr class="tr-pos-oper" posNum="@pos.Num" accType="@va.BitCode" style="@(pos.IsClosed ? "display: none;" : "")">
                     <td class="td-date"></td>
                     <td class="td-date" title="delivery: @($"{o.Operation.DeliveryDate:dd.MM.yyyy}"), oper. date: @($"{o.Operation.Date:dd.MM.yyyy HH:mm:ss}"), transId: @o.Operation.TransId" style="@trCss">
                         @if (lastDate == null || (lastDate != null
@@ -515,7 +521,7 @@
                     }
                     
                     @if(stock.Type == StockType.Bond) {
-                        <td class="@cssTdPrice" title="price: @($"{o.Operation.Price:N2}") %" style="@trCss">@($"{o.Operation.Price * 10:N5}")</td>
+                        <td class="@cssTdPrice" title="price: @($"{o.Operation.Price:N2}") %" style="@trCss">@($"{o.Operation.Price:N5}")</td>
 					}
 					else {
 					    <td class="@cssTdPrice" title="" style="@trCss">@($"{o.Operation.Price:N5}")</td>
@@ -596,6 +602,7 @@
 		        lastDate = o.Operation.Date;
 		    }
         }
+    }
     }
 }
 </table>

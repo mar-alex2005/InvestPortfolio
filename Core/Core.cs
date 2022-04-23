@@ -134,6 +134,8 @@ namespace Invest.Core
         }
 
 
+
+
         
 		
         public void Calc() 
@@ -144,41 +146,69 @@ namespace Invest.Core
 					Stock = s
                 };
 
-                s.AccountData = new Dictionary<int, AccountData>();
+				s.AccountData = new Dictionary<int, AccountData>();
+				s.Positions = new List<Position>();
 
-                foreach(var a in Accounts) 
+				foreach(var va in VirtualAccounts) 
                 {
-                    var accData = new AccountData((AccountType)a.BitCode, s);
-                    s.AccountData.Add(a.BitCode, accData);
+	                var stockOperations = new List<Operation>();
 
-                    accData.Operations = Operations
-                        .Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase) 
-                            && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-                            && x.Account.BitCode == a.BitCode)
-                        .OrderBy(x => x.Date).ThenBy(x => x.TransId)
-                        .ToList();
+	                foreach(var a in Accounts.Where(x => x.VirtualAccount == va)) 
+	                {
+	                    var accData = new AccountData(a, s);
+	                    s.AccountData.Add(a.BitCode, accData);
 
-					if (s.Type == StockType.Bond) {
-						accData.BuySum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
-						accData.SellSum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Summa);
-					}
-					else {
-						accData.BuySum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty * x.Price);
-						accData.SellSum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty * x.Price);
-					}
+	                    accData.Operations = Operations
+	                        .Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase) 
+	                            && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
+	                            && x.Account.BitCode == a.BitCode)
+	                        .OrderBy(x => x.Date).ThenBy(x => x.TransId)
+	                        .ToList();
 
-					accData.BuyQty = accData.Operations.Where(x => x.Qty != null && x.Type == OperationType.Buy).Sum(x => x.Qty).Value;
-                    accData.SellQty = accData.Operations.Where(x => x.Qty != null && x.Type == OperationType.Sell).Sum(x => x.Qty).Value;
+	                    if (accData.Operations == null || accData.Operations.Count == 0)
+							continue;
 
-                    accData.Positions = CreatePositions(accData.Operations);
+						if (s.Type == StockType.Bond) {
+							accData.BuySum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
+							accData.SellSum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Summa);
+						}
+						else {
+							accData.BuySum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty * x.Price);
+							accData.SellSum = accData.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty * x.Price);
+						}
 
-                    foreach (var pos in accData.Positions)
-                    {
-	                    pos.CalcPosPrice();
-						pos.CalcFinResult();
-						CalcFifoResult(pos, accData);
-					}
+						accData.BuyQty = accData.Operations.Where(x => x.Qty != null && x.Type == OperationType.Buy).Sum(x => x.Qty).Value;
+	                    accData.SellQty = accData.Operations.Where(x => x.Qty != null && x.Type == OperationType.Sell).Sum(x => x.Qty).Value;
+
+	                    accData.Positions = CreatePositions(accData.Operations, va);
+
+	                    foreach (var pos in accData.Positions)
+	                    {
+		                    pos.CalcPosPrice();
+		                    pos.CalcFinResult();
+		                    CalcFifoResult(pos, s, null, a);
+	                    }
+
+	                    stockOperations.AddRange(accData.Operations);
+	                }
+
+					if (stockOperations.Count == 0)
+						continue;
+
+	                s.Positions.AddRange(CreatePositions(stockOperations, va, null, null));
+
+					if (s.Ticker == "Газпнф1P1R") { var t =0; }
+
+	                foreach (var pos in s.Positions)
+	                {
+		                pos.CalcPosPrice();
+		                pos.CalcFinResult();
+		                CalcFifoResult(pos, s, va, null);
+	                }
 				}
+
+
+
 
                 var operations = Operations.Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase))
 	                .ToList();
@@ -320,9 +350,8 @@ namespace Invest.Core
 			LinkCouponsToTickers();
         }
 
-		private void CalcFifoResult(PositionData pos, AccountData accData)
+		private void CalcFifoResult(Position pos, BaseStock stock, VirtualAccount vAccount, BaseAccount account)
 		{
-			var stock = accData.Stock;
 			var notClosedOps = new Queue<PositionItem>();
 			PositionItem lastItem = null;
 
@@ -382,7 +411,9 @@ namespace Invest.Core
 							result.RurCommission = Math.Round(result.Commission, 2);
 						}
 
-						var analitic = new Analytics(op.Stock.Ticker, accData.AccountType, op.Currency, op.DeliveryDate.Value);
+						var analitic = vAccount != null 
+							? new Analytics(op.Stock.Ticker, vAccount, op.Currency, op.DeliveryDate.Value) 
+							: new Analytics(op.Stock.Ticker, account, op.Currency, op.DeliveryDate.Value);
 
 						if (!FifoResults.ContainsKey(analitic))
 						{
@@ -428,16 +459,11 @@ namespace Invest.Core
 			}
 		}
 
-        private void ClosePosition(PositionData pos)
-        {
-	        pos.IsClosed = true;
-        }
-
         private void AddCommissionIndicator(Operation op)
 		{
 			if (op.Commission != 0)
 			{
-				var a = new Analytics(op.Stock.Ticker, op.AccountType, op.Currency, op.DeliveryDate.Value);
+				var a = new Analytics(op.Stock.Ticker, op.Account, op.Currency, op.DeliveryDate.Value);
 
 				if (FinIndicators.ContainsKey(a))						
 					FinIndicators[a].Commission = (FinIndicators[a].Commission ?? 0) + op.Commission;						
@@ -463,7 +489,7 @@ namespace Invest.Core
                     throw new Exception($"LinkDivsToTickers(): not found stock by {op.Comment}, {op.Date}");
 
                 op.Stock = s;
-                var a = new Analytics(op.Stock.Ticker, op.AccountType, op.Currency, op.Date);
+                var a = new Analytics(op.Stock.Ticker, op.Account, op.Currency, op.Date);
 
 				//Divs indicators
 				if (FinIndicators.ContainsKey(a))						
@@ -479,7 +505,7 @@ namespace Invest.Core
 			var ops = Operations.Where(x => x.Type == OperationType.Coupon && x.Comment != null);
 			foreach(var op in ops)
 			{
-				//if (op.Summa == .58m) { var r =0; }
+				if (op.Summa == 528.32m) { var r =0; }
 				var s = Stocks.FirstOrDefault(x => x.Type == StockType.Bond && !string.IsNullOrEmpty(x.RegNum)
 				    && x.Company != null 
 					&& op.Comment.ToLower().Contains(x.RegNum.ToLower())
@@ -489,7 +515,7 @@ namespace Invest.Core
 					throw new Exception($"LinkCouponsToTickers(): not found stock by {op.Comment}, {op.Date}");
 
 				op.Stock = s;
-				var a = new Analytics(op.Stock.Ticker, op.AccountType, op.Currency, op.Date);
+				var a = new Analytics(op.Stock.Ticker, op.Account, op.Currency, op.Date);
 
 				//Divs indicators
 				if (FinIndicators.ContainsKey(a))						
@@ -500,7 +526,7 @@ namespace Invest.Core
 		}
 
 
-		private void CalcPositionFifoResult(PositionData pos, AccountData accData)
+		private void CalcPositionFifoResult(Position pos, AccountData accData)
         {
 	        var stock = accData.Stock;
 	        var notClosedOps = new Queue<PositionItem>();
@@ -564,7 +590,7 @@ namespace Invest.Core
 							result.RurCommission = Math.Round(result.Commission, 2);
 						}
 
-						var analitic = new Analytics(op.Stock.Ticker, accData.AccountType, op.Currency, op.DeliveryDate.Value);
+						var analitic = new Analytics(op.Stock.Ticker, accData.Account, op.Currency, op.DeliveryDate.Value);
 
 						if (!FifoResults.ContainsKey(analitic))
 						{
@@ -679,7 +705,7 @@ namespace Invest.Core
         }
 
 
-        private void CalcFifoResult(ref List<Operation> ops, Operation op, Stock s, AccountData accData, AccountType accountType)
+        private void CalcFifoResult(ref List<Operation> ops, Operation op, Stock s, AccountData accData, BaseAccount account)
         {
             if (op.Type != OperationType.Sell)
                 return;
@@ -733,7 +759,7 @@ namespace Invest.Core
                     result.RurCommission = Math.Round(result.Commission, 2);
                 }
 
-                var analitic = new Analytics(op.Stock.Ticker, accountType, op.Currency, op.DeliveryDate.Value);
+                var analitic = new Analytics(op.Stock.Ticker, account, op.Currency, op.DeliveryDate.Value);
 
                 if (!FifoResults.ContainsKey(analitic)) {
                     FifoResults.Add(analitic, result);
@@ -772,7 +798,7 @@ namespace Invest.Core
             }
         }
 
-		private void CalcFifoResultForShort(ref List<Operation> ops, Operation op, Stock s, AccountData accData, AccountType accountType)
+		private void CalcFifoResultForShort(ref List<Operation> ops, Operation op, Stock s, AccountData accData, BaseAccount account)
         {
             if (op.Type != OperationType.Buy)
                 return;
@@ -825,7 +851,7 @@ namespace Invest.Core
                     result.RurCommission = Math.Round(result.Commission, 2);
                 }
 
-                var analitic = new Analytics(op.Stock.Ticker, accountType, op.Currency, op.DeliveryDate.Value);
+                var analitic = new Analytics(op.Stock.Ticker, account, op.Currency, op.DeliveryDate.Value);
 
                 if (!FifoResults.ContainsKey(analitic)) 
                 {
@@ -860,9 +886,9 @@ namespace Invest.Core
             }
         }
 
-		private PositionData CalcPosition(ref List<Operation> ops, AccountData accData, int posNum)
+		private Position CalcPosition(ref List<Operation> ops, AccountData accData, int posNum)
 		{
-			var pos = new PositionData();
+			var pos = new Position();
 			var posOps = ops.Where(x => x.PositionNum == posNum).ToArray();
 			if (posOps.Length == 0)
 				return null;
@@ -902,9 +928,9 @@ namespace Invest.Core
 
         
 
-        private FifoResult GetFifoResult(string ticker, AccountType accountType, Currency cur, DateTime date)
+        private FifoResult GetFifoResult(string ticker, BaseAccount account, Currency cur, DateTime date)
         {
-            var a = new Analytics(ticker, accountType, cur, date);
+            var a = new Analytics(ticker, account, cur, date);
             return FifoResults.ContainsKey(a) 
                     ? FifoResults[a] 
                     : null;
@@ -1026,13 +1052,13 @@ namespace Invest.Core
 		//	}
 
 		//	return null;
-  //      }
+		//      }
 
-		private List<PositionData> CreatePositions(List<Operation> ops)
+		private List<Position> CreatePositions(IEnumerable<Operation> ops, VirtualAccount vAccount, Currency? cur = null, Exchange? exchange = null)
 		{
+			var positions = new List<Position>();
 			var posNum = 0;
-			var positions = new List<PositionData>(); 
-			PositionData pos = null;
+			Position pos = null;
 
 			foreach (var o in ops)
 			{
@@ -1042,7 +1068,7 @@ namespace Invest.Core
 				//new position (and short position)
 				if (pos == null)
 				{
-					pos = new PositionData(++posNum, o);
+					pos = new Position(++posNum, o) { VirtualAccount = vAccount };
 					positions.Add(pos);
 				}
 
@@ -1060,7 +1086,7 @@ namespace Invest.Core
 					pos.Close(o.Date);
 
 					// new pos item
-					pos = new PositionData(++posNum, o);
+					pos = new Position(++posNum, o);
 					positions.Add(pos);
 				}
 				
@@ -1081,7 +1107,6 @@ namespace Invest.Core
 		{
 			Companies = jsonStocksLoader.Companies;
 			Stocks = jsonStocksLoader.Stocks;
-			// Instance.LoadBaseData(@"C:\\Users\\Alex\\Downloads\\data.json");
 		}
 
 		public void AddCurRates(ICurrencyRate instance)
@@ -1094,6 +1119,9 @@ namespace Invest.Core
 			{
 				Log.Error($"AddCurRates(): {ex.Message}");
 			}
+
+			if (CurrencyRates == null || CurrencyRates.Count == 0)
+				throw new Exception("Core.AddCurRates(): CurrencyRates is null or empty");
 		}
 
 
@@ -1110,7 +1138,7 @@ namespace Invest.Core
 				var data = Newtonsoft.Json.JsonConvert.DeserializeObject(content);
 
 				if (data == null)
-					throw new Exception($"LoadAccounts(): data content not found into file '{fileName}'.");
+					throw new Exception($"LoadAccountsFromJson(): data content not found into file '{fileName}'.");
 
 				var virtualAccounts = new List<VirtualAccount>();
 				var virAccounts = ((Newtonsoft.Json.Linq.JObject)data)["virtualAccounts"];
@@ -1120,7 +1148,8 @@ namespace Invest.Core
 					{
 						virtualAccounts.Add(
 							new VirtualAccount{ 
-								Id = item["id"].ToString(), Name = item["name"].ToString(), 
+								Id = item["id"].ToString(), 
+								Name = item["name"].ToString(), 
 								SortIndex = int.Parse(item["sortIndex"].ToString()),
 								BitCode = int.Parse(item["bitCode"].ToString())
 							}
@@ -1132,7 +1161,7 @@ namespace Invest.Core
 
 				var accountsData = ((Newtonsoft.Json.Linq.JObject)data)["accounts"];
 				if (accountsData == null)
-					throw new Exception($"LoadAccounts(): content block 'accounts' not exist into file '{fileName}'");
+					throw new Exception($"LoadAccountsFromJson(): content block 'accounts' not exist into file '{fileName}'");
 
 				foreach(var item in accountsData)
 				{
@@ -1141,12 +1170,12 @@ namespace Invest.Core
 
 					accList.Add( 
 						new Account {
-							Id = item["id"].ToString(), 
-							Name = item["name"].ToString(),
-							BrokerName = item["brokerName"].ToString(), 
-							SortIndex = int.Parse(item["sortIndex"].ToString()),
-							BitCode = int.Parse(item["bitCode"].ToString()),
-							Broker = item["broker"].ToString(),
+							Id = item["id"]?.ToString(), 
+							Name = item["name"]?.ToString(),
+							BrokerName = item["brokerName"]?.ToString(), 
+							SortIndex = int.Parse(item["sortIndex"]?.ToString()),
+							BitCode = int.Parse(item["bitCode"]?.ToString()),
+							Broker = item["broker"]?.ToString(),
 							VirtualAccount = va
 						});
 				}
@@ -1185,7 +1214,7 @@ namespace Invest.Core
                 var portfolios = ((Newtonsoft.Json.Linq.JObject)data)["portfolios"];
 
 				if (portfolios == null)
-					throw new Exception("LoadPortfoliosFromJson(): portfolio data in null or empty");
+					throw new Exception("LoadPortfoliosFromJson(): portfolio data is null or empty");
 
 				foreach(var item in portfolios)
 				{
@@ -1210,11 +1239,11 @@ namespace Invest.Core
 				VirtualAccounts = new List<VirtualAccount>();
 
 			// add each virtual account to the list
-			foreach(var a in Accounts)
-			{
-				if (GetVirtualAccountById(a.Id) == null)
-					VirtualAccounts.Add(a.VirtualAccount);
-			}
+			foreach (var a in Accounts.Where(a => GetVirtualAccountById(a.VirtualAccount.Id) == null))
+				VirtualAccounts.Add(a.VirtualAccount);
+
+			if (VirtualAccounts == null || VirtualAccounts.Count == 0)
+				throw new Exception("Core.SetAccounts(): VirtualAccounts == null or is empty");
 		}
 
 		public void SetPortfolios(List<BasePortfolio> portolios)
@@ -1222,22 +1251,25 @@ namespace Invest.Core
 			Portfolios = portolios;
 		}
 
-		public Builder AddReport(IBrokerReport vtbBrokerReport)
+		public Builder AddReport(IBrokerReport report)
 		{
-			vtbBrokerReport.Process();
-
+			report.Process();
 			return this;
 		}
 
 		public void AddOperation(Operation op)
 		{
-			if (op.Type == OperationType.Buy || op.Type == OperationType.Sell
-				|| op.Type == OperationType.CurBuy || op.Type == OperationType.CurSell)
+			if (op.Stock?.Type == StockType.Share 
+			    && (op.Type == OperationType.Buy || op.Type == OperationType.Sell
+					|| op.Type == OperationType.CurBuy || op.Type == OperationType.CurSell)
+			)
 			{
 				if (!string.IsNullOrEmpty(op.TransId) && GetOperation(op.TransId) == null)
 					Operations.Add(op);
-				//else 
-				//	throw new Exception($"AddOperation(): Double transId detected: trId: {op.TransId}, type: {op.Type}, {op.Account.Id}, {op.Date}");
+				else {
+					Log.Error("AddOperation(): Error ");
+					//	throw new Exception($"AddOperation(): Double transId detected: trId: {op.TransId}, type: {op.Type}, {op.Account.Id}, {op.Date}");
+				}
 			}
 			else 
 				Operations.Add(op);

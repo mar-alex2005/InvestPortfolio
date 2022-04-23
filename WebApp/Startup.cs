@@ -48,7 +48,9 @@ namespace Invest.WebApp
 	        builder.SetPortfolios(portolios);
 
 	        builder.AddCurRates(
-		        new CbrCurrencyRate(new[]{ Currency.Usd, Currency.Eur }){ StartDate = new DateTime(2019, 1,1), EndDate = DateTime.Today });
+		        new CbrCurrencyRate(new[]{ Currency.Usd, Currency.Eur }){ StartDate = new DateTime(2019, 1,1), EndDate = DateTime.Today }
+				//new FakeCurrencyRate(new[]{ Currency.Usd, Currency.Eur }){ StartDate = new DateTime(2019, 12,1) }
+			);
 			
 	        builder.AddStocks(new JsonStocksLoader(fileName));
 			

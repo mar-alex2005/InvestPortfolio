@@ -51,9 +51,10 @@ namespace Invest.WebApp.Controllers
 				Ticker = tickerId,
 				Stock = stock,
 				Stocks = _builder.Stocks,
+				VirtualAccounts = _builder.VirtualAccounts,
 				Accounts = _builder.Accounts,
 				Operations = operations,
-				//FifoResults = _builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker).ToList()
+				FifoResults = _builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker)
 			};
 
 			return View(model);
@@ -80,6 +81,7 @@ namespace Invest.WebApp.Controllers
 			{
 				Ticker = tickerId,
 				Stock = stock,
+				VirtualAccounts = _builder.VirtualAccounts,
 				Accounts = _builder.Accounts,
 				Operations = operations,
 				FifoResults = _builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker)
@@ -717,6 +719,7 @@ namespace Invest.WebApp.Controllers
 			var model = new BondsViewModel
 			{
 				Stocks = stocks,
+				VirtualAccounts = _builder.VirtualAccounts,
 				Accounts = new List<AccountType?> { AccountType.Iis, AccountType.VBr, null }
 			};
 

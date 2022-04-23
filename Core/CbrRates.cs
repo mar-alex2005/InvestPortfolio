@@ -99,4 +99,44 @@ namespace Invest.Core
             }
 	    }
     }
+
+	public class FakeCurrencyRate : ICurrencyRate
+    {
+		private readonly Currency[] _currencyList;
+		public DateTime StartDate, EndDate;
+
+	    public FakeCurrencyRate(Currency[] currencyList)
+	    {
+		    _currencyList = currencyList;
+		    EndDate = DateTime.Today;
+	    }
+
+	    public Dictionary<DateTime, Dictionary<Currency, decimal>> Load()
+	    {
+		    var rates = new Dictionary<DateTime, Dictionary<Currency, decimal>>();
+
+		    foreach (var cur in _currencyList)
+			    if (cur != Currency.Rur)
+				    LoadCurrencyRates(cur, rates);
+
+			return rates;
+		}
+
+	    private void LoadCurrencyRates(Currency cur, Dictionary<DateTime, Dictionary<Currency, decimal>> rates)
+	    {
+		    var date = StartDate; //new DateTime(2022,1,1);
+
+            Dictionary<Currency, decimal> rate;
+			
+			if (rates.ContainsKey(date))
+				rate = rates[date];
+			else 
+			{
+				rate = new Dictionary<Currency, decimal>();
+				rates.Add(date, rate);
+			}
+
+			rate.Add(cur, 1);
+	    }
+    }
 }

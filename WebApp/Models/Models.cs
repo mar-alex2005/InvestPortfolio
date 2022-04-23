@@ -42,6 +42,7 @@ namespace Invest.WebApp.Models
 		public List<Operation> Operations;
 		public List<BaseStock> Stocks;
 		public List<BaseAccount> Accounts;
+		public List<VirtualAccount> VirtualAccounts;
 		public IEnumerable<KeyValuePair<Analytics, FifoResult>> FifoResults;
 	}
 
@@ -51,6 +52,7 @@ namespace Invest.WebApp.Models
 		//public Portfolio? Portfolio;
 		public List<BaseStock> Stocks;
 		public List<AccountType?> Accounts;
+		public List<VirtualAccount> VirtualAccounts;
 		public decimal? TotalProfitUsd, TotalProfitRur, TotalProfitInRur, TotalSaldo;
 		public Dictionary<AccountType, decimal> TotalProfits;
 		public decimal TotalProfitPercentUsd, TotalProfitPercentRur, TotalProfitPercent;

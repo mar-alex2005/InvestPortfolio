@@ -56,6 +56,14 @@ namespace Invest.Core.Enums
 		Eur = 4
 	}
 
+	[Flags]
+	public enum Exchange
+	{
+		Mos = 1,
+		Spb = 2,
+		Nyse = 4
+	}
+
 	/// <summary>Asset types</summary>
 	[Flags]
 	public enum StockType

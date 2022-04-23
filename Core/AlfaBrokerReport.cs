@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using ExcelDataReader;
 using Invest.Core.Entities;
 using Invest.Core.Enums;
 
@@ -48,7 +47,7 @@ namespace Invest.Core
 		    var dir = new DirectoryInfo(_reportDir);
 			var yy = year.ToString().Substring(2,2);
 
-		    var fileMask = $"Брокерский+4448836+(*.*.{yy}-*.*.{yy}).xml";
+		    var fileMask = $"Брокерский+4448836+(01.01.{yy}-*.*.{yy}).xml";
 		    var xslFiles = dir.GetFiles(fileMask);
 
 		    if (xslFiles.Length == 0)
@@ -61,28 +60,31 @@ namespace Invest.Core
 		    {
 			    using(var fs = File.Open(file.FullName, FileMode.Open, FileAccess.Read))
 			    {
-				    Parse(account, year, fs);
+				    Parse(account, fs);
 			    }
 		    }
 	    }
 
-	    private void Parse(BaseAccount account, int year, FileStream fs)
+	    private void Parse(BaseAccount account, FileStream fs)
 		{
-			var map = new SberExcelMapping(account.BitCode, year);
-
 			var doc = new XmlDocument();
 			doc.Load(fs);
 
+			if (doc.DocumentElement == null)
+				throw new Exception("Parse(): alfa doc.DocumentElement == null");
+
 			// завершенные сделки
 			var nodes = doc.DocumentElement.SelectNodes("/report_broker/trades_finished/trade");
+			if (nodes != null)
+				ReadOperations(nodes, account);
+				//throw new Exception("Parse(): alfa trade nodes == null");
 
-			if (nodes == null)
-				throw new Exception("Parse(): alfa trade nodes == null");
-
-			ReadOperations(nodes, account, map);
+			nodes = doc.DocumentElement.SelectNodes("/report_broker/money_moves/money_move");
+			if (nodes != null)
+				ReadMoneyMoves(nodes, account);
 		}
 
-	    private void ReadOperations(XmlNodeList nodes, BaseAccount account, SberExcelMapping map)
+	    private void ReadOperations(XmlNodeList nodes, BaseAccount account)
 	    {
 			var index = 0;
 
@@ -97,18 +99,16 @@ namespace Invest.Core
 				
 				var s = _builder.GetStock(name) ?? _builder.GetStockByIsin(name);
 				if (s == null)
-					throw new Exception($"ReadOperations(): stock or isin '{name}' is not found.");
+					throw new Exception($"ReadOperations(): alfa, stock or isin '{name}' is not found.");
 
 				var opDate = node["db_time"]?.InnerText;
-				//var opType = ExcelUtil.GetCellValue(cells.Type, rd);
 				var opQty = int.Parse(node["qty"].InnerText);
 				var opPrice = decimal.Parse(node["Price"].InnerText, CultureInfo.InvariantCulture);
 				var opSumma = decimal.Parse(node["summ_trade"].InnerText, CultureInfo.InvariantCulture);
 				var opBankCommission1 = decimal.Parse(node["bank_tax"].InnerText, CultureInfo.InvariantCulture);
 				var deliveryDate = node["settlement_time"]?.InnerText;
 				var opCur = node["curr_calc"]?.InnerText ?? "RUR";
-				//var nkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
-
+				
 				var cur = Currency.Rur;
 				if (opCur.Equals(Currency.Usd.ToString(), StringComparison.OrdinalIgnoreCase))
 					cur = Currency.Usd;
@@ -161,6 +161,113 @@ namespace Invest.Core
 				//	op.Nkd = decimal.Parse(nkd);
 
 				_builder.AddOperation(op);
+			}
+	    }
+
+		private void ReadMoneyMoves(XmlNodeList nodes, BaseAccount account)
+	    {
+		    foreach(XmlNode node in nodes)
+			{
+				if (node == null)
+					continue;
+
+				var opDate = node["settlement_date"]?.InnerText;
+                if (string.IsNullOrEmpty(opDate))
+                    break;
+                
+                if (!DateTime.TryParse(opDate, out var date))
+                    continue;
+
+                var opSumma = node["volume"]?.InnerText;
+                var opCur = node["p_code"]?.InnerText;
+                var opGroup = node["oper_group"]?.InnerText;
+                var opComment = node["comment"]?.InnerText;
+
+				if (!string.IsNullOrEmpty(opCur))
+					opCur = opCur.Replace("RUB", "Rur", StringComparison.OrdinalIgnoreCase);
+
+                if (string.IsNullOrEmpty(opComment))
+	                throw new Exception($"ReadMoneyMoves(): Alfa, opComment == null. a: {account.Id}, t: {opGroup}, {opDate}");
+
+                OperationType? type = null;
+				var summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture);
+				BaseStock stock = null;
+
+                if (opGroup == "Купоны" && opComment.StartsWith("погашение купона", StringComparison.OrdinalIgnoreCase))
+                    type = OperationType.Coupon;
+                if (opGroup == "" && opComment.StartsWith("полное погашение номинала", StringComparison.OrdinalIgnoreCase))
+				{
+	                type = OperationType.Sell;	                
+
+	                var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond 
+	                            && !string.IsNullOrEmpty(x.RegNum) && x.Company != null 
+	                            && (opComment.ToLower().Contains(x.RegNum.ToLower()) 
+	                                || (x.Isin?[0] != null && opComment.ToLower().Contains(x.Isin[0].ToLower()))
+	                            )
+	                );
+
+	                stock = s ?? throw new Exception($"ReadMoneyMoves(): Alfa, not found stock by {opComment}, {opDate}");
+				}
+
+                //            if (opType == "Вознаграждение Брокера")
+                //                type = OperationType.BrokerFee;
+                //            if (opType == "Дивиденды" 
+                //                || (opType.Equals("Зачисление денежных средств", StringComparison.OrdinalIgnoreCase) 
+                //                        && !string.IsNullOrEmpty(opComment) 
+                //                        && opComment.ToLower().Contains("дивиденды"))
+				//)
+			    //                type = OperationType.Dividend;
+			    //if (opType == "НДФЛ")
+				//{
+				//	if (!string.IsNullOrEmpty(opCur) && opCur == "RUR")
+				//                    type = OperationType.Ndfl;
+				//}
+
+                if (type == null)
+                    continue;
+
+				if (opCur == null)
+					throw new Exception($"ReadCacheIn(): opCur == null. a: {account.Id}, t: {type}, {date}");
+
+				if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.BrokerCacheIn))
+					throw new Exception($"ReadCacheIn(): opComment == null. a: {account.Id}, t: {type}, {date}");
+
+				Operation op = null;
+
+				if (type == OperationType.Coupon)
+				{
+	                op = new Operation {
+	                    AccountType = (AccountType)account.BitCode,
+	                    Account = account,
+	                    Date = date,
+	                    Summa = summa,
+						Currency = (Currency)Enum.Parse(typeof(Currency), opCur, true),
+	                    Type = type.Value,
+	                    Comment = opComment
+	                };
+				}
+				else if (type == OperationType.Sell)
+				{
+					op = new Operation {
+						AccountType = (AccountType)account.BitCode,
+						Account = account,
+						Date = date,
+						DeliveryDate = date,
+						Summa = summa,
+						Currency = (Currency)Enum.Parse(typeof(Currency), opCur, true),
+						Type = type.Value,
+						Comment = opComment,
+						Stock = stock,
+						Qty = (int?)(summa / 1000),
+						Price = 1000,
+						BankCommission1 = 0, BankCommission2 = 0
+					};
+				}
+
+				if (op == null)
+					throw new Exception("ReadCacheIn(): Alfa, attempt add null operation");
+
+                _builder.AddOperation(op);
 			}
 	    }
 	}

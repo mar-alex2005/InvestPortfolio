@@ -85,6 +85,8 @@ namespace Invest.Core.Entities
             Ticker = ticker;
         }
 
+        public List<Position> Positions { get; set; }
+
         //public decimal? TotalFinResult(AccountType? account, Currency? cur) 
         //{
         //    if (account != null && cur != null)
@@ -295,15 +297,15 @@ namespace Invest.Core.Entities
 		}
     }
 
-	public class PositionData
+	public class Position
 	{
-		public PositionData(){}
+		public Position(){}
 
-		public PositionData(int num, Operation op) 
+		public Position(int num, Operation op) 
 			: this(num, op.Date, op.Type == OperationType.Sell ? PositionType.Short : PositionType.Long) 
 		{}
 
-		public PositionData(int num, DateTime startDate, PositionType type = PositionType.Long)
+		public Position(int num, DateTime startDate, PositionType type = PositionType.Long)
 		{
 			Num = num;
 			Type = type;
@@ -314,13 +316,15 @@ namespace Invest.Core.Entities
 
 		public int Num;
 		public PositionType Type;
-		
 		public DateTime StartDate;
 		public DateTime? CloseDate;
 		public bool IsClosed;
 		public Queue<Operation> NotClosedOps;
 		public List<PositionItem> Items;
-		internal int CurentQty;   // temprory qty for calc procedure
+		public VirtualAccount VirtualAccount;
+		public Currency Currency;
+		public Exchange Exchange; 
+		public int CurentQty;   // temprary qty for calc procedure and also save actual Qty for last open position
 		
 		public decimal? FinResult => Items.LastOrDefault(x => x.TotalFinResult != null)?.TotalFinResult;
 
@@ -352,6 +356,14 @@ namespace Invest.Core.Entities
 			get {
 				var item = Items.LastOrDefault(x => x.ForCalc);
 				return item?.TotalFinResult;
+			}
+		}
+
+		public decimal? PosPrice
+		{
+			get {
+				var item = Items.LastOrDefault();
+				return item?.PosPrice;
 			}
 		}
 
@@ -485,6 +497,8 @@ namespace Invest.Core.Entities
 
         [JsonIgnore]
         public BaseStock Stock;
+        public BaseAccount Account;
+		[Obsolete("use account")]
 		public AccountType AccountType;
 
         // current result
@@ -505,17 +519,18 @@ namespace Invest.Core.Entities
 		public int CurrentQty;
 
 		public List<Operation> Operations;
-		public List<PositionData> Positions;
+		public List<Position> Positions;
 		
-		public AccountData(AccountType aType, BaseStock stock)
+		public AccountData(BaseAccount account, BaseStock stock)
 		{
 			Stock = stock;
-			AccountType = aType;
+			Account = account;
+			AccountType = account.Type;
 			//FinResult = 0;
 			FinResultForClosedPositions = 0;
 		}
-		
-        public int QtyBalance => BuyQty - SellQty;
+
+		public int QtyBalance => BuyQty - SellQty;
 
 		public decimal? Commission {
             get {
@@ -543,13 +558,6 @@ namespace Invest.Core.Entities
 	        } 
         }
 
-   //     public bool ExistOpenPosition
-   //     {
-			//get {
-			//	return Positions.Any(x => !x.IsClosed);
-			//}
-   //     }
-
 		public decimal? PosPrice
 		{
 			get
@@ -569,7 +577,7 @@ namespace Invest.Core.Entities
 				SellCommission = (SellCommission ?? 0) + o.Commission;
 		}
 
-		public PositionData GetPositionData(int num)
+		public Position GetPositionData(int num)
 		{
 			foreach (var t in Positions)
 			{
@@ -692,19 +700,30 @@ namespace Invest.Core.Entities
         public int Month;
         public int Year;
         public AccountType AccountType;
+        public BaseAccount Account;
+        public VirtualAccount VirtualAccount;
         public Currency Cur;
         public string Ticker;
         
         public Analytics()
         { }
 
-        public Analytics(string ticker, AccountType accountType, Currency cur, DateTime date)
+        public Analytics(string ticker, BaseAccount account, Currency cur, DateTime date)
         {
             Ticker = ticker;
-            AccountType = accountType;
+            AccountType = account.Type;
+            VirtualAccount = account.VirtualAccount;
             Cur = cur;
             Year = date.Year;
             Month = date.Month;
+        }
+        public Analytics(string ticker, VirtualAccount vAccount, Currency cur, DateTime date)
+        {
+	        Ticker = ticker;
+	        VirtualAccount = vAccount;
+	        Cur = cur;
+	        Year = date.Year;
+	        Month = date.Month;
         }
 
         public override int GetHashCode()

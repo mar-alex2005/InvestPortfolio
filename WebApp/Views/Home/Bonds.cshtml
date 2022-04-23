@@ -1,7 +1,5 @@
 ﻿@model Invest.WebApp.Models.BondsViewModel
-@using DevExtreme.AspNet.Mvc
 @using Invest.Core.Enums
-@using Invest.WebApp
 @{
     ViewData["Title"] = "Home Page";
 
@@ -23,6 +21,7 @@
         <th rowspan="2" col="sellQty">Купон</th>
         <th rowspan="2" col="portPercent">Сумма,<br />sell</th>
         <th rowspan="2" col="portPercent">Saldo</th>
+        <th rowspan="2" col="portPercent">Weight</th>
         <th rowspan="2" col="portPercent">Comm</th>
 
         @foreach(var a in Model.Accounts.Where( x => x != null)) {
@@ -90,10 +89,12 @@
             </td>
             <td class="@cssSell" style="text-align: center; color: black;">
                 @($"{item.BuySum - item.SellSum:N2}")
+            </td>
+            <td class="@cssSell" style="text-align: center; color: black;">
                 @{
-                    var p = (item.BuySum - item.SellSum) / Model.TotalSaldo * 100;
+                    var p = (item.BuySum - item.SellSum) / Model.TotalSaldo;
+                    @($"{p:P2}")
                 }
-                &nbsp;(@($"{p:N1}")%)
             </td>
             <td class="@cssSell" style="text-align: center; color: red;">@($"{item.Commission:N2}")</td>
         </tr>
@@ -110,6 +111,7 @@
             @($"{totalBuySumWithNkd:N2}")
         </td>
         <td class="" style="text-align: center; color: rgb(43, 201, 226);">@($"{totalCoupon:N2}")</td>
+        <td class="" style="text-align: center; ">-</td>
         <td class="" style="text-align: center; ">-</td>
         <td class="" style="text-align: center; ">@($"{saldo:N2}")</td>
         <td class="" style="text-align: center; color:red;">@($"{totalComm:N2}")</td>
@@ -130,9 +132,28 @@
     </tr>
     </table><br/>
 
+    <table class="tbl-g tbl-g-acc" style="width: 680px;">
+    <tr>
+        <th>Acc</th>
+        <th>Qty</th>
+        <th>-</th>
+    </tr>
+    @foreach (var va in Model.VirtualAccounts)
+    {
+
+        <tr>
+            <td></td>
+            <td>@va.Name</td>
+            <td>-</td>
+        </tr>
+    }
+    </table>
+
+
     <table>
     <tr>
     <td>
+
     <table class="tbl-g tbl-g-acc" style="width: 480px;">
     <tr>
         <th></th>
@@ -252,7 +273,8 @@
         <td class="td-total"></td>
         <td class="td-total" style="@(Model.TotalProfitPercent > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(Model.TotalProfitPercent)</td>
     </tr>
-</table>
+    </table>
+    
     </td>
     <td>
         @*<div style="border: 1px solid lightgrey; background-color:  #f0f0f0; padding: 7px;">

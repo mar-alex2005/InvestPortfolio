@@ -255,6 +255,8 @@ namespace Invest.Core
 
 				// add company from ticker
 				//AddCompany(s);
+				if (name.StartsWith("Газпрнефть", StringComparison.OrdinalIgnoreCase)) { var d = 0;}
+				if (s.Ticker == "Газпнф1P1R" || isin == "RU000A0JXNF9") { var d = 0;}
 
 				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
 				var opType = ExcelUtil.GetCellValue(cells.Type, rd);
@@ -300,9 +302,10 @@ namespace Invest.Core
 					throw new Exception($"ReadOperations(): op.TransId is not correct string, value: {account.Id}, {op.Date.Year}, {op.TransId}");
 
 				// russian bonds
-				op.Summa = s.Type == StockType.Bond && s.Currency == Currency.Rur
-					? op.Price * 10 * op.Qty
-					: op.Price * op.Qty;
+				if (s.Type == StockType.Bond && s.Currency == Currency.Rur)
+					op.Price *= 10;
+
+				op.Summa = op.Price * op.Qty;
 
 				if ((op.Currency == Currency.Usd || op.Currency == Currency.Eur) && op.Date >= _startOperationDate)
 				{
