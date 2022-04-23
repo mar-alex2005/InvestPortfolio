@@ -1,6 +1,5 @@
 ﻿@model Invest.WebApp.Models.OperationViewModel
 @using Invest.Core.Enums
-@using Invest.WebApp
 
 @{
 	Layout = null;
@@ -262,8 +261,7 @@
     <td>
         <table class="tbl-ticker-d">
             <tr>
-                <td colspan="2">Positions:</td>
-                <td class="td-name" colspan="6"></td>
+                <td colspan="9">Last positions:</td>
             </tr>
             
             @foreach (var va in Model.VirtualAccounts)
@@ -282,6 +280,8 @@
                 //if (qty == 0){ continue; }
 
 				var positions = stock.Positions.Where(x => x.VirtualAccount == va).ToList();
+			    if (positions.Count == 0){ continue; }
+
 				var lastPos = positions.LastOrDefault();
 				//var notClosedItems = lastPos.Items;
 
