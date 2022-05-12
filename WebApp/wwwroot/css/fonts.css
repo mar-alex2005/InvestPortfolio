@@ -1,0 +1,37 @@
+@font-face {
+    font-family: 'Open Sans'; /* ָלÿ רנטפעא */
+    src: url(../fonts/OpenSans-Regular.ttf); /* ֿףעü ך פאיכף סמ רנטפעמל */
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Open Sans'; /* ָלÿ רנטפעא */
+    src: url(../fonts/OpenSans-Bold.ttf); /* ֿףעü ך פאיכף סמ רנטפעמל */
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'OpenSans-Light'; /* ָלÿ רנטפעא */
+    src: url(../fonts/OpenSans-Light.ttf); /* ֿףעü ך פאיכף סמ רנטפעמל */
+}
+
+@font-face {
+    font-family: 'Open-Sans-Condensed';
+    src: local('Open Sans Cond Light'), local('OpenSans-CondensedLight'), url('../fonts/opensanscondlight.woff') format('woff'), url('../fonts/opensanscondlight.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Open-Sans-Condensed';
+    src: local('Open Sans Cond Light Italic'), local('OpenSans-CondensedLightItalic'), url(../fonts/opensanscondlightitalic.woff) format('woff'), url(../fonts/opensanscondlightitalic.ttf) format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Open-Sans-Condensed';
+    src: local('Open Sans Condensed Bold'), local('OpenSans-CondensedBold'), url(../fonts/opensanscondensedbold.woff) format('woff'), url(../fonts/opensanscondensedbold.ttf) format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}

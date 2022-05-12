@@ -1,13 +1,25 @@
 ﻿@model Invest.WebApp.Models.OperationViewModel
 @{
+    Layout = "_Layout";
     ViewData["Title"] = "Home";
 }
 <script>
     $(document).ready(function () {
         //console.log("Объектная модель готова к использованию!");
-        let h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divTickerList")) - 10;
+        const h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divTickerList")) - 10;
         $("#divTickerList").height(h);
         $("#divGrid").height(h);
+
+        var checkTickersZero = document.querySelector("#checkTickersZero");
+        checkTickersZero.checked = LocalSetting.value(LocalSettingEnum.ShowTickerFilterQtyZero) === "true";
+
+        checkTickersZero.onchange = () => {
+            LocalSetting.saveToStorage(LocalSettingEnum.ShowTickerFilterQtyZero, checkTickersZero.checked);
+            console.log("c:", LocalSetting.value(LocalSettingEnum.ShowTickerFilterQtyZero));
+            refreshTickers();
+        }
+
+        //console.log("c:", LocalSetting.value(LocalSettingEnum.ShowTickerFilterQtyZero));
     });
 </script>
 

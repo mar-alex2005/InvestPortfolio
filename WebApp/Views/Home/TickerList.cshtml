@@ -1,29 +1,23 @@
-﻿@using Invest.WebApp
-@model Invest.WebApp.Models.OperationViewModel
+﻿@model Invest.WebApp.Models.OperationViewModel
 
-<div style="padding: 3px; padding-left:5px; border-bottom: 1px solid silver;">
-    <span onclick="setTickers()">all</span>&nbsp;
-    <span onclick="setTickersParams(@((int)Invest.Core.Enums.Currency.Usd))">usd</span>&nbsp;
-    <span onclick="setTickersParams(@((int)Invest.Core.Enums.Currency.Rur))">rur</span>
+<script>
+    $(document).ready(function () {
+        refreshTickers();
+        //console.log("z:", LocalSetting.value(LocalSettingEnum.TickerFilterCurrency));
+    });
+</script>
+
+<div class="div-tickers-filter" style="">
+    <span onclick="setTickersCur(0)">All</span><span class="di">|</span>
+    <span onclick="setTickersCur(@((int)Invest.Core.Enums.Currency.Rur))">rur</span>&nbsp;
+    <span onclick="setTickersCur(@((int)Invest.Core.Enums.Currency.Usd))">usd</span>&nbsp;
+    <span onclick="setTickersCur(@((int)Invest.Core.Enums.Currency.Eur))">eur</span>&nbsp;<span class="di">|</span>
+    <div class="div-tickers-filter-zero">
+        <span>Zero<input class="check-zero" id="checkTickersZero" type="checkbox" /></span>
+    </div>
+    <span class="di">|</span>
+    <span onclick="setTickersType(@((int)Invest.Core.Enums.StockType.Bond))">Bd</span>&nbsp;
+    <span onclick="setTickersType(@((int)Invest.Core.Enums.StockType.Share))">Sh</span>&nbsp;
+    <span onclick="setTickersType(@((int)Invest.Core.Enums.StockType.ETF))">Etf</span>&nbsp;
 </div>
-<div id="divTickerList" style="overflow-y: scroll; margin: 0; padding: 2px">
-    <table class="tbl-ticker">
-    @{
-        foreach (var s in Model.Stocks
-            .OrderBy(x => !(x.Data.QtyBalance > 0))
-            .ThenBy(x => x.Company.Name))
-        {
-            var nameCssClass = "td-name";
-            if (s.Data.QtyBalance == 0)
-            {
-                nameCssClass = "td-name-zero";
-            }
-            <tr>
-                <td class="@nameCssClass" onclick="openTickerDetails('@s.Ticker')">@s.Company.Name (<span class="ticker">@s.Ticker</span>)</td>
-                <td class="td-qty">@Util.KFormat(s.Data.QtyBalance)</td>
-                @*<td class="td-lot">@string.Format("{0:N0}", s.Data.QtyBalance / s.LotSize)</td>*@
-            </tr>
-        }
-    }
-    </table>
-</div>
+<div id="divTickerList" class="div-tickers-list"></div>

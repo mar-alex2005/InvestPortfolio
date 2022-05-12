@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Html;
 
 namespace Invest.WebApp.Controllers
 {
-    public class HomeController : Controller
-    {
+	public class HomeController : Controller
+	{
 		private readonly Core.Builder _builder;
 
 		public HomeController(Core.Builder builder)
@@ -18,21 +18,21 @@ namespace Invest.WebApp.Controllers
 			_builder = builder;
 		}
 
-        public IActionResult Index()
-        {
-            var operations = _builder.Operations
-                .Where(x => x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend || x.Type == OperationType.Coupon)
-                .OrderByDescending(x => x.Date).ThenByDescending(x => x.Index)
-                .ToList();
+		public IActionResult Index()
+		{
+			var operations = _builder.Operations
+				.Where(x => x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend || x.Type == OperationType.Coupon)
+				.OrderByDescending(x => x.Date).ThenByDescending(x => x.Index)
+				.ToList();
 
-            var model = new OperationViewModel {
-                Ticker = null,
+			var model = new OperationViewModel {
+				Ticker = null,
 				Stocks = _builder.Stocks,
-                Operations = operations
-            };
+				Operations = operations
+			};
 
-            return View(model);
-        }
+			return View(model);
+		}
 
 		public IActionResult TickerIndex()
 		{
@@ -60,6 +60,25 @@ namespace Invest.WebApp.Controllers
 			return View(model);
 		}
 
+        public IActionResult TickerList(int curId = 0, int typeId = 0, bool showZero = true)
+        {
+			var list = _builder.Stocks
+				.Where(x => (curId == 0 || (int)x.Currency == curId)
+                    && (typeId == 0 || (int)x.Type == typeId)
+					&& (showZero || x.Data.QtyBalance != 0)
+                )
+				.OrderBy(x => !(x.Data.QtyBalance > 0))
+                .ThenBy(x => x.Company.Name)
+                .ToList();
+
+			var model = new TickersViewModel
+			{
+                CurId = curId,
+				Stocks = list
+            };
+
+            return View("Tickers", model);
+        }
 
 		public IActionResult TickerDetails()
 		{
@@ -72,7 +91,7 @@ namespace Invest.WebApp.Controllers
 			var operations = _builder.Operations
 				.Where(
 					x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-						//&& (tickerId == null || x.Stock.Ticker == tickerId)
+				//&& (tickerId == null || x.Stock.Ticker == tickerId)
 				)
 				.OrderByDescending(x => x.Date).ThenByDescending(x => x.TransId) // Index
 				.ToList();
@@ -764,176 +783,186 @@ namespace Invest.WebApp.Controllers
 		}
 
 
+		public JsonResult Tickers(int curId = 0)
+		{
+			var list = _builder.Stocks
+				.Where(x => curId == 0 || (int)x.Currency == curId)
+				.OrderBy(x => !(x.Data.QtyBalance > 0))
+				.ThenBy(x => x.Company.Name)
+                .Select(x => new { company = x.Company, x.Ticker, qty = x.Data.QtyBalance })
+                .ToList();
 
-
-
-		//	//public JsonResult HistData()
-		//	//{
-		//	//          return new JsonResult("{}");
-		//	//}
-
-		//       /// <summary>Возвращает свойство объекта</summary>
-		//       /// <param name="obj">Объект</param>
-		//       /// <param name="property">Имя свойства.</param>
-		//       private static object GetPropertyValue(object obj, string property)
-		//       {
-		//           var field = obj.GetType().GetField(property);
-		//           return field != null 
-		//               ? field.GetValue(obj) 
-		//               : null;
-		//       }
-		//   }
-
-
-		//public class StockViewModel: BaseViewModel
-		//{
-		//	public string Country;
-		//	public IOrderedEnumerable<StockItem> StockItems;		
-		//}
-
-		//   public class ProfitViewModel : BaseViewModel
-		//   {
-		//       public Portfolio? Portfolio;
-		//       public IOrderedEnumerable<StockItem> StockItems;
-		//	public List<string> Tickers;
-
-		//       public class StockItem
-		//       {
-		//           public Stock Stock;
-		//           public int? Qty;
-		//           public int LotCount;
-		//           public int? BuyQty;
-		//           public int? SellQty;
-		//           public DateTime FirstBuy, LastBuy;
-		//           public DateTime? FirstSell, LastSell;
-		//           public decimal? BuySum;
-		//           public decimal? SellSum;
-		//           public decimal? TotalSum;
-		//           public decimal? TotalSumInRur;
-		//		public decimal? Commission;
-		//		public decimal? DivUsd, DivRur;
-		//		public decimal? FifoUsd, FifoRur, FifoInRur, FifoBaseRur, FifoRurComm;
-		//       }
-		//   }
-
-		//public class PortfolioViewModel : BaseViewModel
-		//   {
-		//       public Portfolio? Portfolio;
-		//       public List<Stock> Stocks;
-		//       public List<AccountType?> Accounts;
-		//	public decimal TotalProfitUsd, TotalProfitRur, TotalProfitInRur;
-		//	public Dictionary<AccountType, decimal> TotalProfits;
-		//	public decimal TotalProfitPercentUsd, TotalProfitPercentRur, TotalProfitPercent;
-		//	public decimal TotalCloseFinResultUsd, TotalCloseFinResultRur;
-		//	public decimal TotalFinResultUsd, TotalFinResultRur;
-		//       public IOrderedEnumerable<Item> Items;
-		//	public Dictionary<Currency, decimal> TotalStockSum, TotalCurStockSum;
-		//       public decimal TotalRurSum;
-
-		//	public PortfolioViewModel()
-		//	{
-		//           TotalStockSum = new Dictionary<Currency, decimal> {{Currency.Usd, 0}, {Currency.Rur, 0}};
-		//           TotalCurStockSum = new Dictionary<Currency, decimal> {{Currency.Usd, 0}, {Currency.Rur, 0}};
-		//       }
-
-		//       public class Item
-		//       {			
-		//           public Stock Stock;
-		//           public int Qty;
-		//           public int LotCount;
-		//		public decimal BuyTotalSum;
-		//           public int BuyQty;
-		//           public int SellQty;
-		//		public int CurrentQty;
-		//           public DateTime? FirstBuy, LastBuy;
-		//           public DateTime? FirstSell, LastSell;
-		//		public decimal? MinBuyPrice, MaxSellPrice;
-		//           public decimal? BuySum;
-		//           public decimal? SellSum;
-		//           public decimal? TotalSum;
-		//           public decimal? TotalSumInRur;
-		//           public decimal ProfitUsd;
-		//           public decimal ProfitRur;
-		//		public decimal Commission;
-		//		public decimal Divs;
-		//		public decimal DivUsd, DivRur;
-		//		public decimal CloseFinResult, FinResult, TotalFinResult, Profit, ProfitInRur, ProfitPercent;
-		//		public decimal StockSum, CurStockSum;
-		//           // % in portfolio of Total Sum
-		//           public decimal PortfPercent;
-		//       }
-		//   }
-
-		//public class HistViewModel : BaseViewModel
-		//{
-		//	public List<Item> Items;
-
-		//       public class Item
-		//       {
-		//		public DateTime Date;
-		//           public decimal Profit, ProfitPercent;
-		//		public decimal BuySum;
-		//		public decimal SellSum;
-		//		public decimal StockSum;
-		//		public decimal CurStockSum;
-		//	}
-		//}
-
-
-
-		//   public class StockItem
-		//{
-		//	public Stock Stock;
-		//	public int? Qty;
-		//	public int LotCount;
-		//	public int? BuyQty;
-		//	public int? SellQty;
-		//	public DateTime FirstBuy, LastBuy;
-		//	public DateTime? FirstSell, LastSell;
-		//	public Decimal? BuySum;
-		//	public Decimal? SellSum;
-		//	public Decimal? TotalSum;
-		//	public Decimal? TotalSumInRur;
-		//	public Decimal? NotLossPrice;
-		//	public Decimal? LastMinBuyPrice, LastAvgBuyPrice;
-		//}
-
-		//   public class DivsViewModel
-		//   {
-		//       public Currency? Cur;
-		//       public int? Year;
-		//   }
-
-		//   public class CacheViewModel : BaseViewModel
-		//   {
-		//	public Dictionary<Item, IEnumerable<Operation>> CurBuyOps;
-		//	public Dictionary<Item, IEnumerable<Operation>> CurSellOps;
-		//	public Dictionary<Item, IEnumerable<Operation>> BuysOps, SellOps, Divs;
-		//	public Account Account;
-		//	public Currency Cur;
-
-		//	public CacheViewModel()
-		//	{
-		//		CurBuyOps = new Dictionary<Item, IEnumerable<Operation>>();
-		//		CurSellOps = new Dictionary<Item, IEnumerable<Operation>>();
-
-		//		BuysOps = new Dictionary<Item, IEnumerable<Operation>>();
-		//		SellOps = new Dictionary<Item, IEnumerable<Operation>>();
-		//		Divs = new Dictionary<Item, IEnumerable<Operation>>();
-		//	}
-
-		//	public struct Item
-		//	{
-		//		public Currency Cur;
-		//		public AccountType Account;
-
-		//		public Item(Currency cur, AccountType acc)
-		//		{
-		//			Cur = cur;
-		//			Account = acc;
-		//		}
-		//	}
-		//   }
-
+			return new JsonResult(list);
+		}
 	}
+
+
+	//	//public JsonResult HistData()
+	//	//{
+	//	//          return new JsonResult("{}");
+	//	//}
+
+	//       /// <summary>Возвращает свойство объекта</summary>
+	//       /// <param name="obj">Объект</param>
+	//       /// <param name="property">Имя свойства.</param>
+	//       private static object GetPropertyValue(object obj, string property)
+	//       {
+	//           var field = obj.GetType().GetField(property);
+	//           return field != null 
+	//               ? field.GetValue(obj) 
+	//               : null;
+	//       }
+	//   }
+
+
+	//public class StockViewModel: BaseViewModel
+	//{
+	//	public string Country;
+	//	public IOrderedEnumerable<StockItem> StockItems;		
+	//}
+
+	//   public class ProfitViewModel : BaseViewModel
+	//   {
+	//       public Portfolio? Portfolio;
+	//       public IOrderedEnumerable<StockItem> StockItems;
+	//	public List<string> Tickers;
+
+	//       public class StockItem
+	//       {
+	//           public Stock Stock;
+	//           public int? Qty;
+	//           public int LotCount;
+	//           public int? BuyQty;
+	//           public int? SellQty;
+	//           public DateTime FirstBuy, LastBuy;
+	//           public DateTime? FirstSell, LastSell;
+	//           public decimal? BuySum;
+	//           public decimal? SellSum;
+	//           public decimal? TotalSum;
+	//           public decimal? TotalSumInRur;
+	//		public decimal? Commission;
+	//		public decimal? DivUsd, DivRur;
+	//		public decimal? FifoUsd, FifoRur, FifoInRur, FifoBaseRur, FifoRurComm;
+	//       }
+	//   }
+
+	//public class PortfolioViewModel : BaseViewModel
+	//   {
+	//       public Portfolio? Portfolio;
+	//       public List<Stock> Stocks;
+	//       public List<AccountType?> Accounts;
+	//	public decimal TotalProfitUsd, TotalProfitRur, TotalProfitInRur;
+	//	public Dictionary<AccountType, decimal> TotalProfits;
+	//	public decimal TotalProfitPercentUsd, TotalProfitPercentRur, TotalProfitPercent;
+	//	public decimal TotalCloseFinResultUsd, TotalCloseFinResultRur;
+	//	public decimal TotalFinResultUsd, TotalFinResultRur;
+	//       public IOrderedEnumerable<Item> Items;
+	//	public Dictionary<Currency, decimal> TotalStockSum, TotalCurStockSum;
+	//       public decimal TotalRurSum;
+
+	//	public PortfolioViewModel()
+	//	{
+	//           TotalStockSum = new Dictionary<Currency, decimal> {{Currency.Usd, 0}, {Currency.Rur, 0}};
+	//           TotalCurStockSum = new Dictionary<Currency, decimal> {{Currency.Usd, 0}, {Currency.Rur, 0}};
+	//       }
+
+	//       public class Item
+	//       {			
+	//           public Stock Stock;
+	//           public int Qty;
+	//           public int LotCount;
+	//		public decimal BuyTotalSum;
+	//           public int BuyQty;
+	//           public int SellQty;
+	//		public int CurrentQty;
+	//           public DateTime? FirstBuy, LastBuy;
+	//           public DateTime? FirstSell, LastSell;
+	//		public decimal? MinBuyPrice, MaxSellPrice;
+	//           public decimal? BuySum;
+	//           public decimal? SellSum;
+	//           public decimal? TotalSum;
+	//           public decimal? TotalSumInRur;
+	//           public decimal ProfitUsd;
+	//           public decimal ProfitRur;
+	//		public decimal Commission;
+	//		public decimal Divs;
+	//		public decimal DivUsd, DivRur;
+	//		public decimal CloseFinResult, FinResult, TotalFinResult, Profit, ProfitInRur, ProfitPercent;
+	//		public decimal StockSum, CurStockSum;
+	//           // % in portfolio of Total Sum
+	//           public decimal PortfPercent;
+	//       }
+	//   }
+
+	//public class HistViewModel : BaseViewModel
+	//{
+	//	public List<Item> Items;
+
+	//       public class Item
+	//       {
+	//		public DateTime Date;
+	//           public decimal Profit, ProfitPercent;
+	//		public decimal BuySum;
+	//		public decimal SellSum;
+	//		public decimal StockSum;
+	//		public decimal CurStockSum;
+	//	}
+	//}
+
+
+
+	//   public class StockItem
+	//{
+	//	public Stock Stock;
+	//	public int? Qty;
+	//	public int LotCount;
+	//	public int? BuyQty;
+	//	public int? SellQty;
+	//	public DateTime FirstBuy, LastBuy;
+	//	public DateTime? FirstSell, LastSell;
+	//	public Decimal? BuySum;
+	//	public Decimal? SellSum;
+	//	public Decimal? TotalSum;
+	//	public Decimal? TotalSumInRur;
+	//	public Decimal? NotLossPrice;
+	//	public Decimal? LastMinBuyPrice, LastAvgBuyPrice;
+	//}
+
+	//   public class DivsViewModel
+	//   {
+	//       public Currency? Cur;
+	//       public int? Year;
+	//   }
+
+	//   public class CacheViewModel : BaseViewModel
+	//   {
+	//	public Dictionary<Item, IEnumerable<Operation>> CurBuyOps;
+	//	public Dictionary<Item, IEnumerable<Operation>> CurSellOps;
+	//	public Dictionary<Item, IEnumerable<Operation>> BuysOps, SellOps, Divs;
+	//	public Account Account;
+	//	public Currency Cur;
+
+	//	public CacheViewModel()
+	//	{
+	//		CurBuyOps = new Dictionary<Item, IEnumerable<Operation>>();
+	//		CurSellOps = new Dictionary<Item, IEnumerable<Operation>>();
+
+	//		BuysOps = new Dictionary<Item, IEnumerable<Operation>>();
+	//		SellOps = new Dictionary<Item, IEnumerable<Operation>>();
+	//		Divs = new Dictionary<Item, IEnumerable<Operation>>();
+	//	}
+
+	//	public struct Item
+	//	{
+	//		public Currency Cur;
+	//		public AccountType Account;
+
+	//		public Item(Currency cur, AccountType acc)
+	//		{
+	//			Cur = cur;
+	//			Account = acc;
+	//		}
+	//	}
+	//   }
+
 }

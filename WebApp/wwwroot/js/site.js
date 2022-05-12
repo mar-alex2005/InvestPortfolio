@@ -1,9 +1,11 @@
 ﻿var gridColumns = [];
 var curentPortfolio = null;
 
-// Перечисление всех возможных локальных пользовательских настроек
+// User settings
 var LocalSettingEnum = {
-    AutoPlayClip: "AutoPlayClip",
+    TickerFilterCurrency: "TickerFilterCurrency",
+    TickerFilterStockType: "TickerFilterStockType",
+    ShowTickerFilterQtyZero: "ShowTickerFilterQtyZero",
     IsPlayerControlVisible: "IsPlayerControlVisible"
 };
 Object.freeze(LocalSettingEnum);
@@ -11,7 +13,9 @@ Object.freeze(LocalSettingEnum);
 // Глобальный объект: функционал работы с локальными пользовательскими параметрами
 LocalSetting.prefixName = "InvSetting";
 LocalSetting.list = [
-    { name: LocalSettingEnum.AutoPlayClip, type: "bool", defaultValue: false },
+    { name: LocalSettingEnum.TickerFilterCurrency, type: "int", defaultValue: 0 },
+    { name: LocalSettingEnum.TickerFilterStockType, type: "int", defaultValue: 0 },
+    { name: LocalSettingEnum.ShowTickerFilterQtyZero, type: "bool", defaultValue: true },
     { name: LocalSettingEnum.IsPlayerControlVisible, type: "bool", defaultValue: false }
 ];
 
@@ -73,7 +77,7 @@ function revertOrderBy(tblColumn)
 }
 
 function openTickers(tickerId) {
-	window.location = "/Home/TickerIndex?tickerId=" + tickerId;
+	window.location = `/Home/TickerIndex?tickerId=${tickerId}`;
 }
 
 function openStocks(country, orderBy) {
@@ -446,10 +450,10 @@ function openBonds(cur) {
 
 	showWaitContainer();
 
-	ax.send("Post", "/Home/Bonds", params, function () {
-		document.getElementById("divMain").innerHTML = this.responseText;
+    ax.send("Post", "/Home/Bonds", params, function () {
+        document.querySelector(".body-content").innerHTML = this.responseText;
 
-		//getCacheInData();
+        //getCacheInData();
 
 		//am4core.ready(function () {
 		//	// Themes begin
@@ -463,8 +467,13 @@ function openBonds(cur) {
 		//	loadChartDivs(1, chart);
 		//});
 
+        $(document).ready(function () {
+            let h = document.documentElement.clientHeight - absoluteTop(document.querySelector(".page-portfolio")) - 6;
+            $(".page-portfolio").height(h);
+        });
+
 		hideWaitContainer();
-	});
+    });
 }
 
 
@@ -733,10 +742,6 @@ function getStockChartData()
 }
 
 
-function refreshTickers() {
-
-}
-
 function showHidePos(accType, posNum, icon) {
 	//console.debug(accType, posNum);
 	$(icon).toggleClass("icon-minus-squared");
@@ -752,4 +757,27 @@ function showHidePos(accType, posNum, icon) {
 			: "";
 	}
 	
+}
+
+function setTickersCur(curId) {
+    LocalSetting.saveToStorage(LocalSettingEnum.TickerFilterCurrency, curId);
+    refreshTickers();
+}
+
+function setTickersType(typeId) {
+    LocalSetting.saveToStorage(LocalSettingEnum.TickerFilterStockType, typeId);
+    refreshTickers();
+}
+
+function refreshTickers() {
+    ax.send("Post", "/Home/TickerList",
+        {
+            curId: LocalSetting.value(LocalSettingEnum.TickerFilterCurrency),
+            typeId: LocalSetting.value(LocalSettingEnum.TickerFilterStockType),
+            showZero: LocalSetting.value(LocalSettingEnum.ShowTickerFilterQtyZero)
+        },
+        function () {
+            document.getElementById("divTickerList").innerHTML = this.responseText;
+        }
+    );
 }

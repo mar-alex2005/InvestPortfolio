@@ -1,13 +1,4 @@
-﻿function onLoad() {
-    document.getElementById("tbLogin").focus();
-    document.getElementById("tbPwd").onkeypress = function () {
-        if (window.event.keyCode === 13)
-            logon();
-    }
-}
-
-
-// Document.all.elements functions
+﻿// Document.all.elements functions
 function absoluteLeft(obj) {
     var x = obj.offsetLeft;
     var parent = obj.offsetParent;

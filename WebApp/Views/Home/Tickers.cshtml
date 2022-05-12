@@ -1,0 +1,22 @@
+﻿@using Invest.WebApp
+@model Invest.WebApp.Models.TickersViewModel
+
+<table class="tbl-ticker">
+@{
+    foreach (var s in Model.Stocks
+        .OrderBy(x => !(x.Data.QtyBalance > 0))
+        .ThenBy(x => x.Company.Name))
+    {
+        var nameCssClass = "td-name";
+        if (s.Data.QtyBalance == 0)
+        {
+            nameCssClass = "td-name-zero";
+        }
+        <tr>
+            <td class="@nameCssClass" onclick="openTickerDetails('@s.Ticker')">@s.Company.Name (<span class="ticker">@s.Ticker</span>)</td>
+            <td class="td-qty">@Util.KFormat(s.Data.QtyBalance)</td>
+            @*<td class="td-lot">@string.Format("{0:N0}", s.Data.QtyBalance / s.LotSize)</td>*@
+        </tr>
+    }
+}
+</table>

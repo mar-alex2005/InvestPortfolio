@@ -46,6 +46,12 @@ namespace Invest.WebApp.Models
 		public IEnumerable<KeyValuePair<Analytics, FifoResult>> FifoResults;
 	}
 
+    public class TickersViewModel : BaseViewModel
+    {
+		public int CurId;
+        public List<BaseStock> Stocks;
+    }
+
 
 	public class BondsViewModel : BaseViewModel
 	{

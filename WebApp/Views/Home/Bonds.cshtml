@@ -1,5 +1,6 @@
 ﻿@model Invest.WebApp.Models.BondsViewModel
 @using Invest.Core.Enums
+@using Invest.WebApp
 @{
     ViewData["Title"] = "Home Page";
 
@@ -10,6 +11,7 @@
     var rurStocks = Model.Stocks.Where(x => x.Currency == Currency.Rur);
     var usdStocks = Model.Stocks.Where(x => x.Currency == Currency.Usd);
 }
+
 <div class="page-portfolio">
     <table class="tbl-g">
     <tr>            
