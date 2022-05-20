@@ -455,21 +455,18 @@ function openBonds(cur) {
 
         //getCacheInData();
 
-		//am4core.ready(function () {
-		//	// Themes begin
-		//	am4core.useTheme(am4themes_animated);
+		am4core.ready(function () {
+			// Themes begin
+			am4core.useTheme(am4themes_animated);
 
-		//	// Create chart instance
-		//	var chart = am4core.create("chartDivsUsd", am4charts.PieChart);
-		//	loadChartDivs(2, chart);
-
-		//	chart = am4core.create("chartDivsRur", am4charts.PieChart);
-		//	loadChartDivs(1, chart);
-		//});
+			// Create chart instance
+			const chart = am4core.create("chartBonds", am4charts.PieChart);
+			loadChartBonds(chart);
+		});
 
         $(document).ready(function () {
-            let h = document.documentElement.clientHeight - absoluteTop(document.querySelector(".page-portfolio")) - 6;
-            $(".page-portfolio").height(h);
+            let h = document.documentElement.clientHeight - absoluteTop(document.querySelector(".page-bonds")) - 6;
+            $(".page-bonds").height(h);
         });
 
 		hideWaitContainer();
@@ -567,18 +564,19 @@ function openHist() {
 }
 
 
-function loadChartDivs(curId, chart) {
-    const params = { curId: curId };
+function loadChartBonds(chart) {
+    const params = { curId: 1 };
 
-    ax.send("Post", "/Home/DivsTotalData", params, function() {
+    ax.send("Post", "/Api/Bonds", params, function() {
 		console.log("::", this);
-        const list = eval(JSON.parse(this.responseText));
+        const list = JSON.parse(this.responseText);
         const data = [];
+
         console.log("list___:", list);
 
         for (let i = 0; i < list.length; i++) {
             //console.log("ticker:", list[i].stock.ticker);
-            data.push({ ticker: list[i].stock.ticker, summa: list[i].sum });
+            data.push({ ticker: list[i].company, summa: list[i].value });
         }
         chart.data = data;
 
@@ -604,7 +602,7 @@ function loadChartDivs(curId, chart) {
         pieSeries.ticks.template.disabled = true;
 
         var title = chart.titles.create();
-        title.text = (curId === 1 ? "RUR" : "USD");
+        //title.text = (curId === 1 ? "RUR" : "USD");
         title.fontSize = 12;        
     });
 }

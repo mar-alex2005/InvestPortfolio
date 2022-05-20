@@ -74,26 +74,31 @@ namespace Invest.WebApp.Models
 		{
 			public BaseStock Stock;
 			public int Qty;
-			public int LotCount;
 			public decimal BuyTotalSum;
 			public int BuyQty;
 			public int SellQty;
-			public int CurrentQty;
 			public DateTime? FirstBuy, LastBuy;
 			public DateTime? FirstSell, LastSell;
 			public decimal? BuySum;
 			public decimal? Coupon;
 			public decimal? Nkd;
 			public decimal? SellSum;
-			public decimal? TotalSum;
 			public decimal? TotalSumInRur;
-			public decimal ProfitUsd;
-			public decimal ProfitRur;
 			public decimal Commission;
 			public decimal CloseFinResult, FinResult, TotalFinResult, Profit, ProfitInRur, ProfitPercent;
 			public decimal StockSum, CurStockSum;
 			// % in portfolio of Total Sum
 			public decimal SaldoPercent;
+
+			public int CurrentQty
+			{
+				get { return BuyQty - SellQty; }
+			}
+
+			public decimal? Value 
+			{ 
+				get { return CurrentQty != 0 ? BuySum - SellSum : null; }
+			}
 		}
 	}
 }

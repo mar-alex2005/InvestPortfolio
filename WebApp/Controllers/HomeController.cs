@@ -764,6 +764,7 @@ namespace Invest.WebApp.Controllers
 				{
 					Stock = s,
 					BuyQty = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Qty) ?? 0,
+					SellQty = ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Qty) ?? 0,
 					BuySum = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Summa) ?? 0,
 					Nkd = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Nkd) ?? 0,
 					SellSum = ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Summa) ?? 0,
@@ -771,7 +772,7 @@ namespace Invest.WebApp.Controllers
 					Commission = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Commission) ?? 0
 				};
 
-				model.TotalSaldo += (item.BuySum - item.SellSum);
+				model.TotalSaldo += item.CurrentQty != 0 ? (item.BuySum - item.SellSum) : 0;
 
 				model.Items.Add(item);
 			}

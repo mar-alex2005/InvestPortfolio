@@ -12,32 +12,28 @@
     var usdStocks = Model.Stocks.Where(x => x.Currency == Currency.Usd);
 }
 
-<div class="page-portfolio">
+<div class="page-bonds">
     <table class="tbl-g">
-    <tr>            
-        <th rowspan="2" col="ticker">Comp.</th>
+    <tr>
         <th rowspan="2" col="ticker">Ticker</th>
         <th rowspan="2" col="qty">Кол-во</th>
-        <th rowspan="2" col="portPercent">Сумма,<br />buy</th>
+        <th rowspan="2" col="buySum">Сумма,<br />buy</th>
         <th rowspan="2" col="buyQty">Сумма,<br />с НКД</th>
-        <th rowspan="2" col="sellQty">Купон</th>
-        <th rowspan="2" col="portPercent">Сумма,<br />sell</th>
-        <th rowspan="2" col="portPercent">Saldo</th>
-        <th rowspan="2" col="portPercent">Weight</th>
-        <th rowspan="2" col="portPercent">Comm</th>
+        <th rowspan="2" col="coupon">Купон</th>
+        <th rowspan="2" col="sellSum">Сумма,<br />sell</th>
+        <th rowspan="2" col="saldo">Saldo</th>
+        <th rowspan="2" col="weight">Weight</th>
+        <th rowspan="2" col="comm">Comm</th>
 
         @foreach(var a in Model.Accounts.Where( x => x != null)) {
             <th rowspan="2">@a</th>
         }
-
-        <th rowspan="2">Buy,<br />min</th>
-        <th rowspan="2">Buy,<br /> max</th>
-        <th colspan="3" class="td-total" style="text-align: center; border: 1px solid silver;">*</th>        
+        
+        <th colspan="2" class="td-total">*</th>        
     </tr>
     <tr>
-        <th col="StockSum" style="border: 1px solid silver;">Stock<br/>sum.</th>
-        <th col="CurrentSum" style="border: 1px solid silver;">Cur<br/>sum.</th>
-        <th col="CloseResult" style="border: 1px solid silver;">close<br />result</th>
+        <th col="StockSum">Stock<br/>sum.</th>
+        <th col="CurrentSum">Cur<br/>sum.</th>
     </tr>
     @{
 		string company = null;
@@ -49,90 +45,81 @@
         decimal? saldo = 0;
     }
     @foreach (var item in Model.Items)
-	{	    
-		var s = item.Stock;
-	    
-		totalBuySum += item.BuySum;
-	    totalBuySumWithNkd += item.BuySum + item.Nkd;
-	    totalSellSum += item.SellSum;
-	    totalComm += item.Commission;
-	    totalCoupon += item.Coupon;
+    {
+        var s = item.Stock;
+
+        totalBuySum += item.BuySum;
+        totalBuySumWithNkd += item.BuySum + item.Nkd;
+        totalSellSum += item.SellSum;
+        totalComm += item.Commission;
+        totalCoupon += item.Coupon;
         saldo += item.BuySum - item.SellSum;
 
-	    <tr>
-            <td>
-                @(company == null || company != s.Company.Name ? s.Company.Name : "")
-            </td>
-            <td class="td-ticker" title="@s.Company.Name" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
-            <td class="td-lot" style="white-space: nowrap; text-align: center;" title="">
-                @($"{Util.KFormat(item.BuyQty)}")
-            </td>
+        if (company == null || company != s.Company.Name)
+        {
+            var comItems = Model.Items.Where(x => x.Stock.Company == s.Company).ToArray();
 
-            <td class="" style="color: blueviolet; background-color: antiquewhite; font-weight: bold; text-align: center;">
+            <tr>
+                <td class="td-head td-comp">@s.Company.Name</td>
+                <td class="td-head td-qty">@($"{Util.KFormat(comItems.Sum(x => x.CurrentQty))}")</td>
+                <td class="td-head td-sum">@($"{comItems.Sum(x => x.BuySum):N2}")</td>
+                <td class="td-head td-sum-nkd">@($"{comItems.Sum(x => x.BuySum + x.Nkd):N2}")</td>
+                <td class="td-head td-coupon">@($"{comItems.Sum(x => x.Coupon):N2}")</td>
+                <td class="td-head td-sell">@($"{Util.GetSum(comItems.Sum(x => x.SellSum)):N2}")</td>
+                <td class="td-head"></td>
+                <td class="td-head td-weight">@(comItems.Sum(x => x.CurrentQty) == 0 ? "" : $"{comItems.Where(x => x.CurrentQty != 0).Sum(x => (x.BuySum - x.SellSum) / Model.TotalSaldo):P2}")</td>
+                <td class="td-head td-comm">@($"{comItems.Sum(x => x.Commission):N2}")</td>
+            </tr>
+        }
+
+	    <tr>
+            <td class="td-ticker" title="@s.Isin[0] (@s.RegNum)" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
+            <td class="td-qty">
+                @($"{Util.KFormat(item.CurrentQty)}")
+            </td>
+            <td class="td-sum">
                 @($"{item.BuySum:N2}")
             </td>
-
-            <td class="" style="color: black; background-color: antiquewhite; font-weight: bold; text-align: center;">
+            <td class="td-sum-nkd" title="Nkd: @($"{item.Nkd:N2}")">
                 @($"{item.BuySum + item.Nkd:N2}")
             </td>
-
-            @{
-                var cssSell = "td-sell";
-                if (s.Data.SellQty == 0)
-                {
-                    cssSell = "td-sell-0";
-                }
-            }
-            <td class="@cssSell" style="text-align: center; color: rgb(43, 201, 226);">
+            <td class="td-coupon">
                 @($"{(item.Coupon != 0 ? item.Coupon : null)}")
             </td>
-            <td class="" style="color: blueviolet; background-color: antiquewhite; font-weight: bold; text-align: center;">
-                @($"{item.SellSum:N2}")
+            <td class="td-sell">
+                @($"{Util.GetSum(item.SellSum)}")
             </td>
-            <td class="@cssSell" style="text-align: center; color: black;">
-                @($"{item.BuySum - item.SellSum:N2}")
+            <td class="td-saldo">
+                @($"{item.SellSum - item.BuySum + item.Coupon - item.Commission:N2}")
             </td>
-            <td class="@cssSell" style="text-align: center; color: black;">
-                @{
-                    var p = (item.BuySum - item.SellSum) / Model.TotalSaldo;
-                    @($"{p:P2}")
-                }
+            <td class="td-weight">
+                @(item.CurrentQty == 0 ? "" : $"{(item.BuySum - item.SellSum) / Model.TotalSaldo:P2}")
             </td>
-            <td class="@cssSell" style="text-align: center; color: red;">@($"{item.Commission:N2}")</td>
+            <td class="td-comm">
+                @($"{item.Commission:N2}")
+            </td>
         </tr>
 
 	    company = s.Company.Name;
     }
     
     <tr>
-        <td colspan="3"></td>
-        <td class="" style="color: blueviolet; background-color: antiquewhite; font-weight: bold; text-align: center;">
+        <td colspan="2"></td>
+        <td class="td-total td-sum">
             @($"{totalBuySum:N2}")
         </td>
-        <td class="" style="color: black; background-color: antiquewhite; font-weight: bold; text-align: center;">
+        <td class="td-total td-sum-nkd">
             @($"{totalBuySumWithNkd:N2}")
         </td>
-        <td class="" style="text-align: center; color: rgb(43, 201, 226);">@($"{totalCoupon:N2}")</td>
-        <td class="" style="text-align: center; ">-</td>
-        <td class="" style="text-align: center; ">-</td>
-        <td class="" style="text-align: center; ">@($"{saldo:N2}")</td>
-        <td class="" style="text-align: center; color:red;">@($"{totalComm:N2}")</td>
-    </tr>
-    
-    @{
-        var currencies = new List<Currency> { Currency.Usd, Currency.Rur };
-        foreach(var cur in currencies)
-        {
-        }
-    }
-    <tr class="total">
-        <td colspan="13" style="border: 1px solid transparent;"></td>
-        <td>-</td>
-        <td colspan="6" style="border: 1px solid transparent;"></td>
-        <td style="border: 1px solid silver; background-color: azure; @(Model.TotalProfitInRur > 0 ? "color:limegreen" : "color:red")">@Util.GetSum(Model.TotalProfitInRur)</td>
-        <td style="border: 1px solid silver; background-color: azure; @(Model.TotalProfitInRur > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(Model.TotalProfitPercent)</td>
+        <td class="td-total td-coupon">@($"{totalCoupon:N2}")</td>
+        <td></td>
+        <td class="td-total">@($"{saldo:N2}")</td>
+        <td></td>
+        <td class="td-total td-comm">@($"{totalComm:N2}")</td>
     </tr>
     </table><br/>
+
+    <div id="chartBonds" class="chart-bonds"></div>
 
     <table class="tbl-g tbl-g-acc" style="width: 680px;">
     <tr>
