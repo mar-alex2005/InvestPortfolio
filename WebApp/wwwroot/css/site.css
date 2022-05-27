@@ -1112,18 +1112,22 @@ TD.sell {
     font-size: 11px;
 }
 
+
 /**/
 .tbl-cache-acc {
+	border: 1px solid silver
 }
 .tbl-cache-acc caption {
     font-weight: bold;
     color: dimgray;
-    padding: 0px;
+    padding: 0;
+	text-align: left;
 }
 .tbl-cache-acc th {
     font-weight: bold;
     font-size: 8pt;
     border-bottom: 1px solid silver;
+	padding: 6px;
     padding-top: 1px;
     padding-bottom: 1px;
     color: navy;
@@ -1135,6 +1139,18 @@ TD.sell {
     border-bottom: 1px solid silver;
     padding-top: 1px;
     padding-bottom: 1px
+}
+.tbl-cache-acc .acc-total {
+	text-align:right; 
+	font-weight: bold; 
+	padding-left: 6px;
+}
+
+.tbl-cache-acc .acc-total-all {
+	text-align:right; 
+	font-weight: bold; 
+	padding-left: 8px; 
+	background-color: aliceblue;
 }
 
 

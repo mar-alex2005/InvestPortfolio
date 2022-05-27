@@ -88,36 +88,33 @@
         <table>
         <tr>
             <td>
-                <table class="tbl-cache-acc" style="border: 1px solid silver">
+                <table class="tbl-cache-acc">
                     <caption>По счетам:</caption>
                     <tr>
                         <th></th>
                         @foreach (var a in Model.Accounts)
                         {
-                            <th>@string.Format("{0}", a.Name)</th>
+                            <th title="@a.Name">@a.BrokerName</th>
                         }
                         <th>Итого</th>
                     </tr>
                     <tr>
-                        <td>>></td>
+                        <td></td>
                         @{
                             foreach (var a in Model.Accounts)
                             {
                                 var accountCacheIn = Model.Operations
-                                    .Where(x => x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur && x.AccountType == a.Type)
+                                    .Where(x => x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur && x.Account == a)
                                     .Sum(x => x.Summa);
 
-                                <td style="text-align:right; font-weight: bold;">@string.Format("{0:N2}", accountCacheIn)</td>
+                                <td class="acc-total">@($"{accountCacheIn:N2}")</td>
                             }
+
+                            var totalCacheIn = Model.Operations
+                                .Where(x => x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur)
+                                .Sum(x => x.Summa);
                         }
-                        <td style="text-align:right; font-weight: bold;">
-                            @{
-                                var totalCacheIn = Model.Operations
-                                    .Where(x => x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur)
-                                    .Sum(x => x.Summa);
-                            }
-                            @string.Format("{0:N2}", totalCacheIn)
-                        </td>
+                        <td class="acc-total-all">@($"{totalCacheIn:N2}")</td>
                     </tr>
                     @{
                         foreach (var p in Invest.Core.Builder.GetPeriods())
@@ -301,7 +298,7 @@
                         
                     @foreach (var a in Model.Accounts)
 					{
-					    //Model.Account = a;
+					    Model.Account = a;
 					    Model.Cur = Currency.Usd;
 					    await Html.RenderPartialAsync("CurOperation", Model);                        
                     }
@@ -372,7 +369,7 @@
                         
 					@foreach (var a in Model.Accounts)
 					{
-					    //Model.Account = a;
+					    Model.Account = a;
 					    Model.Cur = Currency.Eur;
 					    await Html.RenderPartialAsync("CurOperation", Model);
 					}

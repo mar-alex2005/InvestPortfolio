@@ -108,7 +108,7 @@ namespace Invest.WebApp.Models
 		public Dictionary<Item, IEnumerable<Operation>> CurBuyOps;
 		public Dictionary<Item, IEnumerable<Operation>> CurSellOps;
 		public Dictionary<Item, IEnumerable<Operation>> BuysOps, SellOps, Divs;
-		public Account Account;
+		public BaseAccount Account;
 		public Currency Cur;
 		public List<Operation> Operations;
 		public List<BaseAccount> Accounts;

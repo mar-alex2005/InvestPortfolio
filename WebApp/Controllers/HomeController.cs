@@ -543,9 +543,10 @@ namespace Invest.WebApp.Controllers
 
 		public IActionResult Cache()
 		{
-			var model = new CacheViewModel();
-
-			model.Operations = _builder.Operations;
+			var model = new CacheViewModel {
+				Accounts = _builder.Accounts, 
+				Operations = _builder.Operations
+			};
 
 			var allUsdOps = _builder.Operations
 				.Where(x => x.Type == OperationType.CurBuy || x.Type == OperationType.CurSell)
