@@ -101,4 +101,38 @@ namespace Invest.WebApp.Models
 			}
 		}
 	}
+
+
+	public class CacheViewModel : BaseViewModel
+	{
+		public Dictionary<Item, IEnumerable<Operation>> CurBuyOps;
+		public Dictionary<Item, IEnumerable<Operation>> CurSellOps;
+		public Dictionary<Item, IEnumerable<Operation>> BuysOps, SellOps, Divs;
+		public Account Account;
+		public Currency Cur;
+		public List<Operation> Operations;
+		public List<BaseAccount> Accounts;
+
+		public CacheViewModel()
+		{
+			CurBuyOps = new Dictionary<Item, IEnumerable<Operation>>();
+			CurSellOps = new Dictionary<Item, IEnumerable<Operation>>();
+
+			BuysOps = new Dictionary<Item, IEnumerable<Operation>>();
+			SellOps = new Dictionary<Item, IEnumerable<Operation>>();
+			Divs = new Dictionary<Item, IEnumerable<Operation>>();
+		}
+
+		public struct Item
+		{
+			public Currency Cur;
+			public int AccCode;
+
+			public Item(Currency cur, int bitCode)
+			{
+				Cur = cur;
+				AccCode = bitCode;
+			}
+		}
+	}
 }

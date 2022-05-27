@@ -341,7 +341,7 @@ namespace Invest.Core
 
 				var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd); //rd.GetValue(3);
 				var opType = ExcelUtil.GetCellValue(cells.Type, rd); // 15
-				var opFinIns = ExcelUtil.GetCellValue(cells.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM"
+				var opFinIns = ExcelUtil.GetCellValue(cells.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM, CNYRUB_TOM"
 				var cur = Currency.Usd;
 				//var opCur = VtbExcelMapping.GetCellValue(cells.Cur, rd);
 				//var opComment = GetCellValue(cellMapping.Comment, rd); //rd.GetValue(33);
@@ -351,24 +351,16 @@ namespace Invest.Core
 					OperationType? type = null;
 
 					if (opFinIns.StartsWith("USDRUB", StringComparison.OrdinalIgnoreCase))
-					{
 						cur = Currency.Usd;
-
-						if (opType == "Покупка")
-							type = OperationType.CurBuy;
-						if (opType == "Продажа")
-							type = OperationType.CurSell;
-					}
-
 					if (opFinIns.StartsWith("EURRUB", StringComparison.OrdinalIgnoreCase))
-					{
 						cur = Currency.Eur;
+					if (opFinIns.StartsWith("CNYRUB", StringComparison.OrdinalIgnoreCase))
+						cur = Currency.Cny;
 
-						if (opType == "Покупка")
-							type = OperationType.CurBuy;
-						if (opType == "Продажа")
-							type = OperationType.CurSell;
-					}
+					if (opType == "Покупка")
+						type = OperationType.CurBuy;
+					if (opType == "Продажа")
+						type = OperationType.CurSell;
 
 					if (type == null)
 						continue;

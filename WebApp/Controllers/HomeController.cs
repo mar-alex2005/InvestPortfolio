@@ -541,54 +541,54 @@ namespace Invest.WebApp.Controllers
 
 
 
-		//       public IActionResult Cache()
-		//       {
-		//        var model = new CacheViewModel();
+		public IActionResult Cache()
+		{
+			var model = new CacheViewModel();
 
-		//        var allUsdOps = Invest.WebApp.Core.Instance.Operations
-		//	        .Where(x => x.Type == OperationType.UsdRubBuy || x.Type == OperationType.UsdRubSell 
-		//				|| x.Type == OperationType.EurRubBuy || x.Type == OperationType.EurRubSell).ToList();
+			model.Operations = _builder.Operations;
 
-		//        //
-		//		foreach (var a in Invest.WebApp.Core.Instance.Accounts)
-		//		{
-		//			model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Usd, a.Type),
-		//				allUsdOps.Where(x => x.Type == OperationType.UsdRubBuy && x.AccountType == a.Type));
-		//			model.CurSellOps.Add(new CacheViewModel.Item(Currency.Usd, a.Type),
-		//				allUsdOps.Where(x => x.Type == OperationType.UsdRubSell && x.AccountType == a.Type));
+			var allUsdOps = _builder.Operations
+				.Where(x => x.Type == OperationType.CurBuy || x.Type == OperationType.CurSell)
+				.ToList();
 
-		//			model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Eur, a.Type),
-		//				allUsdOps.Where(x => x.Type == OperationType.EurRubBuy && x.AccountType == a.Type));
-		//			model.CurSellOps.Add(new CacheViewModel.Item(Currency.Eur, a.Type),
-		//				allUsdOps.Where(x => x.Type == OperationType.EurRubSell && x.AccountType == a.Type));
+			foreach (var a in _builder.Accounts)
+			{
+				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Usd, a.BitCode),
+					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.AccountType == a.Type && x.Currency == Currency.Usd));
+				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Usd, a.BitCode),
+					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.AccountType == a.Type && x.Currency == Currency.Usd));
 
-		//			foreach (Currency curId in Enum.GetValues(typeof(Currency)))
-		//			{
-		//				if (curId == Currency.Rur)
-		//					continue;
+				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Eur, a.BitCode),
+					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.AccountType == a.Type && x.Currency == Currency.Eur));
+				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Eur, a.BitCode),
+					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.AccountType == a.Type && x.Currency == Currency.Eur));
 
-		//				model.BuysOps.Add(new CacheViewModel.Item(curId, a.Type),
-		//			        Invest.WebApp.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
-		//			                                                          && x.AccountType == a.Type && x.Stock != null && x.Stock.Currency == curId));
+				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Cny, a.BitCode),
+					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.AccountType == a.Type && x.Currency == Currency.Cny));
+				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Cny, a.BitCode),
+					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.AccountType == a.Type && x.Currency == Currency.Cny));
 
-		//		        model.SellOps.Add(new CacheViewModel.Item(curId, a.Type),
-		//			        Invest.WebApp.Core.Instance.Operations.Where(x => x.Type == OperationType.Sell
-		//			                                                          && x.AccountType == a.Type && x.Stock != null && x.Stock.Currency == curId));
+				foreach (Currency curId in Enum.GetValues(typeof(Currency)))
+				{
+					if (curId == Currency.Rur)
+						continue;
 
-		//		        model.Divs.Add(new CacheViewModel.Item(curId, a.Type),
-		//			        Invest.WebApp.Core.Instance.Operations.Where(x => x.Type == OperationType.Dividend
-		//			                                                          && x.AccountType == a.Type && x.Stock != null && x.Currency == curId));
+					model.BuysOps.Add(new CacheViewModel.Item(curId, a.BitCode),
+						_builder.Operations.Where(x => x.Type == OperationType.Buy
+						                               && x.AccountType == a.Type && x.Stock != null && x.Stock.Currency == curId));
 
-		//		        //if (a.Type == AccountType.Iis && curId == Currency.Usd)
-		//		        //{
-		//			       // var tt = Core.Instance.Operations.Where(x => x.Type == OperationType.Dividend
-		//			       //     && x.AccountType == a.Type && x.Stock != null && x.Currency == curId).ToList();
-		//		        //}
-		//			}
-		//		}
+					model.SellOps.Add(new CacheViewModel.Item(curId, a.BitCode),
+						_builder.Operations.Where(x => x.Type == OperationType.Sell
+						                               && x.AccountType == a.Type && x.Stock != null && x.Stock.Currency == curId));
 
-		//        return View(model);
-		//       }
+					model.Divs.Add(new CacheViewModel.Item(curId, a.BitCode),
+						_builder.Operations.Where(x => x.Type == OperationType.Dividend
+						                               && x.AccountType == a.Type && x.Stock != null && x.Currency == curId));
+				}
+			}
+
+			return View(model);
+		}
 
 
 		//       public IActionResult AmChart()
@@ -934,36 +934,4 @@ namespace Invest.WebApp.Controllers
 	//       public Currency? Cur;
 	//       public int? Year;
 	//   }
-
-	//   public class CacheViewModel : BaseViewModel
-	//   {
-	//	public Dictionary<Item, IEnumerable<Operation>> CurBuyOps;
-	//	public Dictionary<Item, IEnumerable<Operation>> CurSellOps;
-	//	public Dictionary<Item, IEnumerable<Operation>> BuysOps, SellOps, Divs;
-	//	public Account Account;
-	//	public Currency Cur;
-
-	//	public CacheViewModel()
-	//	{
-	//		CurBuyOps = new Dictionary<Item, IEnumerable<Operation>>();
-	//		CurSellOps = new Dictionary<Item, IEnumerable<Operation>>();
-
-	//		BuysOps = new Dictionary<Item, IEnumerable<Operation>>();
-	//		SellOps = new Dictionary<Item, IEnumerable<Operation>>();
-	//		Divs = new Dictionary<Item, IEnumerable<Operation>>();
-	//	}
-
-	//	public struct Item
-	//	{
-	//		public Currency Cur;
-	//		public AccountType Account;
-
-	//		public Item(Currency cur, AccountType acc)
-	//		{
-	//			Cur = cur;
-	//			Account = acc;
-	//		}
-	//	}
-	//   }
-
 }

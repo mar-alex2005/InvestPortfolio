@@ -53,7 +53,8 @@ namespace Invest.Core.Enums
 	{
 		Rur = 1,
 		Usd = 2,
-		Eur = 4
+		Eur = 4,
+		Cny = 8
 	}
 
 	[Flags]

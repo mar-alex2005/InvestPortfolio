@@ -1,6 +1,6 @@
-﻿@model CacheViewModel
-@using InvApp.Entities
-@using InvApp.Controllers
+﻿@model Invest.WebApp.Models.CacheViewModel
+@using Invest.Core.Enums
+@using Invest.WebApp.Models
 @{
 	var a = Model.Account;
 	var cur = Model.Cur;    
@@ -11,63 +11,63 @@
 </tr>
 <tr>
     @{
-        var commB = Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission);
-        var commS = Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission);
+        var commB = Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission);
+        var commS = Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission);
     }
     <td>Buys:</td>
-    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty):N2}")</td>
-    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Summa):N2}")</td>
+    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty):N2}")</td>
+    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Summa):N2}")</td>
     <td class="td-comm">@($"{commB:N2}")</td>
 </tr>
 <tr>
     <td>Sells:</td>
-    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty):N2}")</td>
-    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Summa):N2}")</td>
+    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty):N2}")</td>
+    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Summa):N2}")</td>
     <td class="td-comm">@($"{commS:N2}")</td>
 </tr>
 <tr>
     <td>Buy Curs:</td>
-    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Min(x => x.Price):N4}")</td>
+    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Min(x => x.Price):N4}")</td>
     <td>
-        @if (Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Any()) {
-            <span>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Price * x.Qty) / Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty):N4}")</span>
+        @if (Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Any()) {
+            <span>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Price * x.Qty) / Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty):N4}")</span>
         }
     </td>
-    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Max(x => x.Price):N4}")</td>
+    <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Max(x => x.Price):N4}")</td>
 </tr>
 <tr>
     <td>Sell Curs:</td>
-    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Min(x => x.Price):N4}")</td>
+    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Min(x => x.Price):N4}")</td>
     <td>
-        @if (Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Any())
+        @if (Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Any())
         {
-            <span>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Price * x.Qty) / Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty):N4}")</span>
+            <span>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Price * x.Qty) / Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty):N4}")</span>
         }
     </td>
-    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Max(x => x.Price):N4}")</td>
+    <td>@($"{Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Max(x => x.Price):N4}")</td>
 </tr>
 
 <tr>
     <td>buys $:</td>
-    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty * x.Price):N2}")</td>
+    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty * x.Price):N2}")</td>
     <td>sells $:</td>
-    <td>@($"{Model.SellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty * x.Price):N2}")</td>
+    <td>@($"{Model.SellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty * x.Price):N2}")</td>
     <td>saldo $:</td>
-    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty * x.Price) - Model.SellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty * x.Price):N2}")</td>
+    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty * x.Price) - Model.SellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty * x.Price):N2}")</td>
 </tr>
 
 <tr class="tr-comm">
     <td>b.comm:</td>
-    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission ?? 0m):N2}")</td>
+    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission ?? 0m):N2}")</td>
     <td>s.comm:</td>
-    <td>@($"{Model.SellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission ?? 0m):N2}")</td>
+    <td>@($"{Model.SellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission ?? 0m):N2}")</td>
     <td>sum:</td>
-    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission ?? 0m) + Model.SellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission ?? 0m):N4}")</td>
+    <td>@($"{Model.BuysOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission ?? 0m) + Model.SellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission ?? 0m):N4}")</td>
 </tr>
 
 <tr>
     <td>divs:</td>
-    <td>@($"{Model.Divs[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Summa):N2}")</td>
+    <td>@($"{Model.Divs[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Summa):N2}")</td>
 </tr>
 
 <tr>
@@ -75,13 +75,13 @@
     <td class="td-usd-total">
         @{
 			var total =
-				Model.CurBuyOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty)
-				- Model.CurSellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty)
-				- Model.BuysOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty * x.Price)
-				+ Model.SellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Qty * x.Price)
-				- (Model.BuysOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission ?? 0m) + Model.SellOps[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Commission ?? 0m))
+				Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty)
+				- Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty)
+				- Model.BuysOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty * x.Price)
+				+ Model.SellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty * x.Price)
+				- (Model.BuysOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission ?? 0m) + Model.SellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Commission ?? 0m))
 				- (a.Type == AccountType.VBr && cur == Currency.Usd ? 101 : 0) // out const
-				+ Model.Divs[new CacheViewModel.Item(cur, a.Type)].Sum(x => x.Summa)
+				+ Model.Divs[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Summa)
 			;
         }
 

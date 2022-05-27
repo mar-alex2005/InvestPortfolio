@@ -35,7 +35,7 @@ namespace Invest.Core
 
         public Dictionary<Analytics, FifoResult> FifoResults;
 		public Dictionary<Analytics, FinIndicator> FinIndicators;
-        public List<Period> Periods;		
+        public static List<Period> Periods;		
 
         public List<VirtualAccount> VirtualAccounts;
         public List<BaseAccount> Accounts;
@@ -991,7 +991,7 @@ namespace Invest.Core
             return data;
         }
 
-        public List<Period> GetPeriods(DateTime? start = null, DateTime? end = null)
+        public static List<Period> GetPeriods(DateTime? start = null, DateTime? end = null)
         { 
             if (start == null)
                 start = _startOperationDate.Date;

@@ -40,7 +40,7 @@ namespace Invest.Core
 
 	    private void LoadCurrencyRates(Currency cur, Dictionary<DateTime, Dictionary<Currency, decimal>> rates)
 	    {
-		    // https://cbr.ru/development/SXML/
+		    // https://cbr.ru/scripts/XML_val.asp?d=0
 	        // http://www.cbr.ru/scripts/XML_dynamic.asp?date_req1=02/03/2019&date_req2=14/03/2021&VAL_NM_RQ=R01235 usd
 	        // http://www.cbr.ru/scripts/XML_dynamic.asp?date_req1=02/03/2019&date_req2=14/03/2021&VAL_NM_RQ=R01239 eur
 
@@ -50,6 +50,8 @@ namespace Invest.Core
 				curCode = "1235";
 			else if (cur == Currency.Eur)
 				curCode = "1239";
+	        else if (cur == Currency.Cny)
+		        curCode = "1375";
 
             var url = $"http://www.cbr.ru/scripts/XML_dynamic.asp?date_req1={StartDate:dd/MM/yyyy}&date_req2={EndDate:dd/MM/yyyy}&VAL_NM_RQ=R0{curCode}";
 
