@@ -1113,7 +1113,7 @@ TD.sell {
 }
 
 
-/**/
+/* ---------------------------------------------------------------- */
 .tbl-cache-acc {
 	border: 1px solid silver
 }
@@ -1138,7 +1138,8 @@ TD.sell {
     font-size: 8pt;
     border-bottom: 1px solid silver;
     padding-top: 1px;
-    padding-bottom: 1px
+    padding-bottom: 1px;
+	text-align: right;
 }
 .tbl-cache-acc .acc-total {
 	text-align:right; 
@@ -1152,6 +1153,11 @@ TD.sell {
 	padding-left: 8px; 
 	background-color: aliceblue;
 }
+
+.tbl-cache-acc TR:hover td {
+	background-color: #e8edff;
+}
+
 
 
 

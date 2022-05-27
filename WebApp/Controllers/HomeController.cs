@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Invest.Core.Entities;
 using Invest.Core.Enums;
 using Invest.WebApp.Models;
-using Microsoft.AspNetCore.Html;
 
 namespace Invest.WebApp.Controllers
 {
@@ -555,19 +553,19 @@ namespace Invest.WebApp.Controllers
 			foreach (var a in _builder.Accounts)
 			{
 				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Usd, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.AccountType == a.Type && x.Currency == Currency.Usd));
+					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == Currency.Usd));
 				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Usd, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.AccountType == a.Type && x.Currency == Currency.Usd));
+					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == Currency.Usd));
 
 				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Eur, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.AccountType == a.Type && x.Currency == Currency.Eur));
+					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == Currency.Eur));
 				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Eur, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.AccountType == a.Type && x.Currency == Currency.Eur));
+					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == Currency.Eur));
 
 				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Cny, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.AccountType == a.Type && x.Currency == Currency.Cny));
+					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == Currency.Cny));
 				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Cny, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.AccountType == a.Type && x.Currency == Currency.Cny));
+					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == Currency.Cny));
 
 				foreach (Currency curId in Enum.GetValues(typeof(Currency)))
 				{
