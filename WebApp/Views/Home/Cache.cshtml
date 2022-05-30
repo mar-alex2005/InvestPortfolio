@@ -289,264 +289,33 @@
 
         <td>
             <table>
-            <tr>
-                <td>
-                    <table class="tbl-usdrur-stat">
-                    <caption>Usd operation:</caption>
-                        
-                    @foreach (var a in Model.Accounts)
-					{
-					    Model.Account = a;
-					    Model.Cur = Currency.Usd;
-					    await Html.RenderPartialAsync("CurOperation", Model);                        
-                    }
-                    </table>
-                    <br />
-                    
-                    <div style="height: 480px; overflow-y: auto;">
-                    <table class="tbl-usdrur">
-                    <tr>
-                        <th></th>
-                        <th>-</th>
-                        <th>Type</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Curs</th>
-                        <th>Comm</th>
-                    </tr>
-                    <tr>
-                        <td>>></td>
-                        <td></td>
-                        <td></td>
-                        <td style="text-align: right; font-weight: bold;">
-                            @{
-                                var t = 0;
-                                foreach (var a in Model.Accounts)
-                                {
-                                    var v = Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, a.BitCode)].Sum(x => x.Qty);
-                                    if (v != null) { t += v.Value; }
-                                    v = Model.CurSellOps[new CacheViewModel.Item(Currency.Usd, a.BitCode)].Sum(x => x.Qty);
-                                    if (v != null) { t -= v.Value; }
-                                }
-								<span>@($"{t:N0}")</span>
-							}
-                        </td>
-                        <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, (int)AccountType.VBr)].Sum(x => x.Summa):N2}")</td>
-                        <td></td>
-                        @{
-                            decimal commTotal = 0;
-                            foreach (var a in Model.Accounts)
-                            {
-                                var v = Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, a.BitCode)].Sum(x => x.Commission);
-                                if (v != null) { commTotal += v.Value; }
-                                v = Model.CurSellOps[new CacheViewModel.Item(Currency.Usd, a.BitCode)].Sum(x => x.Commission);
-                                if (v != null) { commTotal += v.Value; }
-                            }
-                        }
-                        <td style="text-align:right; font-weight: bold;">@($"{commTotal:N2}")</td>
-                    </tr>
-                    @{
-                        var opers = Model.Operations
-                            .Where(x => (x.Type == OperationType.CurBuy || x.Type == OperationType.CurSell) && x.Currency == Currency.Usd)
-                            .OrderByDescending(x => x.Date);
-
-                        foreach (var o in opers)
+            <caption>Cur. operations</caption>
+            @foreach (var va in Model.VirtualAccounts)
+            {
+                <tr>
+                    <td style="font-weight: bold; padding: 6px;">@va.Id</td>
+                </tr>
+                <tr>
+                    <td>
+                    @foreach (var a in Model.Accounts.Where(x => x.VirtualAccount == va))
+                    {
+                        Model.Account = a;
+                        foreach (var cur in Model.Currencies)
                         {
-                            <tr>
-                                <td class="td-date" title="@o.Comment">@($"{o.Date:dd.MM.yyyy}")</td>
-                                <td class="">@o.AccountType</td>
-                                <td class="">@o.Type</td>
-                                @{
-                                    if (o.Type == OperationType.CurSell && (o.Currency == Currency.Usd|| o.Currency == Currency.Eur))
-                                    {
-                                        <td class="td-qty" style="color:red">-@($"{o.Qty:N0}")</td>}
-                                    else
-                                    {
-                                        <td class="td-qty">@($"{o.Qty:N0}")</td>
-                                    }
-                                }
-                                <td class="td-sum">@($"{o.Summa:N2}")</td>
-                                <td class="td-price">@($"{o.Price:N4}")</td>
-                                <td class="td-comm">@($"{o.Commission:N2}")</td>
-                            </tr>
-                        }
-                    }
-                    </table>
-                    </div>
-                </td>
-                
-                @*EUR*@
-                <td>
-					<table class="tbl-usdrur-stat">
-					<caption>Eur operation:</caption>
-                        
-					@foreach (var a in Model.Accounts)
-					{
-					    Model.Account = a;
-					    Model.Cur = Currency.Eur;
-					    await Html.RenderPartialAsync("CurOperation", Model);
-					}
-					</table>
-                    <br />
-
-                    <table class="tbl-usdrur">
-                    <tr>
-                        <th></th>
-                        <th>-</th>
-                        <th>Type</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Curs</th>
-                        <th>Comm</th>
-                    </tr>
-                    <tr>
-                        <td>>></td>
-                        <td></td>
-                        <td></td>
-                        <td style="text-align: right; font-weight: bold;">
-                            @{
-                                t = 0;
-                                foreach (var a in Model.Accounts)
-                                {
-                                    var v = Model.CurBuyOps[new CacheViewModel.Item(Currency.Eur, a.BitCode)].Sum(x => x.Qty);
-                                    if (v != null) { t += v.Value; }
-                                    v = Model.CurSellOps[new CacheViewModel.Item(Currency.Eur, a.BitCode)].Sum(x => x.Qty);
-                                    if (v != null) { t -= v.Value; }
-                                }
-                                <span>@($"{t:N0}")</span>
-                            }
-                        </td>
-                        <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(Currency.Eur, (int)AccountType.Iis)].Sum(x => x.Summa):N2}")</td>
-                        <td></td>
-                        @{
-                            commTotal = 0;
-                            foreach (var a in Model.Accounts)
+                            Model.Cur = cur;
+                            if (Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty).Value != 0
+                                || Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty).Value != 0)
                             {
-                                var v = Model.CurBuyOps[new CacheViewModel.Item(Currency.Eur, a.BitCode)].Sum(x => x.Commission);
-                                if (v != null) { commTotal += v.Value; }
-                                v = Model.CurSellOps[new CacheViewModel.Item(Currency.Eur, a.BitCode)].Sum(x => x.Commission);
-                                if (v != null) { commTotal += v.Value; }
+                                await Html.RenderPartialAsync("CurOperation", Model);
+                                <div style="max-height: 360px; overflow-y: auto;">
+                                    @{await Html.RenderPartialAsync("CurOperationByAccTbl", Model);}
+                                </div>
                             }
-                        }
-                        <td style="text-align:right; font-weight: bold;">@($"{commTotal:N2}")</td>
-                    </tr>
-                    @{
-                        opers = Model.Operations
-                            .Where(x => (x.Type == OperationType.CurBuy || x.Type == OperationType.CurSell) && x.Currency == Currency.Eur)
-                            .OrderByDescending(x => x.Date);
-
-                        foreach (var o in opers)
-                        {
-                            <tr>
-                                <td class="td-date" title="@o.Comment">@($"{o.Date:dd.MM.yyyy}")</td>
-                                <td class="">@o.AccountType</td>
-                                <td class="">@o.Type</td>
-                                @{
-                                    if (o.Type == OperationType.CurSell && (o.Currency == Currency.Usd || o.Currency == Currency.Eur))
-                                    {
-                                        <td class="td-qty" style="color:red">-@($"{o.Qty:N0}")</td>
-                                    }
-                                    else
-                                    {
-                                        <td class="td-qty">@($"{o.Qty:N0}")</td>
-                                    }
-                                }
-                                <td class="td-sum">@($"{o.Summa:N2}")</td>
-                                <td class="td-price">@($"{o.Price:N4}")</td>
-                                <td class="td-comm">@($"{o.Commission:N2}")</td>
-                            </tr>
                         }
                     }
-                    </table>
-                </td>
-            
-                @*CNY*@
-                <td>
-					<table class="tbl-usdrur-stat">
-					<caption>Cny operation:</caption>
-                        
-					@foreach (var a in Model.Accounts)
-					{
-					    Model.Account = a;
-					    Model.Cur = Currency.Cny;
-					    await Html.RenderPartialAsync("CurOperation", Model);
-					}
-					</table>
-                    <br />
-
-                    <table class="tbl-usdrur">
-                    <tr>
-                        <th></th>
-                        <th>A</th>
-                        <th>Type</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Curs</th>
-                        <th>Comm</th>
-                    </tr>
-                    <tr>
-                        <td>>></td>
-                        <td></td>
-                        <td></td>
-                        <td style="text-align: right; font-weight: bold;">
-                            @{
-                                t = 0;
-                                foreach (var a in Model.Accounts)
-                                {
-                                    var v = Model.CurBuyOps[new CacheViewModel.Item(Currency.Cny, a.BitCode)].Sum(x => x.Qty);
-                                    if (v != null) { t += v.Value; }
-                                    v = Model.CurSellOps[new CacheViewModel.Item(Currency.Cny, a.BitCode)].Sum(x => x.Qty);
-                                    if (v != null) { t -= v.Value; }
-                                }
-                                <span>@($"{t:N0}")</span>
-                            }
-                        </td>
-                        <td>
-                            @*@($"{Model.CurBuyOps[new CacheViewModel.Item(Currency.Cny, a.BitCode)].Sum(x => x.Summa):N2}")*@
-                        </td>
-                        <td></td>
-                        @{
-                            commTotal = 0;
-                            foreach (var a in Model.Accounts)
-                            {
-                                var v = Model.CurBuyOps[new CacheViewModel.Item(Currency.Cny, a.BitCode)].Sum(x => x.Commission);
-                                if (v != null) { commTotal += v.Value; }
-                                v = Model.CurSellOps[new CacheViewModel.Item(Currency.Cny, a.BitCode)].Sum(x => x.Commission);
-                                if (v != null) { commTotal += v.Value; }
-                            }
-                        }
-                        <td style="text-align:right; font-weight: bold;">@($"{commTotal:N2}")</td>
-                    </tr>
-                    @{
-                        opers = Model.Operations
-                            .Where(x => (x.Type == OperationType.CurBuy || x.Type == OperationType.CurSell) && x.Currency == Currency.Cny)
-                            .OrderByDescending(x => x.Date);
-
-                        foreach (var o in opers)
-                        {
-                            <tr>
-                                <td class="td-date" title="@o.Comment">@($"{o.Date:dd.MM.yyyy}")</td>
-                                <td class="">@o.AccountType</td>
-                                <td class="">@o.Type</td>
-                                @{
-                                    if (o.Type == OperationType.CurSell && (o.Currency == Currency.Cny))
-                                    {
-                                        <td class="td-qty" style="color:red">-@($"{o.Qty:N0}")</td>
-                                    }
-                                    else
-                                    {
-                                        <td class="td-qty">@($"{o.Qty:N0}")</td>
-                                    }
-                                }
-                                <td class="td-sum">@($"{o.Summa:N2}")</td>
-                                <td class="td-price">@($"{o.Price:N4}")</td>
-                                <td class="td-comm">@($"{o.Commission:N2}")</td>
-                            </tr>
-                        }
-                    }
-                    </table>
-                </td>
-            </tr>
+                    </td>
+                </tr>
+            }
             </table>
         </td>
     </tr>

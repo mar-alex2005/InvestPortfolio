@@ -94,11 +94,12 @@ namespace Invest.Core
 					continue;
 
 				var name = node["isin_reg"]?.InnerText; // RU000A0JTS06, isin
-				if (string.IsNullOrEmpty(name))
+				var placeName = node["place_name"]?.InnerText; // МБ ФР, МБ ВР
+				if (string.IsNullOrEmpty(name) && string.IsNullOrEmpty(placeName))
 					continue;
 				
 				var s = _builder.GetStock(name) ?? _builder.GetStockByIsin(name);
-				if (s == null)
+				if (s == null && placeName == null)
 					throw new Exception($"ReadOperations(): alfa, stock or isin '{name}' is not found.");
 
 				var opDate = node["db_time"]?.InnerText;
@@ -108,12 +109,37 @@ namespace Invest.Core
 				var opBankCommission1 = decimal.Parse(node["bank_tax"].InnerText, CultureInfo.InvariantCulture);
 				var deliveryDate = node["settlement_time"]?.InnerText;
 				var opCur = node["curr_calc"]?.InnerText ?? "RUR";
-				
+				var pName = node["p_name"]?.InnerText;
+
 				var cur = Currency.Rur;
 				if (opCur.Equals(Currency.Usd.ToString(), StringComparison.OrdinalIgnoreCase))
 					cur = Currency.Usd;
 				else if (opCur.Equals(Currency.Eur.ToString(), StringComparison.OrdinalIgnoreCase))
 					cur = Currency.Eur;
+
+				//<place_name>МБ ВР</place_name><p_name>EUR</p_name>
+				if (!string.IsNullOrEmpty(placeName) && placeName == "МБ ВР" && (pName == "EUR" || pName == "USD"))
+				{
+					var oCur = new Operation
+					{
+						Index = ++index,
+						Account = account,
+						//AccountType = (AccountType)account.BitCode,
+						Date = DateTime.Parse(opDate),
+						Qty = Math.Abs(opQty),
+						Price = opPrice,
+						Type = opQty > 0 ? OperationType.CurBuy : OperationType.CurSell,
+						QtySaldo = opQty,
+						Summa = opSumma,
+						Currency = pName == "EUR" ? Currency.Eur : Currency.Usd,
+						DeliveryDate = DateTime.Parse(deliveryDate),
+						TransId = node["trade_no"]?.InnerText,
+						BankCommission1 = opBankCommission1,
+						BankCommission2 = null
+					};
+					_builder.AddOperation(oCur);
+					continue;
+				}
 
 				//if (!string.IsNullOrEmpty(opType) && !(opType == "Покупка" || opType == "Продажа"))
 				//	throw new Exception($"ReadOperations(): stock '{name}'. Wrong opType = '{opType}'");

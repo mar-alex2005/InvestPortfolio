@@ -346,52 +346,57 @@ namespace Invest.Core
 				//var opCur = VtbExcelMapping.GetCellValue(cells.Cur, rd);
 				//var opComment = GetCellValue(cellMapping.Comment, rd); //rd.GetValue(33);
 
-				if (!string.IsNullOrEmpty(opType))
+				if (string.IsNullOrEmpty(opFinIns))
+					throw new Exception("ReadCurOperations(): opFinIns is null or empty (for example, USDRUB_CNGD)");
+				
+				OperationType? type = null;
+
+				if (opFinIns.StartsWith("USDRUB", StringComparison.OrdinalIgnoreCase))
+					cur = Currency.Usd;
+				else if (opFinIns.StartsWith("EURRUB", StringComparison.OrdinalIgnoreCase))
+					cur = Currency.Eur;
+				else if (opFinIns.StartsWith("CNYRUB", StringComparison.OrdinalIgnoreCase))
+					cur = Currency.Cny;
+
+				if (opType == "Покупка")
+					type = OperationType.CurBuy;
+				else if (opType == "Продажа")
+					type = OperationType.CurSell;
+
+				if (type == null)
+					continue;
+
+				var bankCommission1Str = ExcelUtil.GetCellValue(cells.BankCommission1, rd);
+				var bankCommission2Str = ExcelUtil.GetCellValue(cells.BankCommission2, rd);
+
+				var op = new Operation
 				{
-					OperationType? type = null;
+					Account = account,
+					AccountType = (AccountType)account.BitCode,
+					Date = date,
+					Summa = decimal.Parse(opSumma),
+					Currency = cur,
+					Qty = int.Parse(ExcelUtil.GetCellValue(cells.Qty, rd)),
+					Type = type.Value,
+					Price = decimal.Parse(ExcelUtil.GetCellValue(cells.Price, rd)),
+					OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
+					TransId = ExcelUtil.GetCellValue(cells.TransId, rd),
+					BankCommission1 = !string.IsNullOrEmpty(bankCommission1Str) 
+						? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission1, rd)) 
+						: (decimal?)null,
+					BankCommission2 = !string.IsNullOrEmpty(bankCommission2Str) 
+						? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission2, rd)) 
+						: (decimal?)null,
+					
+					Comment = "Дата: " + ExcelUtil.GetCellValue(cells.OrderDate, rd) + " (" + ExcelUtil.GetCellValue(cells.FinInstrument, rd) + ")"
+				};
 
-					if (opFinIns.StartsWith("USDRUB", StringComparison.OrdinalIgnoreCase))
-						cur = Currency.Usd;
-					if (opFinIns.StartsWith("EURRUB", StringComparison.OrdinalIgnoreCase))
-						cur = Currency.Eur;
-					if (opFinIns.StartsWith("CNYRUB", StringComparison.OrdinalIgnoreCase))
-						cur = Currency.Cny;
+				if (op.TransId == "CS461755301") { var t=0;}
 
-					if (opType == "Покупка")
-						type = OperationType.CurBuy;
-					if (opType == "Продажа")
-						type = OperationType.CurSell;
-
-					if (type == null)
-						continue;
-
-					var bankCommission1Str = ExcelUtil.GetCellValue(cells.BankCommission1, rd);
-					var bankCommission2Str = ExcelUtil.GetCellValue(cells.BankCommission2, rd);
-
-					var op = new Operation
-					{
-						Account = account,
-						AccountType = (AccountType)account.BitCode,
-						Date = date,
-						Summa = decimal.Parse(opSumma),
-						Currency = cur,
-						Qty = int.Parse(ExcelUtil.GetCellValue(cells.Qty, rd)),
-						Type = type.Value,
-						Price = decimal.Parse(ExcelUtil.GetCellValue(cells.Price, rd)),
-						OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
-						TransId = ExcelUtil.GetCellValue(cells.TransId, rd),
-						BankCommission1 = !string.IsNullOrEmpty(bankCommission1Str) 
-							? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission1, rd)) 
-							: (decimal?)null,
-						BankCommission2 = !string.IsNullOrEmpty(bankCommission2Str) 
-							? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission2, rd)) 
-							: (decimal?)null,
-						
-						Comment = "Дата: " + ExcelUtil.GetCellValue(cells.OrderDate, rd) + " (" + ExcelUtil.GetCellValue(cells.FinInstrument, rd) + ")"
-					};
-
+				// check for exist TransId
+				if (!_builder.Operations.Exists(x => x.TransId == op.TransId))
 					_builder.AddOperation(op);
-				}
+				
 			}
 		}
 

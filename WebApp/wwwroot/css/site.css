@@ -1008,7 +1008,8 @@ TD.sell {
 .tbl-usdrur-stat caption {
     font-weight: bold;
     color: dimgray;
-    padding: 0px;
+    padding: 0;
+	text-align: left;
 }
 .tbl-usdrur-stat th {
     text-align: right;
@@ -1039,6 +1040,8 @@ TD.sell {
 
 /**/
 .tbl-usdrur {
+	margin-top: 4px;
+	margin-bottom: 15px;
 }
 
 .tbl-usdrur caption {

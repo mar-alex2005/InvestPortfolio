@@ -370,16 +370,16 @@ namespace Invest.Core
 				if (_year == 2022)
 					m = new CurrencyOperationMap {
 						OrderDate = "D",
-						Date = "AL",
-						Summa = "X",
-						Qty = "K",
-						Cur = "S",
-						Type = "G",
-						Price = "O",
-						BankCommission1 = "AA",
-						BankCommission2 = "AF",
-						OrderId = "AO",
-						TransId = "AT",
+						Date = "AG",
+						Summa = "U",
+						Qty = "J",
+						Cur = "Q",
+						Type = "F",
+						Price = "M",
+						BankCommission1 = "X",
+						BankCommission2 = "AB",
+						OrderId = "AJ",
+						TransId = "AO",
 						FinInstrument = "B"
 					};
 			}

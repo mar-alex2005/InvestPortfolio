@@ -1,0 +1,54 @@
+﻿@model Invest.WebApp.Models.CacheViewModel
+@using Invest.Core.Enums
+@{
+	var a = Model.Account;
+	var cur = Model.Cur;
+
+    var opers = Model.CurOperations
+        .Where(x => x.Cur == cur && x.Account == a)
+        .OrderByDescending(x => x.Operation.Date)
+        .ToList();
+
+    var last = opers.FirstOrDefault();
+}
+
+<table class="tbl-usdrur">
+<tr>
+    <th></th>
+    <th>Qty</th>
+    <th>Saldo</th>
+    <th>Summa</th>
+    <th>Rate</th>
+    <th>Com.</th>
+</tr>
+<tr>
+    <td>>></td>
+    <td></td>
+    <td style="text-align: right; font-weight: bold;">@($"{last?.Saldo:N0}")</td>
+    <td></td>
+    <td></td>
+    <td style="text-align:right; font-weight: bold;">@($"{last?.TotalComm:N2}")</td>
+</tr>
+@{
+    foreach (var o in opers)
+    {
+        <tr>
+            <td class="td-date" title="@o.Operation.Comment, @o.Operation.TransId">@($"{o.Operation.Date:dd.MM.yyyy}")</td>
+            @{
+                if (o.Operation.Type == OperationType.CurSell)
+                {
+                    <td class="td-qty" style="color:red">-@($"{o.Operation.Qty:N0}")</td>
+                }
+                else
+                {
+                    <td class="td-qty"  style="color:green">@($"{o.Operation.Qty:N0}")</td>
+                }
+            }
+            <td class="td-sum">@($"{o.Saldo}")</td>
+            <td class="td-sum">@($"{o.Operation.Summa:N2}")</td>
+            <td class="td-price">@($"{o.Operation.Price:N4}")</td>
+            <td class="td-comm">@($"{o.Operation.Commission:N2}")</td>
+        </tr>
+    }
+}
+</table>

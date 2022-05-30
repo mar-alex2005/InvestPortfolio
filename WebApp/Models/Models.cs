@@ -112,6 +112,9 @@ namespace Invest.WebApp.Models
 		public Currency Cur;
 		public List<Operation> Operations;
 		public List<BaseAccount> Accounts;
+		public List<VirtualAccount> VirtualAccounts;
+		public List<Currency> Currencies;
+		public List<CurOperItem> CurOperations;
 
 		public CacheViewModel()
 		{
@@ -121,6 +124,7 @@ namespace Invest.WebApp.Models
 			BuysOps = new Dictionary<Item, IEnumerable<Operation>>();
 			SellOps = new Dictionary<Item, IEnumerable<Operation>>();
 			Divs = new Dictionary<Item, IEnumerable<Operation>>();
+			CurOperations = new List<CurOperItem>();
 		}
 
 		public struct Item
@@ -132,6 +136,22 @@ namespace Invest.WebApp.Models
 			{
 				Cur = cur;
 				AccCode = bitCode;
+			}
+		}
+
+		public class CurOperItem
+		{
+			public Currency Cur;
+			public BaseAccount Account;
+			public Operation Operation;
+			public int Saldo;
+			public decimal TotalComm;
+
+			public CurOperItem(BaseAccount account, Currency cur, Operation operation)
+			{
+				Cur = cur;
+				Account = account;
+				Operation = operation;
 			}
 		}
 	}

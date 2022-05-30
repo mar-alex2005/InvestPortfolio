@@ -542,52 +542,61 @@ namespace Invest.WebApp.Controllers
 		public IActionResult Cache()
 		{
 			var model = new CacheViewModel {
+				VirtualAccounts = _builder.VirtualAccounts,
 				Accounts = _builder.Accounts, 
-				Operations = _builder.Operations
+				Operations = _builder.Operations,
+				Currencies = new List<Currency> { Currency.Usd, Currency.Eur, Currency.Cny }
 			};
 
-			var allUsdOps = _builder.Operations
+			var allCurOps = _builder.Operations
 				.Where(x => x.Type == OperationType.CurBuy || x.Type == OperationType.CurSell)
 				.ToList();
-
+			
 			foreach (var a in _builder.Accounts)
 			{
-				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Usd, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == Currency.Usd));
-				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Usd, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == Currency.Usd));
-
-				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Eur, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == Currency.Eur));
-				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Eur, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == Currency.Eur));
-
-				model.CurBuyOps.Add(new CacheViewModel.Item(Currency.Cny, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == Currency.Cny));
-				model.CurSellOps.Add(new CacheViewModel.Item(Currency.Cny, a.BitCode),
-					allUsdOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == Currency.Cny));
-
-				foreach (Currency curId in Enum.GetValues(typeof(Currency)))
+				//if (a.BitCode == 8) { var t=0;}
+				foreach (var cur in model.Currencies)
 				{
-					if (curId == Currency.Rur)
-						continue;
-
-					model.BuysOps.Add(new CacheViewModel.Item(curId, a.BitCode),
+					model.CurBuyOps.Add(new CacheViewModel.Item(cur, a.BitCode),
+						allCurOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == cur));
+					model.CurSellOps.Add(new CacheViewModel.Item(cur, a.BitCode),
+						allCurOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == cur));
+				
+					model.BuysOps.Add(new CacheViewModel.Item(cur, a.BitCode),
 						_builder.Operations.Where(x => x.Type == OperationType.Buy
-						                               && x.AccountType == a.Type && x.Stock != null && x.Stock.Currency == curId));
+						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 
-					model.SellOps.Add(new CacheViewModel.Item(curId, a.BitCode),
+					model.SellOps.Add(new CacheViewModel.Item(cur, a.BitCode),
 						_builder.Operations.Where(x => x.Type == OperationType.Sell
-						                               && x.AccountType == a.Type && x.Stock != null && x.Stock.Currency == curId));
+						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 
-					model.Divs.Add(new CacheViewModel.Item(curId, a.BitCode),
+					model.Divs.Add(new CacheViewModel.Item(cur, a.BitCode),
 						_builder.Operations.Where(x => x.Type == OperationType.Dividend
-						                               && x.AccountType == a.Type && x.Stock != null && x.Currency == curId));
+						                               && x.Account == a && x.Stock != null && x.Currency == cur));
+				}
+			}
+
+			foreach(var a in _builder.Accounts)
+			{
+				foreach (var cur in model.Currencies)
+				{
+					var saldo = 0;
+					var totalComm = .0m;
+					var opers = allCurOps.Where(x => x.Account == a && x.Currency == cur);
+					foreach (var o in opers)
+					{
+						saldo += o.Type == OperationType.CurBuy ? o.Qty.Value : -o.Qty.Value;
+						totalComm += o.Commission ?? 0;
+						var item = new CacheViewModel.CurOperItem(a, cur, o) { Saldo = saldo, TotalComm = totalComm };
+						model.CurOperations.Add(item);
+					}
 				}
 			}
 
 			return View(model);
 		}
+
+
 
 
 		//       public IActionResult AmChart()
