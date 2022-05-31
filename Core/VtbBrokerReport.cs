@@ -142,7 +142,7 @@ namespace Invest.Core
                     OperationType? type = null;
 
                     if (opType == "Зачисление денежных средств")
-                        type = OperationType.BrokerCacheIn;
+                        type = OperationType.CacheIn;
                     if (opType == "Вознаграждение Брокера")
                         type = OperationType.BrokerFee;
                     if (opType == "Дивиденды" 
@@ -167,13 +167,16 @@ namespace Invest.Core
 					if (opType == "Купонный доход")
 						type = OperationType.Coupon;
 
+					if (opType == "Списание денежных средств")
+						type = OperationType.CacheOut;
+
                     if (type == null)
                         continue;
 
 					if (opCur == null)
 						throw new Exception($"ReadCacheIn(): opCur == null. a: {account.Id}, t: {type}, {date}");
 
-					if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.BrokerCacheIn))
+					if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.CacheIn))
 						throw new Exception($"ReadCacheIn(): opComment == null. a: {account.Id}, t: {type}, {date}");
 
                     var op = new Operation {
@@ -199,7 +202,7 @@ namespace Invest.Core
                 {
                     if (_builder.Operations.Count(x => x.Date == d 
                         && x.Account == account
-                        && (x.Type == OperationType.BrokerCacheIn || x.Type == OperationType.BrokerCacheOut 
+                        && (x.Type == OperationType.CacheIn || x.Type == OperationType.CacheOut 
                             || x.Type == OperationType.BrokerFee || x.Type == OperationType.Dividend)) == 0)
                     {
                         foreach(var o in ops.Where(x => x.Date == d))
@@ -255,8 +258,8 @@ namespace Invest.Core
 
 				// add company from ticker
 				//AddCompany(s);
-				if (name.StartsWith("Газпрнефть", StringComparison.OrdinalIgnoreCase)) { var d = 0;}
-				if (s.Ticker == "Газпнф1P1R" || isin == "RU000A0JXNF9") { var d = 0;}
+				//if (name.StartsWith("Газпрнефть", StringComparison.OrdinalIgnoreCase)) { var d = 0;}
+				//if (s.Ticker == "Газпнф1P1R" || isin == "RU000A0JXNF9") { var d = 0;}
 
 				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
 				var opType = ExcelUtil.GetCellValue(cells.Type, rd);
@@ -391,12 +394,10 @@ namespace Invest.Core
 					Comment = "Дата: " + ExcelUtil.GetCellValue(cells.OrderDate, rd) + " (" + ExcelUtil.GetCellValue(cells.FinInstrument, rd) + ")"
 				};
 
-				if (op.TransId == "CS461755301") { var t=0;}
-
+				//if (op.TransId == "CS461755301") { var t=0;}
 				// check for exist TransId
 				if (!_builder.Operations.Exists(x => x.TransId == op.TransId))
 					_builder.AddOperation(op);
-				
 			}
 		}
 

@@ -973,7 +973,7 @@ namespace Invest.Core
         public List<CacheView> GetCacheInData(AccountType? accountType)
         { 
             var ops = Operations
-                .Where(x => x.Type == OperationType.BrokerCacheIn && (accountType == null ||  x.AccountType == AccountType.Iis))
+                .Where(x => x.Type == OperationType.CacheIn && (accountType == null ||  x.AccountType == AccountType.Iis))
                 .OrderBy(x => x.Date)
                 .GroupBy(x => x.Date.ToString("MMM, yy"))
                 //.Join(periods, g => g.Key, p => p, (g, p) => new { M = p, S = g.Sum(x1 => x1.Summa) });

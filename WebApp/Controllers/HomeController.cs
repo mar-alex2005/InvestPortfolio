@@ -607,7 +607,7 @@ namespace Invest.WebApp.Controllers
 		//       public JsonResult CacheInData(AccountType? accountType)
 		//       {
 		//           var ops = Invest.WebApp.Core.Instance.Operations
-		//               .Where(x => x.Type == OperationType.BrokerCacheIn 
+		//               .Where(x => x.Type == OperationType.CacheIn 
 		//					&& (accountType == null || x.AccountType == AccountType.Iis)
 		//					&& x.Currency == Currency.Rur)
 		//               .OrderByDescending(x => x.Date)

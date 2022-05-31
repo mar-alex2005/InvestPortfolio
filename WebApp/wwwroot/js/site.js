@@ -400,6 +400,11 @@ function openCache() {
             //console.log("Объектная модель готова к использованию!");
             let h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divOperCache")) - 10;
             $("#divOperCache").height(h);
+
+            //const chart = am4core.create("chartCache", am4charts.PieSeries);
+            //let series = chart.series.push(new am4charts.PieSeries());
+            //series.dataFields.value = "litres";
+            //series.dataFields.category = "country";
         });
     });
 }

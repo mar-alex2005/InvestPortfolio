@@ -26,7 +26,7 @@
     <td>Sells:</td>
     <td>@Util.GetSum(Model.CurSellOps[key].Sum(x => x.Qty), "-")</td>
     <td>@Util.GetSum(Model.CurSellOps[key].Sum(x => x.Summa), "-")</td>
-    <td class="td-comm">@($"{commS:N2}")</td>
+    <td class="td-comm">@Util.GetSum(commS, "-")</td>
 </tr>
 <tr>
     <td>Buy rate:</td>

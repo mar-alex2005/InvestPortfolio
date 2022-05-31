@@ -255,7 +255,7 @@ namespace Invest.Core
 				if (opCur == null)
 					throw new Exception($"ReadCacheIn(): opCur == null. a: {account.Id}, t: {type}, {date}");
 
-				if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.BrokerCacheIn))
+				if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.CacheIn))
 					throw new Exception($"ReadCacheIn(): opComment == null. a: {account.Id}, t: {type}, {date}");
 
 				Operation op = null;
