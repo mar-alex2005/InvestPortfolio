@@ -557,20 +557,20 @@ namespace Invest.WebApp.Controllers
 				//if (a.BitCode == 8) { var t=0;}
 				foreach (var cur in model.Currencies)
 				{
-					model.CurBuyOps.Add(new CacheViewModel.Item(cur, a.BitCode),
+					model.CurBuyOps.Add(new CacheViewModel.Item(cur, a),
 						allCurOps.Where(x => x.Type == OperationType.CurBuy && x.Account == a && x.Currency == cur));
-					model.CurSellOps.Add(new CacheViewModel.Item(cur, a.BitCode),
+					model.CurSellOps.Add(new CacheViewModel.Item(cur, a),
 						allCurOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == cur));
 				
-					model.BuysOps.Add(new CacheViewModel.Item(cur, a.BitCode),
+					model.BuysOps.Add(new CacheViewModel.Item(cur, a),
 						_builder.Operations.Where(x => x.Type == OperationType.Buy
 						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 
-					model.SellOps.Add(new CacheViewModel.Item(cur, a.BitCode),
+					model.SellOps.Add(new CacheViewModel.Item(cur, a),
 						_builder.Operations.Where(x => x.Type == OperationType.Sell
 						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 
-					model.Divs.Add(new CacheViewModel.Item(cur, a.BitCode),
+					model.Divs.Add(new CacheViewModel.Item(cur, a),
 						_builder.Operations.Where(x => x.Type == OperationType.Dividend
 						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 				}

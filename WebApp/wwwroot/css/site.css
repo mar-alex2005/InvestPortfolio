@@ -1367,6 +1367,7 @@ TD.sell {
 	padding: 4px;
 	padding-left: 5px;
 	border: 1px solid silver;
+	white-space: nowrap;
 }
 .tbl-h .td-cache {
 	text-align: right;

@@ -1,20 +1,25 @@
 ﻿@model Invest.WebApp.Models.CacheViewModel
 @using Invest.Core.Enums
+@using Invest.WebApp
 @using Invest.WebApp.Models
 @{
     Layout = null;
     ViewData["Title"] = "Cache";
 
     var cache = new Dictionary<CacheViewModel.Item, decimal?>();
+    var buys = new Dictionary<CacheViewModel.Item, decimal?>();
     var cacheIn = Model.Operations.Where(x => x.Type == OperationType.CacheIn).ToList();
 
-    foreach (var a in Model.Accounts)
+    // null account - total
+    foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
     {
-        foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+        foreach (var a in Model.Accounts)
         {
-            cache.Add(new CacheViewModel.Item(cur, a.BitCode),
+            cache.Add(new CacheViewModel.Item(cur, a),
                 cacheIn.Where(x => x.Type == OperationType.CacheIn && x.Account == a && x.Currency == cur).Sum(x => x.Summa));
         }
+
+        cache.Add(new CacheViewModel.Item(cur, null), cacheIn.Where(x => x.Type == OperationType.CacheIn && x.Currency == cur).Sum(x => x.Summa));
     }
 
 
@@ -168,59 +173,216 @@
             <td>
                 <table class="tbl-h">
                     <tr>
-                    <th></th>
-                        @foreach (var va in Model.VirtualAccounts)
-                        {
-                            <th title="@va.Name" colspan="@Model.Accounts.Count(x => x.VirtualAccount == va)">@va.Id</th>
+                    <th rowspan="2"></th>
+                        @foreach (var va in Model.VirtualAccounts) {
+                            <th title="@va.Name" colspan="@Model.Accounts.Count(x => x.VirtualAccount == va)"><b>@va.Id</b></th>
                         }
-                        <th></th>
+                        <th rowspan="2">Total</th>
                     </tr>
                     <tr>
-                        <th></th>
                         @foreach (var va in Model.VirtualAccounts) {
                             foreach (var a in Model.Accounts.Where(x => x.VirtualAccount == va))
                             {
                                 <th>@a.BrokerName (@a.Id)</th>
                             }
                         }
-                        <th>Total</th>
                     </tr>
                     <tr>
                         <td>CacheIn:</td>
-                        <td class="td-cache"></td>
-                        <td class="td-cache"></td>
-                        <td class="td-cache-total"></td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
 
-                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency))) 
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
                     {
+                        if (Model.GetSum(OperationType.CacheIn, cur, null) == 0) { continue; }
                         <tr>
                             <td class="td-name-sub">@cur:</td>
                             @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
                             {
-                                <td class="td-cache">@($"{cache[new CacheViewModel.Item(cur, a.BitCode)]:N2}")</td>
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheIn, cur, a), "-")</td>
                             }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheIn, cur, null), "-")</td>
+                        </tr>
+                    }
+
+                    <tr>
+                        <td>CacheOut:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CacheOut, cur, null) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheOut, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheOut, cur, null), "-")</td>
                         </tr>
                     }
 
                     <tr>
                         <td>Buys:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Buy, cur, null) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Buy, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Buy, cur, null), "-")</td>
+                        </tr>
+                    }
+
+                    <tr>
+                        <td>Sells:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Sell, cur, null) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Sell, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Sell, cur), "-")</td>
+                        </tr>
+                    }
+                
+                
+                    <tr>
+                        <td>Buys, cur:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    <tr>
+                        <td class="td-name-sub">total:</td>
+                        @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                        {
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurBuy, null, a), "-")</td>
+                        }
+                        <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurBuy, null), "-")</td>
+                    </tr>
+                    
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CurBuy, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurBuy, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurBuy, cur), "-")</td>
+                        </tr>
+                    }
+                
+                
+                    <tr>
+                        <td>Sells, cur:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    <tr>
+                        <td class="td-name-sub">total:</td>
+                        @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                        {
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurSell, null, a), "-")</td>
+                        }
+                        <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurSell, null), "-")</td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CurSell, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurSell, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurSell, cur), "-")</td>
+                        </tr>
+                    }
+
+                    
+                    <tr>
+                        <td>Sells-Buys:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Buy, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">
+                                    @Util.GetSum(
+                                        Model.GetSum(OperationType.Sell, cur, a) + Model.GetSum(OperationType.CurSell, cur, a)
+                                            - (Model.GetSum(OperationType.Buy, cur, a) + Model.GetSum(OperationType.CurBuy, cur, a)), "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(
+                                    Model.GetSum(OperationType.Sell, cur) + Model.GetSum(OperationType.CurSell, cur)
+                                        - (Model.GetSum(OperationType.Buy, cur) + Model.GetSum(OperationType.CurBuy, cur)), "-")
+                                )
+                            </td>
+                        </tr>
+                    }
+
+
+                    <tr>
+                        <td>Buys*:</td>
                         <td class="td-cache-buy">@string.Format("{0:N2}", cacheInIisBuy)</td>
                         <td class="td-cache-buy">@string.Format("{0:N2}", cacheInVbrBuy)</td>
                         <td class="td-cache-total">@string.Format("{0:N2}", (cacheInIisBuy ?? 0) + (cacheInVbrBuy ?? 0))</td>
                     </tr>
                     <tr>
-                        <td>Sells:</td>
+                        <td>Sells*:</td>
                         <td class="td-cache-sell">@string.Format("{0:N2}", cacheInIisSell)</td>
                         <td class="td-cache-sell">@string.Format("{0:N2}", cacheInVbrSell)</td>
                         <td class="td-cache-total">@string.Format("{0:N2}", (cacheInIisSell ?? 0) + (cacheInVbrSell ?? 0))</td>
                     </tr>
                     <tr>
-                        <td>Delta:</td>
+                        <td>Delta*:</td>
                         <td class="td-cache">@string.Format("{0:N2}", cacheInIisBuy - (cacheInIisSell ?? 0))</td>
                         <td class="td-cache">@string.Format("{0:N2}", cacheInVbrBuy - (cacheInVbrSell ?? 0))</td>
                         <td></td>
                     </tr>
+                    
+
+                    <tr>
+                        <td>Saldo:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CacheIn, cur, null) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">
+                                    @Util.GetSum(Model.GetSum(OperationType.CacheIn, cur, a) - Model.GetSum(OperationType.CacheOut, cur) 
+                                                 - (Model.GetSum(OperationType.Buy, cur, a) - Model.GetSum(OperationType.Sell, cur, a)), "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(Model.GetSum(OperationType.CacheIn, cur) 
+                                        - Model.GetSum(OperationType.CacheOut, cur)
+                                             - (Model.GetSum(OperationType.Buy, cur) - Model.GetSum(OperationType.Sell, cur)), "-")
+                            </td>
+                        </tr>
+                    }
+                    
+                    
+
                     @{
                         var cacheInIisSaldo = cacheInIis - (cacheInIisBuy - (cacheInIisSell ?? 0));
                         var cacheInVbrSaldo = cacheInVbr - (cacheInVbrBuy - (cacheInVbrSell ?? 0));
@@ -334,8 +496,8 @@
                         foreach (var cur in Model.Currencies)
                         {
                             Model.Cur = cur;
-                            if (Model.CurBuyOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty).Value != 0
-                                || Model.CurSellOps[new CacheViewModel.Item(cur, a.BitCode)].Sum(x => x.Qty).Value != 0)
+                            if (Model.CurBuyOps[new CacheViewModel.Item(cur, a)].Sum(x => x.Qty).Value != 0
+                                || Model.CurSellOps[new CacheViewModel.Item(cur, a)].Sum(x => x.Qty).Value != 0)
                             {
                                 await Html.RenderPartialAsync("CurOperation", Model);
                                 <div style="max-height: 360px; overflow-y: auto;">

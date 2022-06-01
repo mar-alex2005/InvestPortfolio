@@ -38,6 +38,44 @@ namespace Invest.Core
 			    foreach(var a in _builder.Accounts.Where(x => x.Broker == "Alfa"))
 				    LoadReportFile(a, year);
 		    }
+
+			AddExtendedOperations();
+	    }
+
+	    private void AddExtendedOperations()
+	    {
+		    //transfer
+		    var a = _builder.Accounts.FirstOrDefault(x => x.Broker == "Alfa");
+			var d = new DateTime(2022,3,24);
+			var comment = "Перевод ИИС (денежных средств)";
+
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = d,
+			    Summa = 24118.94m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheIn,
+			    Comment = comment,
+				TransId="p001"
+		    });
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = d,
+			    Summa = 0.7m,
+			    Currency = Currency.Usd,
+			    Type = OperationType.CacheIn,
+			    Comment = comment,
+			    TransId="p002"
+		    });
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = d,
+			    Summa = 165.74m,
+			    Currency = Currency.Eur,
+			    Type = OperationType.CacheIn,
+			    Comment = comment,
+			    TransId="p003"
+		    });
 	    }
 
 	    private void LoadReportFile(BaseAccount account, int year)

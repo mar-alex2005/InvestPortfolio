@@ -130,12 +130,12 @@ namespace Invest.WebApp.Models
 		public struct Item
 		{
 			public Currency Cur;
-			public int AccCode;
+			public BaseAccount Account;
 
-			public Item(Currency cur, int bitCode)
+			public Item(Currency cur, BaseAccount acc)
 			{
 				Cur = cur;
-				AccCode = bitCode;
+				Account = acc;
 			}
 		}
 
@@ -153,6 +153,16 @@ namespace Invest.WebApp.Models
 				Account = account;
 				Operation = operation;
 			}
+		}
+
+		public decimal? GetSum(OperationType type, Currency? cur, BaseAccount acc = null)
+		{ 
+			var v = Operations.Where(x => x.Type == type 
+                      && (cur == null || x.Currency == cur) 
+                      && (acc == null || x.Account == acc))
+				.Sum(x => x.Summa);
+
+			return v != null ? Math.Abs(v.Value) : (decimal?)null;
 		}
 	}
 }
