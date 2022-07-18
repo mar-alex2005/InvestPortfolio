@@ -58,6 +58,7 @@ namespace Invest.WebApp
 	        builder.AddReport(new VtbBrokerReport(Path.Combine(dir, @"Downloads\vtb"), builder));
 	        builder.AddReport(new SberBrokerReport(Path.Combine(dir, @"Downloads\sbr"), builder));
 	        builder.AddReport(new AlfaBrokerReport(Path.Combine(dir, @"Downloads\ab"), builder));
+	        builder.AddReport(new BksBrokerReport(Path.Combine(dir, @"Downloads\bks"), builder));
 			
 	        builder.Calc();
 

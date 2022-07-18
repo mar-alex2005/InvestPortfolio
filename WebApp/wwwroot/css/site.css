@@ -1005,6 +1005,7 @@ TD.sell {
 
 
 .tbl-usdrur-stat {
+    margin-top: 5px;
 }
 .tbl-usdrur-stat caption {
     font-weight: bold;

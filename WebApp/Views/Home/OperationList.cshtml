@@ -1,13 +1,11 @@
 ﻿@using Invest.WebApp
 @using Invest.Core.Enums
-@using Invest.WebApp.Models
 @model Invest.WebApp.Models.OperationViewModel
 @{
 	Layout = null;
 	ViewData["Title"] = "Operations";
 
 	var operationsByDate = Model.Operations
-		.Where(x => x.Type == OperationType.Sell || x.Type == OperationType.Buy)
 		.OrderByDescending(x => x.Date)
 		.GroupBy(g => new { g.Date.Date, g.Currency, g.Type })
 		.Select(s => new { s.Key, Summa = s.Sum(y => y.Summa), RurSumma = s.Sum(y => y.RurSumma) })
@@ -72,7 +70,7 @@
 							}
 
 							<tr>
-								<td class="td-qty" style="color:saddlebrown; text-align: left;">@($"{o.AccountType}")</td>
+								<td class="td-qty" style="color:saddlebrown; text-align: left;" title="@o.Account.Name">@(o.Account.Id)</td>
 								<td class="td-date">@($"{o.Date:dd MMM yy, ddd}")</td>
 								<td class="td-ticker">@o.Stock.Ticker</td>
 

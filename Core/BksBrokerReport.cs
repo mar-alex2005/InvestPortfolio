@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -44,8 +45,8 @@ namespace Invest.Core
 	    private void AddExtendedOperations()
 	    {
 		    //transfer
-		    var a = _builder.Accounts.FirstOrDefault(x => x.Broker == "Bks");
-		    const string comment = "Перевод ДС из АБ";
+		    //var a = _builder.Accounts.FirstOrDefault(x => x.Broker == "Bks");
+		    //const string comment = "Перевод ДС из АБ";
 
 		    //_builder.AddOperation(new Operation {
 			   // Account = a,
@@ -63,15 +64,16 @@ namespace Invest.Core
 		    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 		    var dir = new DirectoryInfo(_reportDir);
+			var d = new DateTime(year,1,1);
 
-		    var fileMask = $"Сделки_{year}-*.xlsx";
+		    var fileMask = $"B_k-2657758_ALL_{d:yy}-*.xlsx";
 		    var xslFiles = dir.GetFiles(fileMask);
 			
 		    if (xslFiles.Length == 0)
-			    throw new Exception($"There are no xsl files in directory with mask: '{fileMask}'");
+			    throw new Exception($"BKS: There are no xsl files in directory with mask: '{fileMask}'");
 
-		    if (xslFiles.Length > 1)
-			    throw new Exception($"There are more than one xsl file found in directory by acc {account.BitCode} and year '{year}' ('{fileMask}')");
+		    //if (xslFiles.Length > 1)
+			//    throw new Exception($"BKS: There are more than one xsl file found in directory by acc {account.BitCode} and year '{year}' ('{fileMask}')");
 
 		    foreach(var file in xslFiles.OrderBy(x => x.LastWriteTime))
 		    {
@@ -84,7 +86,7 @@ namespace Invest.Core
 
 	    private void Parse(BaseAccount account, int year, FileStream fs)
 		{
-			var map = new SberExcelMapping(account.BitCode, year);
+			var map = new BksExcelMapping(account.BitCode, year);
 
 			using (var reader = ExcelReaderFactory.CreateReader(fs))
 			{
@@ -101,7 +103,10 @@ namespace Invest.Core
 						{
 							var b = titleCell.ToString().Trim();
 
-							if (!string.IsNullOrEmpty(b))
+							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "1. Движение денежных средств")
+								ReadCache(reader, account, map);
+
+							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "2. Движение денежных средств")
 								ReadOperations(reader, account, map);
 						}
 
@@ -116,7 +121,59 @@ namespace Invest.Core
 			}
 		}
 
-	    private void ReadOperations(IExcelDataReader rd, BaseAccount account, SberExcelMapping map)
+		private void ReadCache(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+	    {
+		    var index = 0;
+		    var cells = map.GetMappingForCache();
+
+			// "Заключенные в отчетном периоде сделки с ценными бумагами"
+			while (rd.Read())
+			{
+				var type = ExcelUtil.GetCellValue(cells.Type, rd); // приход
+				if (string.IsNullOrEmpty(type))
+					continue;
+				
+				DateTime d;
+				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
+				if (!DateTime.TryParse(opDate, out d)) {
+					continue;
+				}
+
+				var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+				var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd);
+				var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+				
+				var op = new Operation
+				{
+					Index = ++index,
+					Account = account,
+					AccountType = (AccountType)account.BitCode,
+					Date = d,
+					Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
+					Currency = Currency.Rur,
+					Comment = opComment
+				};
+				
+				if (opType == "Приход ДС")
+					op.Type = OperationType.CacheIn;
+				else if (opType == "Вывод ДС") {
+					op.Type = OperationType.CacheOut;
+					op.Summa *= -1;
+				}
+				else if (opType == "Погашение купона")
+					op.Type = OperationType.Coupon;
+				else if (opType == "Погашение облигации")
+				{
+
+				}
+				else
+					continue;
+
+				_builder.AddOperation(op);
+			}
+	    }
+
+	    private void ReadOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 	    {
 		    var index = 0;
 		    var cells = map.GetMappingForOperation();
@@ -204,6 +261,16 @@ namespace Invest.Core
 			_year = year;
 		}
 
+		public class CacheMap
+		{
+			public string Date;
+			public string Type;
+			public string DeliveryDate;		// плановая дата поставки
+			public string Currency;			// 
+			public string Comment; 
+			public string Summa;
+		}
+
 		public class OperationMap
 		{
 			public string Name;
@@ -220,6 +287,25 @@ namespace Invest.Core
 			public string Currency;			// 
 		}
 		
+
+		public CacheMap GetMappingForCache()
+		{
+			CacheMap m;
+
+			if (_year == 2022)
+				m = new CacheMap {
+					Date = "B",
+					Type = "C",
+					DeliveryDate = "D", 
+					Currency = "M",
+					Comment = "N",
+					Summa = "G"
+				};
+			else
+				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year},{_accountCode}");
+
+			return m;
+		}
 		
 		/// <summary>
 		/// mapping cells for each account
@@ -227,28 +313,25 @@ namespace Invest.Core
 		/// <returns></returns>
 		public OperationMap GetMappingForOperation()
 		{
-			OperationMap m = null;
+			OperationMap m;
 
-			if (_accountCode == (int)AccountType.SBr)
-			{ 
-				if (_year == 2022)
-					m = new OperationMap {
-						Name = "E",
-						Date = "C",
-						Type = "H",
-						Qty = "I",
-						Price = "J",
-						BankCommission1 = "P",
-						BankCommission2 = "O",
-						OrderId = "",
-						TransId = "B",
-						DeliveryDate = "D", 
-						Nkd = "K",
-						Currency = "M"
-					};
-			}
+			if (_year == 2022)
+				m = new OperationMap {
+					Name = "E",
+					Date = "C2",
+					Type = "H",
+					Qty = "I",
+					Price = "J",
+					BankCommission1 = "P",
+					BankCommission2 = "O",
+					OrderId = "",
+					TransId = "B",
+					DeliveryDate = "D", 
+					Nkd = "K",
+					Currency = "M"
+				};
 			else
-				throw new Exception($"SberExcelCellsMapping(): wrong account accountCode or year. {_year},{_accountCode}");
+				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year},{_accountCode}");
 
 			return m;
 		}

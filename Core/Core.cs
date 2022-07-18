@@ -506,12 +506,20 @@ namespace Invest.Core
 			var ops = Operations.Where(x => x.Type == OperationType.Coupon && x.Comment != null);
 			foreach(var op in ops)
 			{
-				if (op.Summa == 528.32m) { var r =0; }
+				//if (op.Summa == 528.32m) { var r =0; }
 				var s = Stocks.FirstOrDefault(x => x.Type == StockType.Bond && !string.IsNullOrEmpty(x.RegNum)
 				    && x.Company != null 
 					&& op.Comment.ToLower().Contains(x.RegNum.ToLower())
 				);
                 
+				// for ofz russia
+				if (s == null)
+				{
+					s = Stocks.FirstOrDefault(x => x.Type == StockType.Bond && !string.IsNullOrEmpty(x.RegNum)
+						&& x.Company.Name == "ОФЗ"
+						&& op.Comment.ToLower().Contains(x.Ticker));
+				}
+
 				if (s == null)
 					throw new Exception($"LinkCouponsToTickers(): not found stock by {op.Comment}, {op.Date}");
 
