@@ -37,6 +37,52 @@ namespace Invest.Core
 			    foreach(var a in _builder.Accounts.Where(x => x.Broker == "Sber"))
 				    LoadReportFile(a, year);
 		    }
+
+		    AddExtendedOperations();
+	    }
+
+	    private void AddExtendedOperations()
+	    {
+		    //transfer
+		    var a = _builder.Accounts.FirstOrDefault(x => x.Broker == "Sber");
+		    const string comment = "Ввод ДС";
+
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,3,21),
+			    Summa = 10000.00m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheIn,
+			    Comment = comment,
+			    TransId="sb001"
+		    });
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,3,21),
+			    Summa = 10000.00m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheIn,
+			    Comment = comment,
+			    TransId="sb002"
+		    });
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,3,23),
+			    Summa = 10000.00m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheIn,
+			    Comment = comment,
+			    TransId="sb003"
+		    });
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,3,23),
+			    Summa = 10000.00m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheIn,
+			    Comment = comment,
+			    TransId="sb004"
+		    });
 	    }
 
 	    private void LoadReportFile(BaseAccount account, int year)

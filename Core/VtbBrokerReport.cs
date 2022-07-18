@@ -42,11 +42,12 @@ namespace Invest.Core
 				foreach(var a in _builder.Accounts)
 				{
 					if (a.Broker == "Vtb")
+					{
 						LoadReportFile(a, year);
+						AddExtOperations(a, year);
+					}
 				}
 			}
-
-			AddExtOperations();
 		}
 		
 		private void LoadReportFile(BaseAccount account, int year)
@@ -58,8 +59,8 @@ namespace Invest.Core
 			var fileMask = $"{account.Name}_{year}*.xls";
 			var xslFiles = dir.GetFiles(fileMask);
 			
-			if (xslFiles.Length == 0)
-				throw new Exception($"There are no xsl files in directory with mask: '{fileMask}'");
+			//if (xslFiles.Length == 0)
+			//	throw new Exception($"There are no xsl files in directory with mask: '{fileMask}'");
 
 			if (xslFiles.Length > 1)
 				throw new Exception($"There are more than one xsl file found in directory by acc {account.BitCode} and year '{year}' ('{fileMask}')");
@@ -112,8 +113,6 @@ namespace Invest.Core
 					rowIndex++;
 				}
 			}
-
-			//AddExtOperations(accountType, year);
 		}
 
 
@@ -142,9 +141,11 @@ namespace Invest.Core
                     OperationType? type = null;
 
                     if (opType == "Зачисление денежных средств")
-                        type = OperationType.BrokerCacheIn;
-                    if (opType == "Вознаграждение Брокера")
-                        type = OperationType.BrokerFee;
+                        type = OperationType.CacheIn;
+                    //if (opType == "Вознаграждение Брокера")
+                    //    type = OperationType.BrokerFee;
+                    if (opType == "Вознаграждение сторонних организаций") // Возмещение расходов НКО АО НРД за обслуживание выпуска ценных бумаг
+	                    type = OperationType.BrokerFee;
                     if (opType == "Дивиденды" 
                         || (opType.Equals("Зачисление денежных средств", StringComparison.OrdinalIgnoreCase) 
                                 && !string.IsNullOrEmpty(opComment) 
@@ -167,13 +168,16 @@ namespace Invest.Core
 					if (opType == "Купонный доход")
 						type = OperationType.Coupon;
 
+					if (opType == "Списание денежных средств")
+						type = OperationType.CacheOut;
+
                     if (type == null)
                         continue;
 
 					if (opCur == null)
 						throw new Exception($"ReadCacheIn(): opCur == null. a: {account.Id}, t: {type}, {date}");
 
-					if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.BrokerCacheIn))
+					if (string.IsNullOrEmpty(opComment) && (type != OperationType.UsdExchange && type != OperationType.CacheIn))
 						throw new Exception($"ReadCacheIn(): opComment == null. a: {account.Id}, t: {type}, {date}");
 
                     var op = new Operation {
@@ -199,7 +203,7 @@ namespace Invest.Core
                 {
                     if (_builder.Operations.Count(x => x.Date == d 
                         && x.Account == account
-                        && (x.Type == OperationType.BrokerCacheIn || x.Type == OperationType.BrokerCacheOut 
+                        && (x.Type == OperationType.CacheIn || x.Type == OperationType.CacheOut 
                             || x.Type == OperationType.BrokerFee || x.Type == OperationType.Dividend)) == 0)
                     {
                         foreach(var o in ops.Where(x => x.Date == d))
@@ -221,7 +225,6 @@ namespace Invest.Core
 		private void ReadOperations(ExcelDataReader.IExcelDataReader rd, BaseAccount account, VtbExcelMapping cellMapping)
 		{
 			var index = 0;
-
 			var cells = cellMapping.GetMappingForOperation();
 
 			// "Заключенные в отчетном периоде сделки с ценными бумагами"
@@ -255,8 +258,8 @@ namespace Invest.Core
 
 				// add company from ticker
 				//AddCompany(s);
-				if (name.StartsWith("Газпрнефть", StringComparison.OrdinalIgnoreCase)) { var d = 0;}
-				if (s.Ticker == "Газпнф1P1R" || isin == "RU000A0JXNF9") { var d = 0;}
+				//if (name.StartsWith("Газпрнефть", StringComparison.OrdinalIgnoreCase)) { var d = 0;}
+				//if (s.Ticker == "Газпнф1P1R" || isin == "RU000A0JXNF9") { var d = 0;}
 
 				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
 				var opType = ExcelUtil.GetCellValue(cells.Type, rd);
@@ -321,6 +324,8 @@ namespace Invest.Core
 				if (opBankCommission2 != null)
 					op.BankCommission2 = decimal.Parse(opBankCommission2);
 
+				if (op.TransId == "B4540260083") {  var t = 0; }
+
 				_builder.AddOperation(op);
 			}
 		}
@@ -341,182 +346,182 @@ namespace Invest.Core
 
 				var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd); //rd.GetValue(3);
 				var opType = ExcelUtil.GetCellValue(cells.Type, rd); // 15
-				var opFinIns = ExcelUtil.GetCellValue(cells.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM"
+				var opFinIns = ExcelUtil.GetCellValue(cells.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM, CNYRUB_TOM"
 				var cur = Currency.Usd;
 				//var opCur = VtbExcelMapping.GetCellValue(cells.Cur, rd);
 				//var opComment = GetCellValue(cellMapping.Comment, rd); //rd.GetValue(33);
 
-				if (!string.IsNullOrEmpty(opType))
+				if (string.IsNullOrEmpty(opFinIns))
+					throw new Exception("ReadCurOperations(): opFinIns is null or empty (for example, USDRUB_CNGD)");
+				
+				OperationType? type = null;
+
+				if (opFinIns.StartsWith("USDRUB", StringComparison.OrdinalIgnoreCase))
+					cur = Currency.Usd;
+				else if (opFinIns.StartsWith("EURRUB", StringComparison.OrdinalIgnoreCase))
+					cur = Currency.Eur;
+				else if (opFinIns.StartsWith("CNYRUB", StringComparison.OrdinalIgnoreCase))
+					cur = Currency.Cny;
+
+				if (opType == "Покупка")
+					type = OperationType.CurBuy;
+				else if (opType == "Продажа")
+					type = OperationType.CurSell;
+
+				if (type == null)
+					continue;
+
+				var bankCommission1Str = ExcelUtil.GetCellValue(cells.BankCommission1, rd);
+				var bankCommission2Str = ExcelUtil.GetCellValue(cells.BankCommission2, rd);
+
+				var op = new Operation
 				{
-					OperationType? type = null;
+					Account = account,
+					AccountType = (AccountType)account.BitCode,
+					Date = date,
+					Summa = decimal.Parse(opSumma),
+					Currency = cur,
+					Qty = int.Parse(ExcelUtil.GetCellValue(cells.Qty, rd)),
+					Type = type.Value,
+					Price = decimal.Parse(ExcelUtil.GetCellValue(cells.Price, rd)),
+					OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
+					TransId = ExcelUtil.GetCellValue(cells.TransId, rd),
+					BankCommission1 = !string.IsNullOrEmpty(bankCommission1Str) 
+						? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission1, rd)) 
+						: (decimal?)null,
+					BankCommission2 = !string.IsNullOrEmpty(bankCommission2Str) 
+						? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission2, rd)) 
+						: (decimal?)null,
+					
+					Comment = "Дата: " + ExcelUtil.GetCellValue(cells.OrderDate, rd) + " (" + ExcelUtil.GetCellValue(cells.FinInstrument, rd) + ")"
+				};
 
-					if (opFinIns.StartsWith("USDRUB", StringComparison.OrdinalIgnoreCase))
-					{
-						cur = Currency.Usd;
-
-						if (opType == "Покупка")
-							type = OperationType.CurBuy;
-						if (opType == "Продажа")
-							type = OperationType.CurSell;
-					}
-
-					if (opFinIns.StartsWith("EURRUB", StringComparison.OrdinalIgnoreCase))
-					{
-						cur = Currency.Eur;
-
-						if (opType == "Покупка")
-							type = OperationType.CurBuy;
-						if (opType == "Продажа")
-							type = OperationType.CurSell;
-					}
-
-					if (type == null)
-						continue;
-
-					var bankCommission1Str = ExcelUtil.GetCellValue(cells.BankCommission1, rd);
-					var bankCommission2Str = ExcelUtil.GetCellValue(cells.BankCommission2, rd);
-
-					var op = new Operation
-					{
-						Account = account,
-						AccountType = (AccountType)account.BitCode,
-						Date = date,
-						Summa = decimal.Parse(opSumma),
-						Currency = cur,
-						Qty = int.Parse(ExcelUtil.GetCellValue(cells.Qty, rd)),
-						Type = type.Value,
-						Price = decimal.Parse(ExcelUtil.GetCellValue(cells.Price, rd)),
-						OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
-						TransId = ExcelUtil.GetCellValue(cells.TransId, rd),
-						BankCommission1 = !string.IsNullOrEmpty(bankCommission1Str) 
-							? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission1, rd)) 
-							: (decimal?)null,
-						BankCommission2 = !string.IsNullOrEmpty(bankCommission2Str) 
-							? decimal.Parse(ExcelUtil.GetCellValue(cells.BankCommission2, rd)) 
-							: (decimal?)null,
-						
-						Comment = "Дата: " + ExcelUtil.GetCellValue(cells.OrderDate, rd) + " (" + ExcelUtil.GetCellValue(cells.FinInstrument, rd) + ")"
-					};
-
+				//if (op.TransId == "CB214387288") { var t=0;}
+				// check for exist TransId
+				if (!_builder.Operations.Exists(x => x.TransId == op.TransId))
 					_builder.AddOperation(op);
-				}
 			}
 		}
 
 
-		private void AddExtOperations()
+		private void AddExtOperations(BaseAccount account, int year)
         {
 			var index = 1000000;
+			if (account.Type == AccountType.VBr) {
+				if (year == 2021)
+				{
+					var op = new Operation {
+						Index = ++index,
+						AccountType = AccountType.VBr,
+						Account = _builder.GetAccountByCode((int)AccountType.VBr),
+						Date = new DateTime(2021, 8, 2, 2,0,1),
+						Stock = _builder.GetStock("SWI"),
+						Qty = 1,
+						Price = 22,
+						Type = OperationType.Buy,
+						Currency = Currency.Usd,
+						DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
+						TransId = "M036440389",
+						Summa = 22,
+						PriceInRur = 1635.73m,
+						RurSumma = 0,
+						BankCommission1 = 2.94m,
+						BankCommission2 = 0,
+						Comment = "Конвертация"
+					};
+					_builder.AddOperation(op);
 
-			var op = new Operation {
-				Index = ++index,
-				AccountType = AccountType.VBr,
-				Account = _builder.GetAccountByCode((int)AccountType.VBr),
-				Date = new DateTime(2021, 8, 2, 2,0,1),
-				Stock = _builder.GetStock("SWI"),
-				Qty = 1,
-				Price = 22,
-				Type = OperationType.Buy,
-				Currency = Currency.Usd,
-				DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
-				TransId = "M036440389",
-				Summa = 22,
-				PriceInRur = 1635.73m,
-				RurSumma = 0,
-				BankCommission1 = 2.94m,
-				BankCommission2 = 0,
-				Comment = "Конвертация"
-			};
-			_builder.AddOperation(op);
+					op = new Operation {
+						Index = ++index,
+						AccountType = AccountType.VBr,
+						Account = _builder.GetAccountByCode((int)AccountType.VBr),
+						Date = new DateTime(2021, 8, 4, 21,0,0),
+						Stock = _builder.GetStock("SWI"),
+						Qty = 2,
+						Price = 0,
+						Type = OperationType.Sell,
+						Currency = Currency.Usd,
+						DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
+						TransId = "M036435998",
+						Summa = 0,
+						PriceInRur = 0,
+						RurSumma = 0,
+						BankCommission1 = 0,
+						BankCommission2 = 0,
+						Comment = "Конвертация"
+					};
+					_builder.AddOperation(op);
 
-			op = new Operation {
-				Index = ++index,
-				AccountType = AccountType.VBr,
-				Account = _builder.GetAccountByCode((int)AccountType.VBr),
-				Date = new DateTime(2021, 8, 4, 21,0,0),
-				Stock = _builder.GetStock("SWI"),
-				Qty = 2,
-				Price = 0,
-				Type = OperationType.Sell,
-				Currency = Currency.Usd,
-				DeliveryDate = new DateTime(2021, 8, 2, 2,0,1),
-				TransId = "M036435998",
-				Summa = 0,
-				PriceInRur = 0,
-				RurSumma = 0,
-				BankCommission1 = 0,
-				BankCommission2 = 0,
-				Comment = "Конвертация"
-			};
-			_builder.AddOperation(op);
+					//TSVT
+					op = new Operation {
+						Index = ++index,
+						AccountType = AccountType.VBr,
+						Account = _builder.GetAccountByCode((int)AccountType.VBr),
+						Date = new DateTime(2021, 11, 10, 21,0,1),
+						Stock = _builder.GetStock("TSVT"),
+						Qty = 1,
+						Price = 0,
+						Type = OperationType.Buy,
+						Currency = Currency.Usd,
+						DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
+						TransId = "M037531193",
+						Summa = 0,
+						PriceInRur = 0,
+						RurSumma = 0,
+						BankCommission1 = 0,
+						BankCommission2 = 0,
+						Comment = "Конвертация"
+					};
+					_builder.AddOperation(op);
 
+					op = new Operation {
+						Index = ++index,
+						Account = _builder.GetAccountByCode((int)AccountType.VBr),
+						AccountType = AccountType.VBr,
+						Date = new DateTime(2021, 11, 10, 21,0,1),
+						Stock = _builder.GetStock("TSVT"),
+						Qty = 1,
+						Price = 0,
+						Type = OperationType.Buy,
+						Currency = Currency.Usd,
+						DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
+						TransId = "M037531195",
+						Summa = 0,
+						PriceInRur = 0,
+						RurSumma = 0,
+						BankCommission1 = 0,
+						BankCommission2 = 0,
+						Comment = "Конвертация"
+					};
+					_builder.AddOperation(op);
+				}
 
-			//TSVT
-			op = new Operation {
-				Index = ++index,
-				AccountType = AccountType.VBr,
-				Account = _builder.GetAccountByCode((int)AccountType.VBr),
-				Date = new DateTime(2021, 11, 10, 21,0,1),
-				Stock = _builder.GetStock("TSVT"),
-				Qty = 1,
-				Price = 0,
-				Type = OperationType.Buy,
-				Currency = Currency.Usd,
-				DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
-				TransId = "M037531193",
-				Summa = 0,
-				PriceInRur = 0,
-				RurSumma = 0,
-				BankCommission1 = 0,
-				BankCommission2 = 0,
-				Comment = "Конвертация"
-			};
-			_builder.AddOperation(op);
-
-			op = new Operation {
-				Index = ++index,
-				Account = _builder.GetAccountByCode((int)AccountType.VBr),
-				AccountType = AccountType.VBr,
-				Date = new DateTime(2021, 11, 10, 21,0,1),
-				Stock = _builder.GetStock("TSVT"),
-				Qty = 1,
-				Price = 0,
-				Type = OperationType.Buy,
-				Currency = Currency.Usd,
-				DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
-				TransId = "M037531195",
-				Summa = 0,
-				PriceInRur = 0,
-				RurSumma = 0,
-				BankCommission1 = 0,
-				BankCommission2 = 0,
-				Comment = "Конвертация"
-			};
-			_builder.AddOperation(op);
-			
-
-			op = new Operation
-            {
-				Index = ++index,
-				Account = _builder.GetAccountByCode((int)AccountType.VBr),
-                AccountType = AccountType.VBr,
-                Date = new DateTime(2022, 1, 25, 21,0,2),
-                Stock = _builder.GetStock("ZYXI"),
-                Qty = 1,
-                Price = 0,
-                Type = OperationType.Buy,
-                QtySaldo = 1,
-				Currency = Currency.Usd,
-				DeliveryDate = new DateTime(2022, 1, 25, 21,0,2),
-				TransId = "M037906453",
-				Summa = 0,
-				PriceInRur = 0,
-				RurSumma = 0,
-				BankCommission1 = 0,
-				BankCommission2 = 0,
-				Comment = "Зачисение 1 акции в качестве дивидендов"
-            };
-	        _builder.AddOperation(op);
+				if (year == 2022)
+				{
+					var op = new Operation
+		            {
+						Index = ++index,
+						Account = _builder.GetAccountByCode((int)AccountType.VBr),
+		                AccountType = AccountType.VBr,
+		                Date = new DateTime(2022, 1, 25, 21,0,2),
+		                Stock = _builder.GetStock("ZYXI"),
+		                Qty = 1,
+		                Price = 0,
+		                Type = OperationType.Buy,
+		                QtySaldo = 1,
+						Currency = Currency.Usd,
+						DeliveryDate = new DateTime(2022, 1, 25, 21,0,2),
+						TransId = "M037906453",
+						Summa = 0,
+						PriceInRur = 0,
+						RurSumma = 0,
+						BankCommission1 = 0,
+						BankCommission2 = 0,
+						Comment = "Зачисение 1 акции в качестве дивидендов"
+		            };
+			        _builder.AddOperation(op);
+				}
+			}
         }
 	}
 }

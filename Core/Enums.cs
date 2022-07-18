@@ -25,8 +25,9 @@ namespace Invest.Core.Enums
 		Sell = 8,
 		//CasheOut = 16,
 
-		BrokerCacheIn = 32,
-		BrokerCacheOut = 64,
+		CacheIn = 32,
+		/// <summary>Списание денежных средств</summary>
+		CacheOut = 64,
 		BrokerFee = 128,
 		
 		UsdExchange = 256,
@@ -53,7 +54,8 @@ namespace Invest.Core.Enums
 	{
 		Rur = 1,
 		Usd = 2,
-		Eur = 4
+		Eur = 4,
+		Cny = 8
 	}
 
 	[Flags]

@@ -645,6 +645,7 @@ namespace Invest.Core.Entities
         public int QtySaldo;
         // fin result for sell position
 		public FifoResult FifoResult;
+		public Position Position;
 
 		public int OffsetQty
 		{

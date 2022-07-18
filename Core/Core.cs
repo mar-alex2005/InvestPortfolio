@@ -35,7 +35,7 @@ namespace Invest.Core
 
         public Dictionary<Analytics, FifoResult> FifoResults;
 		public Dictionary<Analytics, FinIndicator> FinIndicators;
-        public List<Period> Periods;		
+        public static List<Period> Periods;		
 
         public List<VirtualAccount> VirtualAccounts;
         public List<BaseAccount> Accounts;
@@ -339,7 +339,8 @@ namespace Invest.Core
                         if (s.Data.SellQty == 0)
                         {
                             s.Data.ProfitWithComm = s.Data.Profit - (buyComission + sellComission);
-                            s.Data.ProfitPercent = s.Data.Profit / buySum * 100;
+							if (buySum != 0)
+								s.Data.ProfitPercent = s.Data.Profit / buySum * 100;
                         }
                     }
                 }
@@ -973,7 +974,7 @@ namespace Invest.Core
         public List<CacheView> GetCacheInData(AccountType? accountType)
         { 
             var ops = Operations
-                .Where(x => x.Type == OperationType.BrokerCacheIn && (accountType == null ||  x.AccountType == AccountType.Iis))
+                .Where(x => x.Type == OperationType.CacheIn && (accountType == null ||  x.AccountType == AccountType.Iis))
                 .OrderBy(x => x.Date)
                 .GroupBy(x => x.Date.ToString("MMM, yy"))
                 //.Join(periods, g => g.Key, p => p, (g, p) => new { M = p, S = g.Sum(x1 => x1.Summa) });
@@ -991,7 +992,7 @@ namespace Invest.Core
             return data;
         }
 
-        public List<Period> GetPeriods(DateTime? start = null, DateTime? end = null)
+        public static List<Period> GetPeriods(DateTime? start = null, DateTime? end = null)
         { 
             if (start == null)
                 start = _startOperationDate.Date;
