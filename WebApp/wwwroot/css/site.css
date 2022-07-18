@@ -1400,6 +1400,7 @@ TD.sell {
 .tbl-h .td-name-sub {
 	text-align: right;
 }
+<<<<<<< HEAD
 .tbl-h TR:hover td {
 	background-color: #e8edff;
 }
@@ -1411,6 +1412,10 @@ TD.sell {
 	text-align: right;
 	background-color: antiquewhite;
 }
+=======
+
+
+>>>>>>> 91ba356e9276b8613e20c1be0eaa8463e1d84866
 
 /* ============================================================================== */
 

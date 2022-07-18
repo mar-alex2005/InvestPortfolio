@@ -603,7 +603,7 @@ namespace Invest.WebApp.Controllers
 
 				VirtualAccounts = _builder.VirtualAccounts,
 				Accounts = _builder.Accounts, 
-				Operations = _builder.Operations,
+				Operations = _builder.Operations.Where(x => x.Type == OperationType.Dividend).ToList(),
 				Currencies = new List<Currency> { Currency.Usd, Currency.Eur, Currency.Cny }
 			};
 

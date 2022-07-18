@@ -142,10 +142,13 @@ namespace Invest.Core
 
                     if (opType == "Зачисление денежных средств")
                         type = OperationType.CacheIn;
-                    //if (opType == "Вознаграждение Брокера")
-                    //    type = OperationType.BrokerFee;
+
                     if (opType == "Вознаграждение сторонних организаций") // Возмещение расходов НКО АО НРД за обслуживание выпуска ценных бумаг
 	                    type = OperationType.BrokerFee;
+
+                    if (opType == "Вознаграждение Брокера")
+                        type = OperationType.BrokerFee;
+
                     if (opType == "Дивиденды" 
                         || (opType.Equals("Зачисление денежных средств", StringComparison.OrdinalIgnoreCase) 
                                 && !string.IsNullOrEmpty(opComment) 
@@ -396,7 +399,6 @@ namespace Invest.Core
 					Comment = "Дата: " + ExcelUtil.GetCellValue(cells.OrderDate, rd) + " (" + ExcelUtil.GetCellValue(cells.FinInstrument, rd) + ")"
 				};
 
-				//if (op.TransId == "CB214387288") { var t=0;}
 				// check for exist TransId
 				if (!_builder.Operations.Exists(x => x.TransId == op.TransId))
 					_builder.AddOperation(op);

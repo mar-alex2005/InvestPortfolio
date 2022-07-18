@@ -52,25 +52,43 @@
 
 <tr>
     <td>buys A:</td>
+<<<<<<< HEAD
     <td>@($"{Util.GetSum(Model.BuysOps[key].Sum(x => x.Qty * x.Price))}")</td>
     <td>sells A:</td>
     <td>@($"{Util.GetSum(Model.SellOps[key].Sum(x => x.Qty * x.Price))}")</td>
     <td>saldo A:</td>
     <td>@($"{Util.GetSum(Model.SellOps[key].Sum(x => x.Qty * x.Price) - Model.BuysOps[key].Sum(x => x.Qty * x.Price))}")</td>
+=======
+    <td>@($"{Model.BuysOps[key].Sum(x => x.Qty * x.Price):N2}")</td>
+    <td>sells A:</td>
+    <td>@($"{Model.SellOps[key].Sum(x => x.Qty * x.Price):N2}")</td>
+    <td>saldo A:</td>
+    <td>@($"{Model.SellOps[key].Sum(x => x.Qty * x.Price) - Model.BuysOps[key].Sum(x => x.Qty * x.Price):N2}")</td>
+>>>>>>> 91ba356e9276b8613e20c1be0eaa8463e1d84866
 </tr>
 
 <tr class="tr-comm">
     <td>b.comm:</td>
+<<<<<<< HEAD
     <td>@($"{Util.GetSum(Model.BuysOps[key].Sum(x => x.Commission ?? 0m))}")</td>
     <td>s.comm:</td>
     <td>@($"{Util.GetSum(Model.SellOps[key].Sum(x => x.Commission ?? 0m))}")</td>
+=======
+    <td>@($"{Model.BuysOps[key].Sum(x => x.Commission ?? 0m):N2}")</td>
+    <td>s.comm:</td>
+    <td>@($"{Model.SellOps[key].Sum(x => x.Commission ?? 0m):N2}")</td>
+>>>>>>> 91ba356e9276b8613e20c1be0eaa8463e1d84866
     <td>total:</td>
     <td>@($"{Model.BuysOps[key].Sum(x => x.Commission ?? 0m) + Model.SellOps[key].Sum(x => x.Commission ?? 0m):N4}")</td>
 </tr>
 
 <tr>
     <td>divs:</td>
+<<<<<<< HEAD
     <td>@($"{Util.GetSum(Model.Divs[key].Sum(x => x.Summa), "-")}")</td>
+=======
+    <td>@($"{Model.Divs[key].Sum(x => x.Summa):N2}")</td>
+>>>>>>> 91ba356e9276b8613e20c1be0eaa8463e1d84866
 </tr>
 
 <tr>
@@ -83,7 +101,11 @@
 				- Model.BuysOps[key].Sum(x => x.Qty * x.Price)
 				+ Model.SellOps[key].Sum(x => x.Qty * x.Price)
 				- (Model.BuysOps[key].Sum(x => x.Commission ?? 0m) + Model.SellOps[key].Sum(x => x.Commission ?? 0m))
+<<<<<<< HEAD
 				//- (a.Type == AccountType.VBr && cur == Currency.Usd ? 101 : 0) // out const
+=======
+				- (a.Type == AccountType.VBr && cur == Currency.Usd ? 101 : 0) // out const
+>>>>>>> 91ba356e9276b8613e20c1be0eaa8463e1d84866
 				+ Model.Divs[key].Sum(x => x.Summa)
 			;
         }
