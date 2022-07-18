@@ -1,44 +1,10 @@
-﻿@model CacheViewModel
-@using DevExtreme.AspNet.Mvc
-@using Invest.WebApp.Controllers
-@using Invest.Core.Entities
+﻿@model Invest.WebApp.Models.CacheViewModel
 @using Invest.Core.Enums
-@using Core = Invest.WebApp.Core
+@using Invest.WebApp
+@using Invest.WebApp.Models
 @{
-	Layout = null;
-	ViewData["Title"] = "Home Page";
-	var core = Core.Instance;
-
-    var cacheIn = core.Operations.Where(x => x.Type == OperationType.BrokerCacheIn).ToList();
-
-	var cacheInIis = cacheIn.Where(x => x.AccountType == AccountType.Iis).Sum(x => x.Summa);
-	var cacheInVbr = cacheIn.Where(x => x.AccountType == AccountType.VBr).Sum(x => x.Summa);
-	var cacheInTotal = cacheIn.Sum(x => x.Summa);
-
-	var cacheInIisBuy = core.Operations.Where(x => x.AccountType == AccountType.Iis && x.Currency == Currency.Rur && x.Type == OperationType.Buy).Sum(x => x.Price * x.Qty);
-	var cacheInVbrBuy = core.Operations.Where(x => x.AccountType == AccountType.VBr && x.Currency == Currency.Rur && x.Type == OperationType.Buy).Sum(x => x.Price * x.Qty);
-
-	var cacheInIisSell = core.Operations.Where(x => x.AccountType == AccountType.Iis && x.Currency == Currency.Rur && x.Type == OperationType.Sell).Sum(x => x.Price * x.Qty);
-	var cacheInVbrSell = core.Operations.Where(x => x.AccountType == AccountType.VBr && x.Currency == Currency.Rur && x.Type == OperationType.Sell).Sum(x => x.Price * x.Qty);
-
-	var rurComm = core.Operations.Where(x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-		    && x.Currency == Currency.Rur
-		    && x.Stock != null && x.Stock.Currency == Currency.Rur)
-	    .ToList();
-
-	var rurCommIis = rurComm.Where(x => x.AccountType == AccountType.Iis).Sum(x => x.Commission ?? 0m);
-	var rurCommVbr = rurComm.Where(x => x.AccountType == AccountType.VBr).Sum(x => x.Commission ?? 0m);
-
-
-	var rurDivs = core.Operations.Where(x => x.Type == OperationType.Dividend && x.Currency == Currency.Rur);
-	var rurDivsIis = rurDivs.Where(x => x.AccountType == AccountType.Iis).Sum(x => x.Summa);
-	var rurDivsVbr = rurDivs.Where(x => x.AccountType == AccountType.VBr).Sum(x => x.Summa);
-
-	var rurNdflIis = core.Operations.Where(x => x.AccountType == AccountType.Iis && x.Type == OperationType.Ndfl && x.Currency == Currency.Rur).Sum(x => x.Summa);
-	var rurNdflVbr = core.Operations.Where(x => x.AccountType == AccountType.VBr && x.Type == OperationType.Ndfl && x.Currency == Currency.Rur).Sum(x => x.Summa);
-
-	var usdBuyVbr = core.Operations.Where(x => x.AccountType == AccountType.VBr && x.Type == OperationType.UsdRubBuy).Sum(x => x.Summa);
-	var usdSellVbr = core.Operations.Where(x => x.AccountType == AccountType.VBr && x.Type == OperationType.UsdRubSell).Sum(x => x.Summa);
+    Layout = null;
+    ViewData["Title"] = "Cache";
 }
 
 <table class="tbl-cache-main">
@@ -48,40 +14,40 @@
         <table class="tbl-oper-cache">
         <tr>
             <th>Дата</th>
+            <th>Acc</th>
             <th>Сумма</th>
             <th>Cur</th>
             <th>Прим.</th>
         </tr>
         @{  
             var lastday = DateTime.MinValue;
-            var lastBgColor = "white";
-
-            foreach (var o in core.Operations
-                   .Where(x => x.Type == OperationType.BrokerCacheIn
-                           || x.Type == OperationType.BrokerCacheOut
+            foreach (var o in Model.Operations
+                   .Where(x => x.Type == OperationType.CacheIn
+                           || x.Type == OperationType.CacheOut
                            || x.Type == OperationType.Ndfl)
                    .OrderByDescending(x => x.Date).ThenByDescending(x => x.Index))
             {
-                var sColor = "darkgreen";
-                var bgColor = "white";
-                if (o.Type == OperationType.BrokerCacheOut) {
-                    sColor = "navy";
+                var sColor = "black";
+                if (o.Type == OperationType.CacheOut) {
+                    sColor = "green";
+                }
+                else if (o.Type == OperationType.Ndfl) {
+                    sColor = "orange";
                 }
 
-                if (o.Date != lastday)
+                if (o.Date.Month != lastday.Month)
                 {
-                    bgColor = (lastBgColor == "white" ? "yellow" : "white");
+                    <tr><td class="td-separator" colspan="5">@($"{o.Date:MMM, yy}")</td></tr>
                 }
-
-                <tr style="background-color: @bgColor;">
-                    <td class="td-date">@string.Format("{0:dd.MM.yyyy}", o.Date)</td>
-                    <td class="td-summa" style="text-align:right; color:@sColor;">@string.Format("{0:N2}", o.Summa)</td>
+                <tr>
+                    <td class="td-date">@($"{o.Date:dd.MM.yyyy}")</td>
+                    <td class="td-date" title="(acc: @o.Account.BrokerName)">@o.Account.Id</td>
+                    <td class="td-summa" title="@o.Comment" style="text-align:right; color: @sColor;">@($"{o.Summa:N2}")</td>
                     <td class="td-type">@o.Currency</td>
                     <td class="td-type">@o.Type.ToString()</td>
                 </tr>
 
                 lastday = o.Date;
-                lastBgColor = bgColor;
             }
         }
         </table>
@@ -91,61 +57,56 @@
         <table>
         <tr>
             <td>
-                <table class="tbl-cache-acc" style="border: 1px solid silver">
+                <table class="tbl-cache-acc">
                     <caption>По счетам:</caption>
                     <tr>
                         <th></th>
-                        @foreach (var a in core.Accounts)
+                        @foreach (var a in Model.Accounts)
                         {
-                            <th>@string.Format("{0}", a.Name)</th>
+                            <th title="@a.Name">@a.BrokerName</th>
                         }
                         <th>Итого</th>
                     </tr>
                     <tr>
-                        <td>>></td>
+                        <td></td>
                         @{
-                            foreach (var a in core.Accounts)
+                            foreach (var a in Model.Accounts)
                             {
-                                var accountCacheIn = core.Operations
-                                    .Where(x => x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur && x.AccountType == a.Type)
+                                var accountCacheIn = Model.Operations
+                                    .Where(x => x.Type == OperationType.CacheIn && x.Currency == Currency.Rur && x.Account == a)
                                     .Sum(x => x.Summa);
 
-                                <td style="text-align:right; font-weight: bold;">@string.Format("{0:N2}", accountCacheIn)</td>
+                                <td class="acc-total">@($"{accountCacheIn:N2}")</td>
                             }
+
+                            var totalCacheIn = Model.Operations
+                                .Where(x => x.Type == OperationType.CacheIn && x.Currency == Currency.Rur)
+                                .Sum(x => x.Summa);
                         }
-                        <td style="text-align:right; font-weight: bold;">
-                            @{
-                                var totalCacheIn = core.Operations
-                                    .Where(x => x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur)
-                                    .Sum(x => x.Summa);
-                            }
-                            @string.Format("{0:N2}", totalCacheIn)
-                        </td>
+                        <td class="acc-total-all">@(totalCacheIn != null && totalCacheIn != 0 ? $"{totalCacheIn:N2}" : "")</td>
                     </tr>
                     @{
-                        foreach (var p in core.GetPeriods())
+                        foreach (var p in Invest.Core.Builder.GetPeriods())
                         {
                             <tr>
-                                <td class="td-1">@string.Format("{0}", p.Name)</td>
-
-                                @foreach (var a in core.Accounts)
-                                {
-                                    var accountCacheIn = core.Operations
-                                        .Where(x => x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur
-                                            && x.AccountType == a.Type && x.Date.Year == p.Year && x.Date.Month == p.Month)
-                                        .Sum(x => x.Summa);
-
-                                    <td style="text-align: right;">@string.Format("{0:N2}", accountCacheIn)</td>
-                                }
-
+                                <td class="td-1">@p.Name</td>
                                 @{
-                                    var accountCacheInTotal = core.Operations
-                                        .Where(x => (x.Type == OperationType.BrokerCacheIn && x.Currency == Currency.Rur)
+                                    foreach (var a in Model.Accounts)
+                                    {
+                                        var accountCacheIn = Model.Operations
+                                            .Where(x => x.Type == OperationType.CacheIn && x.Currency == Currency.Rur
+                                                && x.Account == a && x.Date.Year == p.Year && x.Date.Month == p.Month)
+                                            .Sum(x => x.Summa);
+
+                                        <td>@(accountCacheIn != null && accountCacheIn != 0 ? $"{accountCacheIn:N2}" : "-")</td>
+                                    }
+
+                                    var accountCacheInTotal = Model.Operations
+                                        .Where(x => x.Type == OperationType.CacheIn && x.Currency == Currency.Rur
                                             && x.Date.Year == p.Year && x.Date.Month == p.Month)
                                         .Sum(x => x.Summa);
                                 }
-
-                                <td class="td-lot" style="text-align: right; color:darkgreen; padding-left:10px;">@string.Format("{0:N2}", accountCacheInTotal)</td>
+                                <td>@(accountCacheInTotal != null && accountCacheInTotal != 0 ? $"{accountCacheInTotal:N2}" : "")</td>
                             </tr>
                         }
                     }
@@ -156,105 +117,419 @@
             <td>
                 <div style="border: 1px solid lightgrey; background-color:  #f0f0f0; padding: 7px;">
                     <div style="border: 1px solid lightgrey; background-color: white; padding: 14px; ">
-                        @(Html.DevExtreme().Chart().ID("chartCache"))
+                        <div id="chartCache" class="chart-cache"></div>
                     </div>
                 </div>
+                <br />
             </td>
         </tr>
         <tr>
             <td>
-                <br />
                 <table class="tbl-h">
                     <tr>
-                        <th></th>
-                        @foreach (var a in core.Accounts)
-                        {
-                            <th>@string.Format("{0}", a.Name)</th>
+                    <th rowspan="2"></th>
+                        @foreach (var va in Model.VirtualAccounts) {
+                            <th title="@va.Name" colspan="@Model.Accounts.Count(x => x.VirtualAccount == va)"><b>@va.Id</b></th>
                         }
-                        <th>Total</th>
+                        <th rowspan="2">Total</th>
+                    </tr>
+                    <tr>
+                        @foreach (var va in Model.VirtualAccounts) {
+                            foreach (var a in Model.Accounts.Where(x => x.VirtualAccount == va))
+                            {
+                                <th>@a.BrokerName (@a.Id)</th>
+                            }
+                        }
                     </tr>
                     <tr>
                         <td>CacheIn:</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIis)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInVbr)</td>
-                        <td class="td-cache-total">@string.Format("{0:N2}", cacheInTotal)</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
+
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CacheIn, cur, null) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheIn, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheIn, cur), "-")</td>
+                        </tr>
+                    }
+
+                    <tr>
+                        <td>CacheOut:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CacheOut, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheOut, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CacheOut, cur), "-")</td>
+                        </tr>
+                    }
+
                     <tr>
                         <td>Buys:</td>
-                        <td class="td-cache-buy">@string.Format("{0:N2}", cacheInIisBuy)</td>
-                        <td class="td-cache-buy">@string.Format("{0:N2}", cacheInVbrBuy)</td>
-                        <td class="td-cache-total">@string.Format("{0:N2}", (cacheInIisBuy ?? 0) + (cacheInVbrBuy ?? 0))</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Buy, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Buy, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Buy, cur), "-")</td>
+                        </tr>
+                    }
+
                     <tr>
                         <td>Sells:</td>
-                        <td class="td-cache-sell">@string.Format("{0:N2}", cacheInIisSell)</td>
-                        <td class="td-cache-sell">@string.Format("{0:N2}", cacheInVbrSell)</td>
-                        <td class="td-cache-total">@string.Format("{0:N2}", (cacheInIisSell ?? 0) + (cacheInVbrSell ?? 0))</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Sell, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Sell, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.Sell, cur), "-")</td>
+                        </tr>
+                    }
+                
+                
+                    <tr>
+                        <td>Buys, cur:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
                     <tr>
-                        <td>Delta:</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIisBuy - (cacheInIisSell ?? 0))</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInVbrBuy - (cacheInVbrSell ?? 0))</td>
-                        <td></td>
+                        <td class="td-name-sub">total:</td>
+                        @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                        {
+                            <td class="td-cur-total">@Util.GetSum(Model.GetSum(OperationType.CurBuy, null, a), "-")</td>
+                        }
+                        <td class="td-cur-total">@Util.GetSum(Model.GetSum(OperationType.CurBuy, null), "-")</td>
                     </tr>
-                    @{
-                        var cacheInIisSaldo = cacheInIis - (cacheInIisBuy - (cacheInIisSell ?? 0));
-                        var cacheInVbrSaldo = cacheInVbr - (cacheInVbrBuy - (cacheInVbrSell ?? 0));
+                    
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CurBuy, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurBuy, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurBuy, cur), "-")</td>
+                        </tr>
                     }
+                
+                
+                    <tr>
+                        <td>Sells, cur:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    <tr>
+                        <td class="td-name-sub">total:</td>
+                        @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                        {
+                            <td class="td-cur-total">@Util.GetSum(Model.GetSum(OperationType.CurSell, null, a), "-")</td>
+                        }
+                        <td class="td-cur-total">@Util.GetSum(Model.GetSum(OperationType.CurSell, null), "-")</td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CurSell, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurSell, cur, a), "-")</td>
+                            }
+                            <td class="td-cache">@Util.GetSum(Model.GetSum(OperationType.CurSell, cur), "-")</td>
+                        </tr>
+                    }
+                
+                
+                    <tr>
+                        <td>Cur, saldo:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (cur == Currency.Rur || Model.GetSum(OperationType.CurBuy, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">
+                                    @Util.GetSum(
+                                        Model.GetSum(OperationType.CacheIn, cur, a) 
+                                        - Model.GetQty(OperationType.CurSell, cur, a) + Model.GetQty(OperationType.CurBuy, cur, a),
+                                    "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(
+                                    Model.GetSum(OperationType.CacheIn, cur) 
+                                        - Model.GetQty(OperationType.CurSell, cur) + Model.GetQty(OperationType.CurBuy, cur),
+                                    "-")
+                            </td>
+                        </tr>
+                    }
+
+                    
+                    <tr>
+                        <td>Sells-Buys:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
+                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        decimal? v;
+                        if (Model.GetSum(OperationType.Buy, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                @if (cur == Currency.Rur) {
+                                    v = Model.GetSum(OperationType.Sell, cur, a) + Model.GetSum(OperationType.CurSell, cur, a)
+                                        - (Model.GetSum(OperationType.Buy, cur, a) 
+                                           + Model.GetSum(OperationType.CurBuy, cur, a)
+                                           + Model.GetNkd(OperationType.Buy, cur, a)
+                                    );
+
+                                }
+                                else { 
+                                    v = Model.GetSum(OperationType.Sell, cur, a) - Model.GetSum(OperationType.Buy, cur, a);
+                                }
+                                <td class="td-cache">
+                                    @Util.GetSum(v, "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @if (cur == Currency.Rur) {
+                                    v = Model.GetSum(OperationType.Sell, cur) + Model.GetSum(OperationType.CurSell, cur)
+                                        - (Model.GetSum(OperationType.Buy, cur) + Model.GetSum(OperationType.CurBuy, cur));
+                                }
+                                else { 
+                                    v = Model.GetSum(OperationType.Sell, cur) - Model.GetSum(OperationType.Buy, cur);
+                                }
+                                @Util.GetSum(v, "-")
+                            </td>
+                        </tr>
+                    }
+
                     <tr>
                         <td>Saldo:</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIisSaldo)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInVbrSaldo)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIisSaldo + cacheInVbrSaldo)</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.CacheIn, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">
+                                    @Util.GetSum(Model.GetSum(OperationType.CacheIn, cur, a) 
+                                        - Model.GetSum(OperationType.Buy, cur, a) + Model.GetSum(OperationType.Sell, cur, a), "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(Model.GetSum(OperationType.CacheIn, cur)
+                                        - Model.GetSum(OperationType.Buy, cur) + Model.GetSum(OperationType.Sell, cur), "-")
+                            </td>
+                        </tr>
+                    }
+                    
+                
                     <tr>
                         <td>Comm:</td>
-                        <td class="td-cache-comm">-@string.Format("{0:N2}", rurCommIis)</td>
-                        <td class="td-cache-comm">-@string.Format("{0:N2}", rurCommVbr)</td>
-                        <td class="td-cache">-@string.Format("{0:N2}", (rurCommIis + rurCommVbr))</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetComm(new[]{ OperationType.Buy, OperationType.Sell }, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                decimal? c = 0m;
+                                @if (cur == Currency.Rur) 
+                                {
+                                    c = 
+                                        Model.GetComm(new[]{ OperationType.Buy, OperationType.Sell }, cur, a)
+                                        + Model.GetCurComm(new[]{ OperationType.CurBuy, OperationType.CurSell }, null, a)
+                                        + Model.GetSum(OperationType.BrokerFee, cur, a); // others fee
+                                }
+                                else { 
+                                    c = Model.GetComm(new[]{ OperationType.Buy, OperationType.Sell }, cur, a);
+                                }
+                                <td class="td-cache" 
+                                    title="broker fee=@Model.GetSum(OperationType.BrokerFee, cur, a), comm = @Model.GetComm(new[]{ OperationType.Buy, OperationType.Sell }, cur, a)">
+                                    @Util.GetSum(c, "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(Model.GetComm(new[]{ OperationType.Buy, OperationType.Sell }, cur), "-")
+                            </td>
+                        </tr>
+                    }
+                
                     <tr>
-                        <td>=</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIisSaldo - rurCommIis)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInVbrSaldo - rurCommVbr)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIisSaldo + cacheInVbrSaldo - (rurCommIis + rurCommVbr))</td>
+                        <td>Divs:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Dividend, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">
+                                    @Util.GetSum(Model.GetSum(OperationType.Dividend, cur, a), "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(Model.GetSum(OperationType.Dividend, cur), "-")
+                            </td>
+                        </tr>
+                    }
+                
                     <tr>
-                        <td>Дивы:</td>
-                        <td class="td-cache-divs">@string.Format("{0:N2}", rurDivsIis)</td>
-                        <td class="td-cache-divs">@string.Format("{0:N2}", rurDivsVbr)</td>
-                        <td class="td-cache-divs">@string.Format("{0:N2}", rurDivsIis + rurDivsVbr)</td>
+                        <td>Coupons:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Coupon, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">
+                                    @Util.GetSum(Model.GetSum(OperationType.Coupon, cur, a), "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(Model.GetSum(OperationType.Coupon, cur), "-")
+                            </td>
+                        </tr>
+                    }
+                
                     <tr>
-                        <td>=</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIisSaldo - rurCommIis + rurDivsIis)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInVbrSaldo - rurCommVbr + rurDivsVbr)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", (cacheInIisSaldo - rurCommIis + rurDivsIis) + (cacheInVbrSaldo - rurCommVbr + rurDivsVbr))</td>
+                        <td>Ndfl:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        if (Model.GetSum(OperationType.Ndfl, cur) == 0) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                <td class="td-cache">
+                                    @Util.GetSum(Model.GetSum(OperationType.Ndfl, cur, a), "-")
+                                </td>
+                            }
+                            <td class="td-cache">
+                                @Util.GetSum(Model.GetSum(OperationType.Ndfl, cur), "-")
+                            </td>
+                        </tr>
+                    }
+                
+                
                     <tr>
-                        <td>ndfl:</td>
-                        <td class="td-cache">@string.Format("{0:N2}", rurNdflIis)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", rurNdflVbr)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", (rurNdflIis ?? 0) + (rurNdflVbr ?? 0))</td>
+                        <td>Total:</td>
+                        <td colspan="@(Model.Accounts.Count + 1)"></td>
                     </tr>
-                    <tr>
-                        <td>usd buy:</td>
-                        <td class="td-cache">@string.Format("{0:N2}", 0)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", usdBuyVbr)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", (0) + (rurNdflVbr ?? 0))</td>
-                    </tr> 
-                    <tr>
-                        <td>usd sell:</td>
-                        <td class="td-cache">@string.Format("{0:N2}", 0)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", usdSellVbr)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", (0) + (usdSellVbr ?? 0))</td>
-                    </tr> 
-                    <tr>
-                        <td>=</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInIisSaldo - rurCommIis + rurDivsIis - rurNdflIis)</td>
-                        <td class="td-cache">@string.Format("{0:N2}", cacheInVbrSaldo - rurCommVbr + rurDivsVbr - rurNdflVbr - (usdBuyVbr- usdSellVbr)) </td>
-                        <td class="td-cache">@string.Format("{0:N2}", (cacheInIisSaldo - rurCommIis + rurDivsIis - rurNdflIis) + (cacheInVbrSaldo - rurCommVbr + rurDivsVbr - rurNdflVbr - (usdBuyVbr - usdSellVbr)))</td>
-                    </tr>
+                    @foreach (var cur in (Currency[]) Enum.GetValues(typeof(Currency)))
+                    {
+                        decimal? vTotal = 0m;
+
+                        if (Model.GetSum(OperationType.CacheIn, cur) == 0 && Model.GetQty(OperationType.CurBuy, cur) == 0 ) { continue; }
+                        <tr>
+                            <td class="td-name-sub">@cur:</td>
+                            @foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
+                            {
+                                decimal? v;
+
+                                var cIn = Model.GetSum(OperationType.CacheIn, cur, a);
+                                var cOut = Model.GetSum(OperationType.CacheOut, cur, a);
+                                var ndfl = Model.GetSum(OperationType.Ndfl, cur, a);
+                                var nkd = Model.GetNkd(OperationType.Buy, cur, a);
+
+                                if (cur == Currency.Rur) 
+                                {
+                                    var t2 = Model.GetSum(OperationType.Buy, cur, a);
+                                    var t3 = Model.GetSum(OperationType.Sell, cur, a);
+                                    var t4 = Model.GetSum(OperationType.Dividend, cur, a);
+                                    var t5 = Model.GetComm(new[] { OperationType.Buy, OperationType.Sell }, cur, a);
+                                    var t6 = Model.GetCurComm(new[]{ OperationType.CurBuy, OperationType.CurSell }, null, a);
+                                    var t7 = Model.GetSum(OperationType.Coupon, cur, a);
+                                    var t8 = Model.GetSum(OperationType.BrokerFee, cur, a);
+                                    var startSaldo = 0m; //50176.18m;
+
+                                    v =
+                                        startSaldo 
+                                            + cIn 
+                                            - (
+                                                ndfl + cOut
+                                                + Model.GetComm(new[] { OperationType.Buy, OperationType.Sell, OperationType.CurBuy, OperationType.CurSell }, cur, a)
+                                                + Model.GetCurComm(new[]{ OperationType.CurBuy, OperationType.CurSell }, null, a)
+                                                + Model.GetSum(OperationType.BrokerFee, cur, a)
+                                            )
+                                            + Model.GetSum(OperationType.Dividend, cur, a)
+                                            + Model.GetSum(OperationType.Coupon, cur, a)
+                                            - Model.GetSum(OperationType.Buy, cur, a)
+                                                - nkd
+                                                + Model.GetSum(OperationType.Sell, cur, a)
+                                                    - Model.GetSum(OperationType.CurBuy, null, a)
+                                                        + Model.GetSum(OperationType.CurSell, null, a);
+                                    vTotal += v;
+                                }
+                                else
+                                {
+                                    var t2 = Model.GetSum(OperationType.Buy, cur, a);
+                                    var t3 = Model.GetSum(OperationType.Sell, cur, a);
+                                    var t4 = Model.GetSum(OperationType.Dividend, cur, a);
+                                    var t5 = Model.GetComm(new[] { OperationType.Buy, OperationType.Sell }, cur, a);
+                                    var t6 = Model.GetSum(OperationType.Coupon, cur, a);
+
+                                    //if (a.BitCode == 2 && cur == Currency.Usd) { var tt=0;}
+                                    v = cIn
+                                        - (cOut + Model.GetComm(new[] { OperationType.Buy, OperationType.Sell }, cur, a))
+                                            + Model.GetSum(OperationType.Dividend, cur, a)
+                                            + Model.GetSum(OperationType.Coupon, cur, a)
+                                            - Model.GetSum(OperationType.Buy, cur, a)
+                                                + Model.GetSum(OperationType.Sell, cur, a)
+                                                + Model.GetQty(OperationType.CurBuy, cur, a)
+                                                - Model.GetQty(OperationType.CurSell, cur, a);
+                                    vTotal += v;
+                                }
+                                <td class="td-cache-total1">
+                                    @Util.GetSum(v, "-")
+                                </td>
+                            }
+                            <td class="td-cache-total1">
+                                @Util.GetSum(vTotal, "-")
+                            </td>
+                        </tr>
+                    }
                 </table>
             </td>
             </tr>
@@ -271,7 +546,7 @@
                 <td>>></td>
                 <td style="text-align:right; font-weight: bold;">
                     @{
-                        var totalUsdExch = core.Operations
+                        var totalUsdExch = Model.Operations
                             .Where(x => x.Type == OperationType.UsdExchange)
                             .Sum(x => x.Summa);
                         }
@@ -279,7 +554,7 @@
                 </td>
             </tr>
             @{
-                var usdExchangeOps = core.Operations
+                var usdExchangeOps = Model.Operations
                     .Where(x => x.Type == OperationType.UsdExchange)
                     .OrderByDescending(x => x.Date);
 
@@ -294,150 +569,35 @@
             }
             </table>
         </td>
-
         <td>
             <table>
-            <tr>
-                <td>
-                    <table class="tbl-usdrur-stat">
-                    <caption>UsdRub operation:</caption>
-                        
-                    @foreach (var a in Core.Instance.Accounts)
-					{
-					    Model.Account = a;
-					    Model.Cur = Currency.Usd;
-					    await Html.RenderPartialAsync("CurOperation", Model);                        
-                    }
-                    </table>
-                    <br />
-                    
-                    <div style="height: 480px; overflow-y: auto;">
-                    <table class="tbl-usdrur">
-                    <tr>
-                        <th></th>
-                        <th>-</th>
-                        <th>Type</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Curs</th>
-                        <th>Comm</th>
-                    </tr>
-                    <tr>
-                        <td>>></td>
-                        <td></td>
-                        <td></td>
-                        <td style="text-align: right; font-weight: bold;">
-                            @{
-								var t = Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, AccountType.VBr)].Sum(x => x.Qty)
-									- Model.CurSellOps[new CacheViewModel.Item(Currency.Usd, AccountType.VBr)].Sum(x => x.Qty)
-									+ Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, AccountType.Iis)].Sum(x => x.Qty)
-									- Model.CurSellOps[new CacheViewModel.Item(Currency.Usd, AccountType.Iis)].Sum(x => x.Qty);
-								<span>@($"{t:N0}")</span>
-							}
-                        </td>
-                        <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, AccountType.VBr)].Sum(x => x.Summa):N2}")</td>
-                        <td></td>
-                        <td style="text-align:right; font-weight: bold;">@($"{Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, AccountType.VBr)].Sum(x => x.Commission):N2}")</td>
-                    </tr>
-                    @{
-                        var opers = Core.Instance.Operations
-                            .Where(x => x.Type == OperationType.UsdRubBuy || x.Type == OperationType.UsdRubSell)
-                            .OrderByDescending(x => x.Date);
-
-                        foreach (var o in opers)
+            <caption>Cur. operations</caption>
+            @foreach (var va in Model.VirtualAccounts)
+            {
+                <tr>
+                    <td style="font-weight: bold; padding: 6px;">@va.Id</td>
+                </tr>
+                <tr>
+                    <td>
+                    @foreach (var a in Model.Accounts.Where(x => x.VirtualAccount == va))
+                    {
+                        Model.Account = a;
+                        foreach (var cur in Model.Currencies)
                         {
-                            <tr>
-                                <td class="td-date" title="@o.Comment">@($"{o.Date:dd.MM.yyyy}")</td>
-                                <td class="">@o.AccountType</td>
-                                <td class="">@o.Type</td>
-                                @{
-                                    if (o.Type == OperationType.UsdRubSell)
-                                    {
-                                        <td class="td-qty" style="color:red">-@($"{o.Qty:N0}")</td>}
-                                    else
-                                    {
-                                        <td class="td-qty">@($"{o.Qty:N0}")</td>
-                                    }
-                                }
-                                <td class="td-sum">@($"{o.Summa:N2}")</td>
-                                <td class="td-price">@($"{o.Price:N4}")</td>
-                                <td class="td-comm">@($"{o.Commission:N2}")</td>
-                            </tr>
-                        }
-                    }
-                    </table>
-                    </div>
-                </td>
-                
-                <td>
-					<table class="tbl-usdrur-stat">
-					<caption>EurRub operation:</caption>
-                        
-					@foreach (var a in Core.Instance.Accounts)
-					{
-					    Model.Account = a;
-					    Model.Cur = Currency.Eur;
-					    await Html.RenderPartialAsync("CurOperation", Model);
-					}
-					</table>
-                    <br />
-
-                    <table class="tbl-usdrur">
-                    <tr>
-                        <th></th>
-                        <th>-</th>
-                        <th>Type</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Curs</th>
-                        <th>Comm</th>
-                    </tr>
-                    <tr>
-                        <td>>></td>
-                        <td></td>
-                        <td></td>
-                        <td style="text-align: right; font-weight: bold;">
-                            @{
-                                t = Model.CurBuyOps[new CacheViewModel.Item(Currency.Eur, AccountType.VBr)].Sum(x => x.Qty)
-                                        - Model.CurSellOps[new CacheViewModel.Item(Currency.Eur, AccountType.VBr)].Sum(x => x.Qty)
-                                        + Model.CurBuyOps[new CacheViewModel.Item(Currency.Eur, AccountType.Iis)].Sum(x => x.Qty)
-                                        - Model.CurSellOps[new CacheViewModel.Item(Currency.Eur, AccountType.Iis)].Sum(x => x.Qty);
-                                <span>@($"{t:N0}")</span>
+                            Model.Cur = cur;
+                            if (Model.CurBuyOps[new CacheViewModel.Item(cur, a)].Sum(x => x.Qty).Value != 0
+                                || Model.CurSellOps[new CacheViewModel.Item(cur, a)].Sum(x => x.Qty).Value != 0)
+                            {
+                                await Html.RenderPartialAsync("CurOperation", Model);
+                                <div style="max-height: 360px; overflow-y: auto;">
+                                    @{await Html.RenderPartialAsync("CurOperationByAccTbl", Model);}
+                                </div>
                             }
-                        </td>
-                        <td>@($"{Model.CurBuyOps[new CacheViewModel.Item(Currency.Usd, AccountType.Iis)].Sum(x => x.Summa):N2}")</td>
-                        <td></td>
-                        <td style="text-align:right; font-weight: bold;">@($"{Model.CurBuyOps[new CacheViewModel.Item(Currency.Eur, AccountType.Iis)].Sum(x => x.Commission):N2}")</td>
-                    </tr>
-                    @{
-                        opers = Core.Instance.Operations
-                            .Where(x => x.Type == OperationType.EurRubBuy || x.Type == OperationType.EurRubSell)
-                            .OrderByDescending(x => x.Date);
-
-                        foreach (var o in opers)
-                        {
-                            <tr>
-                                <td class="td-date" title="@o.Comment">@($"{o.Date:dd.MM.yyyy}")</td>
-                                <td class="">@o.AccountType</td>
-                                <td class="">@o.Type</td>
-                                @{
-                                    if (o.Type == OperationType.UsdRubSell || o.Type == OperationType.EurRubSell)
-                                    {
-                                        <td class="td-qty" style="color:red">-@($"{o.Qty:N0}")</td>}
-                                    else
-                                    {
-                                        <td class="td-qty">@($"{o.Qty:N0}")</td>
-                                    }
-                                }
-                                <td class="td-sum">@($"{o.Summa:N2}")</td>
-                                <td class="td-price">@($"{o.Price:N4}")</td>
-                                <td class="td-comm">@($"{o.Commission:N2}")</td>
-                            </tr>
                         }
                     }
-                    </table>
-                </td>
-            </tr>
+                    </td>
+                </tr>
+            }
             </table>
         </td>
     </tr>

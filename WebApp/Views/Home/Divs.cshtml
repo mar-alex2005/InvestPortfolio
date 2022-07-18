@@ -1,13 +1,14 @@
-﻿@model InvApp.Controllers.DivsViewModel;
-@using InvApp.Entities
-@using Core = Invest.WebApp.Core
+﻿@model Invest.WebApp.Models.DivsViewModel;
+@using Invest.Core.Enums
+@using Invest.WebApp
+@using Invest.WebApp.Models
 @{
     Layout = null;
     ViewData["Title"] = "Home Page";
-    var core = Core.Instance;
+    //var core = Core.Instance;
 
 
-    var divs = core.Operations
+    var divs = Model.Operations
         .Where(x => x.Type == OperationType.Dividend
             && (Model.Cur == null || x.Currency == Model.Cur)
             && (Model.Year == null || x.Date.Year == Model.Year)
@@ -68,7 +69,7 @@
                 <caption>По счетам:</caption>
                 <tr>
                     <th></th>
-                    @foreach (var a in core.Accounts)
+                    @foreach (var a in Model.Accounts)
                     {
                         <th colspan="3">@a.Name</th>
                     }
@@ -76,7 +77,7 @@
                 </tr>
                 <tr>
                     <th></th>
-                    @foreach (var a in core.Accounts)
+                    @foreach (var a in Model.Accounts)
                     {
                         foreach (int curId in Enum.GetValues(typeof(Currency)))
                         {
@@ -90,7 +91,7 @@
                 </tr>
                 <tr>
                     <td>>></td>
-                    @foreach (var a in core.Accounts)
+                    @foreach (var a in Model.Accounts)
                     {
                         foreach (int curId in Enum.GetValues(typeof(Currency)))
                         {
@@ -113,7 +114,7 @@
 					{
 					    <tr>
                             <td class="td-1"><b>@(year)</b></td>
-                            @foreach (var a in core.Accounts)
+                            @foreach (var a in Model.Accounts)
                             {
                                 foreach (int curId in Enum.GetValues(typeof(Currency)))
                                 {
@@ -121,7 +122,7 @@
                                         .Where(x => x.AccountType == a.Type && (int)x.Currency == curId && x.Date.Year == year)
                                         .Sum(x => x.Summa);
 
-                                    <td class="td-sum" style="padding-left: 12px;">@Core.GetSum(accountSum, "-")</td>
+                                    <td class="td-sum" style="padding-left: 12px;">@Util.GetSum(accountSum, "-")</td>
                                 }
                             }
                             @foreach (int curId in Enum.GetValues(typeof(Currency)))
@@ -130,7 +131,7 @@
                                     .Where(x => (int)x.Currency == curId && x.Date.Year == year)
                                     .Sum(x => x.Summa);
 
-                                <td style="text-align: right; padding-left:14px; background-color: papayawhip;">@Core.GetSum(val, "-")</td>
+                                <td style="text-align: right; padding-left:14px; background-color: papayawhip;">@Util.GetSum(val, "-")</td>
                             }
                         </tr>
 					}
@@ -139,12 +140,12 @@
                     <td colspan="12">&nbsp;</td>
                 </tr>
                 @{
-                    var periods = core.GetPeriods();
+                    var periods = Invest.Core.Builder.GetPeriods();
                     foreach (var p in periods)
                     {
                         <tr>
                             <td class="td-1">@($"{p.Name}")</td>
-                            @foreach (var a in core.Accounts)
+                            @foreach (var a in Model.Accounts)
                             {
                                 foreach (int curId in Enum.GetValues(typeof(Currency)))
                                 {
@@ -153,7 +154,7 @@
                                                 && x.Date.Year == p.Year && x.Date.Month == p.Month)
                                             .Sum(x => x.Summa);
 
-                                    <td class="td-sum" style="padding-left: 12px;">@Core.GetSum(accountSum, "-")</td>
+                                    <td class="td-sum" style="padding-left: 12px;">@Util.GetSum(accountSum, "-")</td>
                                 }
                             }
 
@@ -163,7 +164,7 @@
                                     .Where(x => (int)x.Currency == curId && x.Date.Year == p.Year && x.Date.Month == p.Month)
                                     .Sum(x => x.Summa);
 
-                                    <td style="text-align: right; padding-left:14px; background-color: papayawhip;">@Core.GetSum(val, "-")</td>
+                                    <td style="text-align: right; padding-left:14px; background-color: papayawhip;">@Util.GetSum(val, "-")</td>
                             }
                         </tr>
                     }

@@ -74,26 +74,159 @@ namespace Invest.WebApp.Models
 		{
 			public BaseStock Stock;
 			public int Qty;
-			public int LotCount;
 			public decimal BuyTotalSum;
 			public int BuyQty;
 			public int SellQty;
-			public int CurrentQty;
 			public DateTime? FirstBuy, LastBuy;
 			public DateTime? FirstSell, LastSell;
 			public decimal? BuySum;
 			public decimal? Coupon;
 			public decimal? Nkd;
 			public decimal? SellSum;
-			public decimal? TotalSum;
 			public decimal? TotalSumInRur;
-			public decimal ProfitUsd;
-			public decimal ProfitRur;
 			public decimal Commission;
 			public decimal CloseFinResult, FinResult, TotalFinResult, Profit, ProfitInRur, ProfitPercent;
 			public decimal StockSum, CurStockSum;
 			// % in portfolio of Total Sum
 			public decimal SaldoPercent;
+
+			public int CurrentQty
+			{
+				get { return BuyQty - SellQty; }
+			}
+
+			public decimal? Value 
+			{ 
+				get { return CurrentQty != 0 ? BuySum - SellSum : null; }
+			}
 		}
+	}
+
+
+	public class CacheViewModel : BaseViewModel
+	{
+		public Dictionary<Item, IEnumerable<Operation>> CurBuyOps;
+		public Dictionary<Item, IEnumerable<Operation>> CurSellOps;
+		public Dictionary<Item, IEnumerable<Operation>> BuysOps, SellOps, Divs;
+		public BaseAccount Account;
+		public Currency Cur;
+		public List<Operation> Operations, NotExecutedOperations;
+		public List<BaseAccount> Accounts;
+		public List<VirtualAccount> VirtualAccounts;
+		public List<Currency> Currencies;
+		public List<CurOperItem> CurOperations;
+
+		public CacheViewModel()
+		{
+			CurBuyOps = new Dictionary<Item, IEnumerable<Operation>>();
+			CurSellOps = new Dictionary<Item, IEnumerable<Operation>>();
+
+			BuysOps = new Dictionary<Item, IEnumerable<Operation>>();
+			SellOps = new Dictionary<Item, IEnumerable<Operation>>();
+			Divs = new Dictionary<Item, IEnumerable<Operation>>();
+			CurOperations = new List<CurOperItem>();
+		}
+
+		public struct Item
+		{
+			public Currency Cur;
+			public BaseAccount Account;
+
+			public Item(Currency cur, BaseAccount acc)
+			{
+				Cur = cur;
+				Account = acc;
+			}
+		}
+
+		public class CurOperItem
+		{
+			public Currency Cur;
+			public BaseAccount Account;
+			public Operation Operation;
+			public int Saldo;
+			public decimal TotalComm;
+
+			public CurOperItem(BaseAccount account, Currency cur, Operation operation)
+			{
+				Cur = cur;
+				Account = account;
+				Operation = operation;
+			}
+		}
+
+		public decimal? GetSum(OperationType type, Currency? cur, BaseAccount acc = null)
+		{ 
+			var v = Operations.Where(x => x.Type == type 
+                      && (cur == null || x.Currency == cur) 
+                      && (acc == null || x.Account == acc))
+				.Sum(x => x.Summa);
+
+			//if (type == OperationType.Buy && cur == Currency.Usd && acc != null && acc.BitCode == 2) { var r=0; }
+
+			return v != null ? Math.Abs(v.Value) : (decimal?)null;
+		}
+
+		public decimal? GetNkd(OperationType type, Currency? cur, BaseAccount acc = null)
+		{ 
+			var v = Operations.Where(x => x.Type == type 
+                          && (cur == null || x.Currency == cur) 
+                          && (acc == null || x.Account == acc)
+                          && x.Nkd != null)
+				.Sum(x => x.Nkd);
+
+			return v != null ? Math.Abs(v.Value) : (decimal?)null;
+		}
+		
+		public decimal? GetQty(OperationType type, Currency? cur, BaseAccount acc = null)
+		{ 
+			var v = Operations.Where(x => x.Type == type 
+			                              && (cur == null || x.Currency == cur) 
+			                              && (acc == null || x.Account == acc))
+				.Sum(x => x.Qty);
+
+			return v != null ? Math.Abs(v.Value) : (decimal?)null;
+		}
+
+		public decimal? GetComm(OperationType[] types, Currency? cur, BaseAccount acc = null)
+		{ 
+			var v = Operations
+				.Where(x => (types == null || types.Contains(x.Type))
+				            && (acc == null || x.Account == acc) 
+				            && x.Currency == cur
+                )
+				.Sum(x => x.Commission ?? 0m);
+
+			return v;
+		}
+
+		/// <summary>returns commis in RUB for currency operations</summary>
+		/// <param name="types"></param>
+		/// <param name="cur"></param>
+		/// <param name="acc"></param>
+		/// <returns></returns>
+		public decimal? GetCurComm(OperationType[] types, Currency? cur = null, BaseAccount acc = null)
+		{ 
+			var v = Operations
+				.Where(x => types.Contains(x.Type)
+			            && (acc == null || x.Account == acc) 
+			            && (cur == null || x.Currency == cur)
+				)
+				.Sum(x => x.Commission ?? 0m);
+
+			return v;
+		}
+	}
+
+
+	public class DivsViewModel : BaseViewModel
+	{
+		public Currency? Cur;
+		public int? Year;
+		public List<Operation> Operations;
+		public List<BaseAccount> Accounts;
+
+		public List<VirtualAccount> VirtualAccounts;
+		public List<Currency> Currencies;
 	}
 }

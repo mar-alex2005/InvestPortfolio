@@ -7,101 +7,103 @@
 }
 
 <style>
-    .tbl-g td.td-loss-price {
-        text-align: right;
-        color: black;
-        font-family: 'Trebuchet MS', roboto;
-        font-size: 8pt;
-        font-weight: normal;
-        background-color: azure;
-        padding-left: 15px;
-    }
-    .tbl-g td.td-price-min {
-        padding-left: 6px;
-        padding-right: 6px;
-        text-align: right;
-        color: green;
-        font-family: 'Trebuchet MS', roboto;
-        font-size: 8pt;
-        font-weight: normal;
-        background-color: aliceblue;
-        border-left: 2px solid brown;
-        border-right: 1px solid brown;
-    }
+	.tbl-g td.td-loss-price {
+		text-align: right;
+		color: black;
+		font-family: 'Trebuchet MS', roboto;
+		font-size: 8pt;
+		font-weight: normal;
+		background-color: azure;
+		padding-left: 15px;
+	}
 
-    .tbl-g td.td-price-avg {
-        text-align: right;
-        padding-left: 6px;
-        padding-right: 6px;
-        color: blue;
-        font-family: 'Trebuchet MS', roboto;
-        font-size: 8pt;
-        font-weight: normal;
-        background-color: aliceblue;
-        border-left: 1px solid brown;
-        border-right: 2px solid brown;
-    }
+	.tbl-g td.td-price-min {
+		padding-left: 6px;
+		padding-right: 6px;
+		text-align: right;
+		color: green;
+		font-family: 'Trebuchet MS', roboto;
+		font-size: 8pt;
+		font-weight: normal;
+		background-color: aliceblue;
+		border-left: 2px solid brown;
+		border-right: 1px solid brown;
+	}
+
+	.tbl-g td.td-price-avg {
+		text-align: right;
+		padding-left: 6px;
+		padding-right: 6px;
+		color: blue;
+		font-family: 'Trebuchet MS', roboto;
+		font-size: 8pt;
+		font-weight: normal;
+		background-color: aliceblue;
+		border-left: 1px solid brown;
+		border-right: 2px solid brown;
+	}
 </style>
 
 <table>
-<tr><td class="td-filter">
-    <span data="">All</span>
-    <span data="Rur">Rur</span>
-    <span data="Usd">Usd</span>
-</td>
-</tr>
+	<tr>
+		<td class="td-filter">
+			<span data="">All</span>
+			<span data="Rur">Rur</span>
+			<span data="Usd">Usd</span>
+		</td>
+	</tr>
 </table>
 
 <div id="divStocks" style="overflow-y: scroll;">
-    <table class="tbl-g">
-    <tr>
-        <th col="Company">Company</th>
-        <th col="Ticker">Ticker</th>
-        <th col="Qty">Qty</th>
-        <th>Lot</th>
-        <th>Buy,<br />шт.</th>
-        <th>Sell,<br />шт.</th>
-        <th>Buy,<br />min</th>
-        <th>Buy,<br />max</th>
-        <th>Sell,<br />max</th>
+	<table class="tbl-g">
+		<tr>
+			<th col="Company">Company</th>
+			<th col="Ticker">Ticker</th>
+			<th col="Qty">Qty</th>
+			<th>Lot</th>
+			<th>Buy,<br />шт.</th>
+			<th>Sell,<br />шт.</th>
+			<th>Buy,<br />min</th>
+			<th>Buy,<br />max</th>
+			<th>Sell,<br />max</th>
 
-        <th>Buy,<br />min price</th>
-        <th>Buy,<br />avg price</th>
-        
-        <th>Buys</th>
-        <th>Sells</th>
-        <th>Sum<br />total</th>
-        <th>Sum<br />total, rur</th>
-        <th>NotLoss,<br/>price</th>
-    </tr>
-    @foreach (var item in Model.StockItems)
-    {
-        var s = item.Stock;
-        <tr>
-            <td class="td-company">@s.Company.Name</td>
-            <td class="td-ticker" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
-            <td class="td-lot">@(s.Data.QtyBalance != 0 ? s.Data.QtyBalance.ToString() : "-")</td>
-            <td class="td-lot">@(s.Data.QtyBalance != 0 ? (s.Data.QtyBalance / s.LotSize).ToString() : "-")</td>
-            <td class="td-buy">@string.Format("{0:N0}", item.BuyQty)</td>
-            <td class="td-sell">@(item.SellQty != null ? item.SellQty.ToString() : "-")</td>
-            <td class="td-date">@string.Format("{0:dd.MM.yy}", item.FirstBuy)</td>
-            <td class="td-date">@string.Format("{0:dd.MM.yy}", item.LastBuy)</td>
-            <td class="td-date">@string.Format("{0:dd.MM.yy}", item.LastSell)</td>
+			<th>Buy,<br />min price</th>
+			<th>Buy,<br />avg price</th>
 
-            <td class="td-price-min" style=""><i>@string.Format("{0:N2}", item.LastMinBuyPrice)</i></td>
-            <td class="td-price-avg"><i>@string.Format("{0:N2}", item.LastAvgBuyPrice)</i></td>
+			<th>Buys</th>
+			<th>Sells</th>
+			<th>Sum<br />total</th>
+			<th>Sum<br />total, rur</th>
+			<th>NotLoss,<br />price</th>
+		</tr>
+		@foreach (var item in Model.StockItems)
+		{
+		var s = item.Stock;
+		<tr>
+			<td class="td-company">@s.Company.Name</td>
+			<td class="td-ticker" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
+			<td class="td-lot">@(s.Data.QtyBalance != 0 ? s.Data.QtyBalance.ToString() : "-")</td>
+			<td class="td-lot">@(s.Data.QtyBalance != 0 ? (s.Data.QtyBalance / s.LotSize).ToString() : "-")</td>
+			<td class="td-buy">@string.Format("{0:N0}", item.BuyQty)</td>
+			<td class="td-sell">@(item.SellQty != null ? item.SellQty.ToString() : "-")</td>
+			<td class="td-date">@string.Format("{0:dd.MM.yy}", item.FirstBuy)</td>
+			<td class="td-date">@string.Format("{0:dd.MM.yy}", item.LastBuy)</td>
+			<td class="td-date">@string.Format("{0:dd.MM.yy}", item.LastSell)</td>
 
-            <td class="td-sum">@string.Format("{0:N2}", item.BuySum)</td>
-            <td class="td-sum">@string.Format("{0:N2}", item.SellSum)</td>
-            <td class="td-sum">@string.Format("{0:N2}", item.TotalSum)</td>
-            <td class="td-sum-rur">@string.Format("{0:N2}", item.TotalSumInRur)</td>
-            <td class="td-loss-price"><i>@string.Format("{0:N2}", item.NotLossPrice)</i></td>
-        </tr>
-    }
-    </table>
+			<td class="td-price-min" style=""><i>@string.Format("{0:N2}", item.LastMinBuyPrice)</i></td>
+			<td class="td-price-avg"><i>@string.Format("{0:N2}", item.LastAvgBuyPrice)</i></td>
+
+			<td class="td-sum">@string.Format("{0:N2}", item.BuySum)</td>
+			<td class="td-sum">@string.Format("{0:N2}", item.SellSum)</td>
+			<td class="td-sum">@string.Format("{0:N2}", item.TotalSum)</td>
+			<td class="td-sum-rur">@string.Format("{0:N2}", item.TotalSumInRur)</td>
+			<td class="td-loss-price"><i>@string.Format("{0:N2}", item.NotLossPrice)</i></td>
+		</tr>
+		}
+	</table>
 </div>
 <div style="border: 1px solid lightgrey; margin-top: 6px; background-color:  #f0f0f0; padding: 7px;">
-    <div style="border: 1px solid lightgrey; background-color: white; padding: 8px;">
-        @(Html.DevExtreme().Chart().ID("pie"))
-    </div>
+	<div style="border: 1px solid lightgrey; background-color: white; padding: 8px;">
+		@(Html.DevExtreme().Chart().ID("pie"))
+	</div>
 </div>
