@@ -229,4 +229,101 @@ namespace Invest.WebApp.Models
 		public List<VirtualAccount> VirtualAccounts;
 		public List<Currency> Currencies;
 	}
+
+
+	public class StockViewModel : BaseViewModel
+	{
+		public string Country;
+		public IOrderedEnumerable<StockItem> StockItems;
+	}
+
+	public class ProfitViewModel : BaseViewModel
+	{
+		//public Portfolio? Portfolio;
+		public IOrderedEnumerable<StockItem> StockItems;
+		public List<string> Tickers;
+
+		public class StockItem
+		{
+			public Stock Stock;
+			public int? Qty;
+			public int LotCount;
+			public int? BuyQty;
+			public int? SellQty;
+			public DateTime FirstBuy, LastBuy;
+			public DateTime? FirstSell, LastSell;
+			public decimal? BuySum;
+			public decimal? SellSum;
+			public decimal? TotalSum;
+			public decimal? TotalSumInRur;
+			public decimal? Commission;
+			public decimal? DivUsd, DivRur;
+			public decimal? FifoUsd, FifoRur, FifoInRur, FifoBaseRur, FifoRurComm;
+		}
+	}
+
+	public class PortfolioViewModel : BaseViewModel
+	{
+		//public Portfolio? Portfolio;
+		public List<Stock> Stocks;
+		public List<AccountType?> Accounts;
+		public decimal TotalProfitUsd, TotalProfitRur, TotalProfitInRur;
+		public Dictionary<AccountType, decimal> TotalProfits;
+		public decimal TotalProfitPercentUsd, TotalProfitPercentRur, TotalProfitPercent;
+		public decimal TotalCloseFinResultUsd, TotalCloseFinResultRur;
+		public decimal TotalFinResultUsd, TotalFinResultRur;
+		public IOrderedEnumerable<Item> Items;
+		public Dictionary<Currency, decimal> TotalStockSum, TotalCurStockSum;
+		public decimal TotalRurSum;
+
+		public PortfolioViewModel()
+		{
+			TotalStockSum = new Dictionary<Currency, decimal> { { Currency.Usd, 0 }, { Currency.Rur, 0 } };
+			TotalCurStockSum = new Dictionary<Currency, decimal> { { Currency.Usd, 0 }, { Currency.Rur, 0 } };
+		}
+
+		public class Item
+		{
+			public Stock Stock;
+			public int Qty;
+			public int LotCount;
+			public decimal BuyTotalSum;
+			public int BuyQty;
+			public int SellQty;
+			public int CurrentQty;
+			public DateTime? FirstBuy, LastBuy;
+			public DateTime? FirstSell, LastSell;
+			public decimal? MinBuyPrice, MaxSellPrice;
+			public decimal? BuySum;
+			public decimal? SellSum;
+			public decimal? TotalSum;
+			public decimal? TotalSumInRur;
+			public decimal ProfitUsd;
+			public decimal ProfitRur;
+			public decimal Commission;
+			public decimal Divs;
+			public decimal DivUsd, DivRur;
+			public decimal CloseFinResult, FinResult, TotalFinResult, Profit, ProfitInRur, ProfitPercent;
+			public decimal StockSum, CurStockSum;
+			// % in portfolio of Total Sum
+			public decimal PortfPercent;
+		}
+	}
+
+	public class StockItem
+	{
+		public BaseStock Stock;
+		public int? Qty;
+		public int LotCount;
+		public int? BuyQty;
+		public int? SellQty;
+		public DateTime FirstBuy, LastBuy;
+		public DateTime? FirstSell, LastSell;
+		public Decimal? BuySum;
+		public Decimal? SellSum;
+		public Decimal? TotalSum;
+		public Decimal? TotalSumInRur;
+		public Decimal? NotLossPrice;
+		public Decimal? LastMinBuyPrice, LastAvgBuyPrice;
+	}
 }

@@ -1,9 +1,11 @@
-﻿@using DevExtreme.AspNet.Mvc
-@using Core = Invest.WebApp.Core
-@model InvApp.Controllers.StockViewModel
+﻿@model Invest.WebApp.Models.StockViewModel
+@using DevExtreme.AspNet.Mvc
+@using Invest.Core.Enums
+@using Invest.WebApp
+@using Invest.WebApp.Models
 @{
-    ViewData["Title"] = "Home Page";
-    var core = Core.Instance;
+    Layout = null;
+    ViewData["Title"] = "Stocks";
 }
 
 <style>

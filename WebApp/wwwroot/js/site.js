@@ -111,6 +111,10 @@ function openStocks(country, orderBy) {
     });
 }
 
+function openOperations(country, tickerId, orderBy) {
+	window.location = `/Home/Index?tickerId=${tickerId}`;
+}
+
 function openOperationsByTicker(tickerId)
 {
     //const params = {tickerId: tickerId};
