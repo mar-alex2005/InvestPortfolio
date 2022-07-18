@@ -27,8 +27,8 @@ namespace Invest.Core.UTest
         public void InitTestMethod()
         {
 			// @"C:\\Users\\Alex\\Downloads\\stocks.json"
-	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-			var fileName = Path.Combine(docFolder, "stocksData.json");
+	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+			var fileName = Path.Combine(docFolder, "Downloads\\inv\\stocksData.json");
 
 			var builder = new Builder();
 

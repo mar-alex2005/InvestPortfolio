@@ -36,8 +36,8 @@ namespace Invest.WebApp
 
         private static Builder InitLayer()
         {
-	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-	        var fileName = Path.Combine(docFolder, "stocksData.json");
+	        var dir = Path.Combine(Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal)), "Downloads");
+	        var fileName = Path.Combine(dir, "inv\\stocksData.json");
 
 	        var builder = new Builder();
 
@@ -54,11 +54,10 @@ namespace Invest.WebApp
 			
 	        builder.AddStocks(new JsonStocksLoader(fileName));
 			
-	        var dir = Path.Combine(Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal)));
-	        builder.AddReport(new VtbBrokerReport(Path.Combine(dir, @"Downloads\vtb"), builder));
-	        builder.AddReport(new SberBrokerReport(Path.Combine(dir, @"Downloads\sbr"), builder));
-	        builder.AddReport(new AlfaBrokerReport(Path.Combine(dir, @"Downloads\ab"), builder));
-	        builder.AddReport(new BksBrokerReport(Path.Combine(dir, @"Downloads\bks"), builder));
+	        builder.AddReport(new VtbBrokerReport(Path.Combine(dir, @"inv\vtb"), builder));
+	        builder.AddReport(new SberBrokerReport(Path.Combine(dir, @"inv\sbr"), builder));
+	        builder.AddReport(new AlfaBrokerReport(Path.Combine(dir, @"inv\ab"), builder));
+	        builder.AddReport(new BksBrokerReport(Path.Combine(dir, @"inv\bks"), builder));
 			
 	        builder.Calc();
 

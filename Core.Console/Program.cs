@@ -8,8 +8,8 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-	        var fileName = Path.Combine(docFolder, "stocksData.json");
+	        var docFolder = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+	        var fileName = Path.Combine(docFolder, "Downloads\\inv\\stocksData.json");
 
 	        var builder = new Builder();
 
