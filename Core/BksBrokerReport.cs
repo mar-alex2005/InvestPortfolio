@@ -231,22 +231,22 @@ namespace Invest.Core
 				    continue;
 			    }
 
+			    TimeSpan time;
 			    var opTime = ExcelUtil.GetCellValue(cells.Time, rd);
-			    if (!DateTime.TryParse(opTime, out d)) {
+			    if (!TimeSpan.TryParse(opTime, out time)) {
 				    continue;
 			    }
 
 			    DateTime dd;
 			    var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
 			    if (!DateTime.TryParse(opDDate, out dd)) {
-				    //continue;
+				    continue;
 			    }
 
 			    //var opType = ExcelUtil.GetCellValue(cells.Type, rd);
-			    var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
+					var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
 			    var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
 			    var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
-			    var opNkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
 			    //var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
 				
 			    var op = new Operation
@@ -254,22 +254,24 @@ namespace Invest.Core
 				    Index = ++index,
 				    Account = account,
 				    AccountType = (AccountType)account.BitCode,
-				    Date = d,
+				    Date = d.Add(time),
 					DeliveryDate = dd,
 					Qty = int.Parse(opQty),
 					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
-				    //Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
-					Nkd = decimal.Parse(opNkd, CultureInfo.InvariantCulture),
 				    Currency = Currency.Rur,
 					Stock = s,
 					//Comment = opComment
-					TransId = opTransId,
-					BankCommission1 = 0,
-					BankCommission2 = 0
+					TransId = opTransId
 			    };
 
-			    op.Summa = op.Price * 10 * op.Qty;
+				op.Summa = op.Price * op.Qty;
 			    op.Type = OperationType.Buy;
+
+				if (op.Type == OperationType.Buy)
+				{
+					op.BankCommission1 = 0;
+					op.BankCommission2 = 0;
+				}
 				
 			    _builder.AddOperation(op);
 		    }
@@ -308,7 +310,7 @@ namespace Invest.Core
 			    DateTime dd;
 			    var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
 			    if (!DateTime.TryParse(opDDate, out dd)) {
-				    //continue;
+				    continue;
 			    }
 
 			    //var opType = ExcelUtil.GetCellValue(cells.Type, rd);
@@ -337,7 +339,8 @@ namespace Invest.Core
 					BankCommission2 = 0
 			    };
 
-			    op.Summa = op.Price * 10 * op.Qty;
+			    op.Price *= 10;
+			    op.Summa = op.Price * op.Qty;
 			    op.Type = OperationType.Buy;
 				
 			    _builder.AddOperation(op);
@@ -429,8 +432,8 @@ namespace Invest.Core
 			if (_year == 2022)
 				m = new ShareOperationMap {
 					Name = "B",
-					Date = "L",
-					Time = "M",
+					Date = "M",
+					Time = "N",
 					Type = "C",
 					Qty = "E",
 					Price = "F",
