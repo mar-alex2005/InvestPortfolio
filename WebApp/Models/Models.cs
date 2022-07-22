@@ -57,16 +57,18 @@ namespace Invest.WebApp.Models
 	{
 		//public Portfolio? Portfolio;
 		public List<BaseStock> Stocks;
-		public List<AccountType?> Accounts;
+		public List<BaseAccount> Accounts;
 		public List<VirtualAccount> VirtualAccounts;
 		public decimal? TotalProfitUsd, TotalProfitRur, TotalProfitInRur, TotalSaldo;
 		public Dictionary<AccountType, decimal> TotalProfits;
 		public decimal TotalProfitPercentUsd, TotalProfitPercentRur, TotalProfitPercent;
 		public List<Item> Items;
+		public List<Operation> Operations;
 
 		public BondsViewModel()
 		{
 			Items = new List<Item>();
+			Operations = new List<Operation>();
 			//TotalStockSum = new Dictionary<Currency, decimal> {{Currency.Usd, 0}, {Currency.Rur, 0}};
 		}
 

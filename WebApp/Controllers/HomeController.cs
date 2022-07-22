@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Invest.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Invest.Core.Enums;
 using Invest.WebApp.Models;
@@ -754,20 +755,18 @@ namespace Invest.WebApp.Controllers
 			{
 				Stocks = stocks,
 				VirtualAccounts = _builder.VirtualAccounts,
-				Accounts = new List<AccountType?> { AccountType.Iis, AccountType.VBr, null }
+				Accounts = _builder.Accounts,
+				Operations = _builder.Operations.Where(x => x.Type == OperationType.Coupon
+					|| (x.Type == OperationType.Sell && x.Stock != null && x.Stock.Type == StockType.Bond)).ToList()
 			};
-
-			decimal buyStockSumUsd = 0, buyStockSumRur = 0;
 
 			model.Items = new List<BondsViewModel.Item>();
 			model.TotalSaldo = 0;
-
+			
 			foreach (var s in stocks)
 			{
 				var ops = _builder.Operations
 					.Where(x => x.Stock == s
-						//&& s.Data.QtyBalance > 0
-						//&& s.Data.PosPrice != null
 						&& (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Coupon)
 					   )
 					   .ToList();

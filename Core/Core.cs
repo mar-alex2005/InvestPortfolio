@@ -511,13 +511,22 @@ namespace Invest.Core
 				    && x.Company != null 
 					&& op.Comment.ToLower().Contains(x.RegNum.ToLower())
 				);
+
+				// by isin
+				if (s == null)
+				{
+					s = Stocks.FirstOrDefault(x => x.Type == StockType.Bond && x.Isin != null && x.Isin.Length != 0 && !string.IsNullOrEmpty(x.Isin[0])
+                        && x.Company != null 
+                        && op.Comment.ToLower().Contains(x.Isin[0].ToLower())
+					);
+				}
                 
 				// for ofz russia
 				if (s == null)
 				{
 					s = Stocks.FirstOrDefault(x => x.Type == StockType.Bond && !string.IsNullOrEmpty(x.RegNum)
-						&& x.Company.Name == "ОФЗ"
-						&& op.Comment.ToLower().Contains(x.Ticker));
+						&& x.Company.Name == "РФ"
+						&& (op.Comment.ToLower().Contains(x.Ticker) || op.Comment.ToLower().Contains(x.Isin[0])));
 				}
 
 				if (s == null)

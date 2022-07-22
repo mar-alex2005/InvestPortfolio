@@ -90,7 +90,7 @@ namespace Invest.Core
 
 			using (var reader = ExcelReaderFactory.CreateReader(fs))
 			{
-				var emptyCellCount = 10;
+				var emptyCellCount = 0;
 				const int startRowIndex = 0;
 				var rowIndex = 0;
 
@@ -103,17 +103,27 @@ namespace Invest.Core
 						{
 							var b = titleCell.ToString().Trim();
 
-							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "1. Движение денежных средств")
+							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "Рубль") { //"1. Движение денежных средств")
 								ReadCache(reader, account, map);
+								emptyCellCount = 0;
+							}
 
-							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "2. Движение денежных средств")
-								ReadOperations(reader, account, map);
+							if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Акция"))
+							{
+								ReadShareOperations(reader, account, map);
+								emptyCellCount = 0;
+							}
+
+							if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Облигация")) {
+								ReadBondsOperations(reader, account, map);
+								emptyCellCount = 0;
+							}
 						}
 
 						if (titleCell == null)
-							emptyCellCount--;
+							emptyCellCount++;
 
-						if (emptyCellCount == 0)
+						if (emptyCellCount >= 10)
 							break;
 					}
 					rowIndex++;
@@ -131,7 +141,7 @@ namespace Invest.Core
 			{
 				var type = ExcelUtil.GetCellValue(cells.Type, rd); // приход
 				if (string.IsNullOrEmpty(type))
-					continue;
+					break;
 				
 				DateTime d;
 				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
@@ -164,7 +174,22 @@ namespace Invest.Core
 					op.Type = OperationType.Coupon;
 				else if (opType == "Погашение облигации")
 				{
+					var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond && x.Company != null 
+							&& (!string.IsNullOrEmpty(x.RegNum) && opComment.ToLower().Contains(x.RegNum.ToLower()) 
+								|| (x.Isin?[0] != null && opComment.ToLower().Contains(x.Isin[0].ToLower())))
+					);
 
+					if (s == null)
+						throw new Exception($"ReadCache(): Bks, not found stock by {opComment}, {opDate}");
+
+					op.Type = OperationType.Sell;
+					op.Currency = Currency.Rur;
+					op.Price = 1000;
+					op.Qty = (int?)(op.Summa / op.Price);
+					op.DeliveryDate = d;
+					op.BankCommission1 = 0;
+					op.BankCommission2 = 0;
+					op.Stock = s;
 				}
 				else
 					continue;
@@ -173,80 +198,150 @@ namespace Invest.Core
 			}
 	    }
 
-	    private void ReadOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+	    private void ReadShareOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 	    {
 		    var index = 0;
-		    var cells = map.GetMappingForOperation();
+		    var cells = map.GetMappingForSharesOpeartions();
 
-			// "Заключенные в отчетном периоде сделки с ценными бумагами"
-			while (rd.Read())
-			{
-				var name = ExcelUtil.GetCellValue(cells.Name, rd); // RU000A0JTS06, isin
-				if (string.IsNullOrEmpty(name))
+		    while (rd.Read())
+		    {
+			    var name = ExcelUtil.GetCellValue(cells.Name, rd);
+			    if (string.IsNullOrEmpty(name))
+				    break;  // the end of bond section
+
+			    //if (string.IsNullOrEmpty(name) || name.Length > 20 || name.Length < 4)
+				   // continue;
+
+			    var isin = ExcelUtil.GetCellValue(cells.Isin, rd);
+			    if (string.IsNullOrEmpty(isin) || isin.Contains("Продано"))
 					continue;
+
+			    var s = _builder.Stocks.FirstOrDefault(x => x.Company != null 
+				    && ((x.Isin?.Length == 1 && x.Isin?[0] != null && x.Isin?[0] == isin)) 
+						|| (x.Isin?.Length == 2 && x.Isin?[1] != null && x.Isin?[1] == isin));
+
+			    if (s == null)
+				    throw new Exception($"ReadShareOperations(): Bks, not found stock by {name}, {isin}"); 
+	
+			    rd.Read(); //next row
 				
-				var s = _builder.GetStock(name) ?? _builder.GetStockByIsin(name);
-				if (s == null)
-					throw new Exception($"ReadOperations(): stock or isin '{name}' is not found.");
+			    DateTime d;
+			    var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
+			    if (!DateTime.TryParse(opDate, out d)) {
+				    continue;
+			    }
 
-				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
-				var opType = ExcelUtil.GetCellValue(cells.Type, rd);
-				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
-				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
-				var opBankCommission1 = ExcelUtil.GetCellValue(cells.BankCommission1, rd);
-				var opBankCommission2 = ExcelUtil.GetCellValue(cells.BankCommission2, rd);
-				var deliveryDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
-				var nkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
+			    var opTime = ExcelUtil.GetCellValue(cells.Time, rd);
+			    if (!DateTime.TryParse(opTime, out d)) {
+				    continue;
+			    }
 
-				if (!string.IsNullOrEmpty(opType) && !(opType == "Покупка" || opType == "Продажа"))
-					throw new Exception($"ReadOperations(): stock '{name}'. Wrong opType = '{opType}'");
+			    DateTime dd;
+			    var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
+			    if (!DateTime.TryParse(opDDate, out dd)) {
+				    //continue;
+			    }
 
-				if (string.IsNullOrEmpty(opDate) || opType == null || opPrice == null)
-					continue;
-
-				var op = new Operation
-				{
-					Index = ++index,
-					Account = account,
-					AccountType = (AccountType)account.BitCode,
-					Date = DateTime.Parse(opDate),
-					Stock = s,
+			    //var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+			    var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
+			    var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
+			    var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
+			    var opNkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
+			    //var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+				
+			    var op = new Operation
+			    {
+				    Index = ++index,
+				    Account = account,
+				    AccountType = (AccountType)account.BitCode,
+				    Date = d,
+					DeliveryDate = dd,
 					Qty = int.Parse(opQty),
-					Price = decimal.Parse(opPrice),
-					Type = opType == "Покупка" ? OperationType.Buy : OperationType.Sell,
-					QtySaldo = int.Parse(opQty),
-					Currency = s.Currency,
-					DeliveryDate = DateTime.Parse(deliveryDate),
-					//OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
-					TransId = ExcelUtil.GetCellValue(cells.TransId, rd)
-				};
+					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
+				    //Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
+					Nkd = decimal.Parse(opNkd, CultureInfo.InvariantCulture),
+				    Currency = Currency.Rur,
+					Stock = s,
+					//Comment = opComment
+					TransId = opTransId,
+					BankCommission1 = 0,
+					BankCommission2 = 0
+			    };
 
-				if (op.TransId == null)
-					throw new Exception($"ReadOperations(): op.TransId == null. {account.Id}, {op.Date.Year}, {op}");
-				if (op.TransId != null && op.TransId.Length < 5)
-					throw new Exception($"ReadOperations(): op.TransId is not correct string, value: {account.Id}, {op.Date.Year}, {op.TransId}");
+			    op.Summa = op.Price * 10 * op.Qty;
+			    op.Type = OperationType.Buy;
+				
+			    _builder.AddOperation(op);
+		    }
+	    }
+	    
+		private void ReadBondsOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+	    {
+		    var index = 0;
+		    var cells = map.GetMappingForBondsOpeartions();
 
-				// russian bonds
-				op.Summa = s.Type == StockType.Bond && s.Currency == Currency.Rur
-					? op.Price * 10 * op.Qty
-					: op.Price * op.Qty;
+		    while (rd.Read())
+		    {
+			    var name = ExcelUtil.GetCellValue(cells.Name, rd);
+			    if (string.IsNullOrEmpty(name))
+				    break;  // the end of bond section
 
-				if ((op.Currency == Currency.Usd || op.Currency == Currency.Eur) && op.Date >= _startOperationDate)
-				{
-					op.PriceInRur = op.Price * Builder.GetCurRate(op.Currency, op.Date);
-					op.RurSumma = op.PriceInRur * op.Qty;
-				}
+			    if (string.IsNullOrEmpty(name) || name.Length > 20 || name.Length <= 8)
+				    continue;
 
-				if (s.Type == StockType.Bond && !string.IsNullOrEmpty(nkd))
-					op.Nkd = decimal.Parse(nkd);
+			    var s = _builder.Stocks.FirstOrDefault(x => x.Company != null 
+				    && (x.RegNum?.ToLower() == name 
+				        || (x.Isin?.Length == 1 && x.Isin?[0] != null && x.Isin?[0] == name)) 
+						|| (x.Isin?.Length == 2 && x.Isin?[1] != null && x.Isin?[1] == name));
 
-				if (opBankCommission1 != null)
-					op.BankCommission1 = decimal.Parse(opBankCommission1);
-				if (opBankCommission2 != null)
-					op.BankCommission2 = decimal.Parse(opBankCommission2);
+			    if (s == null)
+				    throw new Exception($"ReadBondsOperations(): Bks, not found stock by {name}"); 
+	
+			    rd.Read(); //next row
+				
+			    DateTime d;
+			    var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
+			    if (!DateTime.TryParse(opDate, out d)) {
+				    continue;
+			    }
 
-				_builder.AddOperation(op);
-			}
+			    DateTime dd;
+			    var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
+			    if (!DateTime.TryParse(opDDate, out dd)) {
+				    //continue;
+			    }
+
+			    //var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+			    var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
+			    var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
+			    var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
+			    var opNkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
+			    //var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+				
+			    var op = new Operation
+			    {
+				    Index = ++index,
+				    Account = account,
+				    AccountType = (AccountType)account.BitCode,
+				    Date = d,
+					DeliveryDate = dd,
+					Qty = int.Parse(opQty),
+					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
+				    //Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
+					Nkd = decimal.Parse(opNkd, CultureInfo.InvariantCulture),
+				    Currency = Currency.Rur,
+					Stock = s,
+					//Comment = opComment
+					TransId = opTransId,
+					BankCommission1 = 0,
+					BankCommission2 = 0
+			    };
+
+			    op.Summa = op.Price * 10 * op.Qty;
+			    op.Type = OperationType.Buy;
+				
+			    _builder.AddOperation(op);
+		    }
 	    }
     }
 
@@ -271,7 +366,23 @@ namespace Invest.Core
 			public string Summa;
 		}
 
-		public class OperationMap
+		public class ShareOperationMap
+		{
+			public string Name, Date, Time;
+			public string Price;
+			public string Qty;
+			public string Type;
+			public string BankCommission1;  // Комиссия Банка за расчет по сделке
+			public string BankCommission2;  // Комиссия Банка за заключение сделки
+			public string OrderId;          // № заявки
+			public string TransId;          // № сделки
+			public string DeliveryDate;		// плановая дата поставки
+			public string Nkd = "AF";		// 
+			public string Currency;			// 
+			public string RegNum, Isin;			// 
+		}
+
+		public class BondOperationMap
 		{
 			public string Name;
 			public string Date;
@@ -297,8 +408,8 @@ namespace Invest.Core
 					Date = "B",
 					Type = "C",
 					DeliveryDate = "D", 
-					Currency = "M",
-					Comment = "N",
+					Currency = "P",
+					Comment = "O",
 					Summa = "G"
 				};
 			else
@@ -311,27 +422,55 @@ namespace Invest.Core
 		/// mapping cells for each account
 		/// </summary>
 		/// <returns></returns>
-		public OperationMap GetMappingForOperation()
+		public ShareOperationMap GetMappingForSharesOpeartions()
 		{
-			OperationMap m;
+			ShareOperationMap m;
 
 			if (_year == 2022)
-				m = new OperationMap {
-					Name = "E",
-					Date = "C2",
-					Type = "H",
-					Qty = "I",
-					Price = "J",
+				m = new ShareOperationMap {
+					Name = "B",
+					Date = "L",
+					Time = "M",
+					Type = "C",
+					Qty = "E",
+					Price = "F",
 					BankCommission1 = "P",
 					BankCommission2 = "O",
 					OrderId = "",
-					TransId = "B",
-					DeliveryDate = "D", 
+					TransId = "C",
+					DeliveryDate = "B", 
 					Nkd = "K",
-					Currency = "M"
+					Currency = "M",
+					RegNum = "F",
+					Isin = "H",
 				};
 			else
-				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year},{_accountCode}");
+				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year}, {_accountCode}");
+
+			return m;
+		}
+
+		public BondOperationMap GetMappingForBondsOpeartions()
+		{
+			BondOperationMap m;
+
+			if (_year == 2022)
+				m = new BondOperationMap {
+					Name = "B",
+					Date = "O",
+					Type = "",
+					Qty = "E",
+					Price = "F",
+					BankCommission1 = "P",
+					BankCommission2 = "O",
+					OrderId = "",
+					TransId = "C",
+					DeliveryDate = "B", 
+					Nkd = "H",
+					Currency = "N"
+				};
+			else
+				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year}, {_accountCode}");
 
 			return m;
 		}

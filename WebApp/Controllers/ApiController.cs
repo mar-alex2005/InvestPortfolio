@@ -59,5 +59,42 @@ namespace Invest.WebApp.Controllers
 
 			return new JsonResult(items);
 		}
+
+		public JsonResult Divs(int? accountCode, Currency? cur, string tickerId, int? year, int? month)
+		{
+			var ops = _builder.Operations
+				.Where(x => x.Type == OperationType.Dividend
+					&& (accountCode == null || x.Account.BitCode == accountCode)
+					&& (cur == null || x.Stock.Currency == cur)
+					&& (tickerId == null || x.Stock.Ticker == tickerId)					
+					&& (year == null || x.Date.Year == year)					
+					&& (month == null || x.Date.Month == month)
+				)
+				.ToList();
+
+			var items = new List<object>();
+
+			foreach (var o in ops)
+			{
+				var jArr = new JArray();
+
+				var t = new JObject(
+					new JProperty("date", o.Date),
+					new JProperty("summa", ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Summa) 
+					                       - ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Summa)),
+					new JProperty("qty", ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Qty) 
+					                     - ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Qty)),
+					new JProperty("coupon", ops.Where(x => x.Type == OperationType.Coupon).Sum(x => x.Summa))
+					
+					//new JProperty("mskTime", e.MskTime.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
+					//new JProperty("ott", new JArray()), // not used
+					//new JProperty("serverTime", srvTime.ToString("yyyy-MM-ddTHH:mm:ss.fff"))
+				);
+				
+				items.Add(t);
+			}
+
+			return new JsonResult(items);
+		}
 	}
 }
