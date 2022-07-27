@@ -17,21 +17,63 @@ namespace Invest.WebApp.Controllers
 			_builder = builder;
 		}
 
-		public IActionResult Index()
+		public IActionResult Index(DateTime? start, DateTime? end)
 		{
+			if (start == null)
+				start = DateTime.Today.AddMonths(-6);
+			if (end == null)
+				end = DateTime.Now;
+
 			var operations = _builder.Operations
 				.Where(x => x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend || x.Type == OperationType.Coupon)
+				.Where(x => x.Date >= start && x.Date <= end)
 				.OrderByDescending(x => x.Date).ThenByDescending(x => x.Index)
 				.ToList();
 
 			var model = new OperationViewModel {
 				Ticker = null,
 				Stocks = _builder.Stocks,
-				Operations = operations
+				Operations = operations,
+				Start = start,
+				End = end,
+				Accounts = _builder.Accounts
 			};
 
 			return View(model);
 		}
+
+
+		public IActionResult OperationList(DateTime? start, DateTime? end, string accounts)
+		{
+			if (start == null)
+				start = DateTime.Today.AddMonths(-6);
+			if (end == null)
+				end = DateTime.Now;
+			if (string.IsNullOrEmpty(accounts))
+				accounts = "";
+
+			var accountsList = accounts.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+			var operations = _builder.Operations
+				.Where(x => x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend || x.Type == OperationType.Coupon)
+				.Where(x => x.Date >= start && x.Date <= end)
+				.Where(x => accountsList.Contains(x.Account.BitCode.ToString()))
+				.OrderByDescending(x => x.Date).ThenByDescending(x => x.Index)
+				.ToList();
+
+			var model = new OperationViewModel {
+				Ticker = null,
+				Stocks = _builder.Stocks,
+				Operations = operations,
+				Start = start,
+				End = end,
+				Accounts = _builder.Accounts
+			};
+
+			return View(model);
+		}
+
+
 
 		public IActionResult TickerIndex()
 		{

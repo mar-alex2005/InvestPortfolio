@@ -46,7 +46,7 @@
 							}
 							<tr>
 								<td class="td-date">@($"{o.Date:dd.MM.yyyy}")</td>
-								<td class="td-acc">@o.AccountType.ToString()</td>
+								<td class="td-acc" title="@o.Account.Name">@o.Account.Id</td>
 								<td class="td-summa">@($"{o.Summa:N2}")</td>
 								<td class="td-cur">@o.Currency</td>
 								<td class="td-comment">[@o.Stock?.Ticker] @o.Comment</td>

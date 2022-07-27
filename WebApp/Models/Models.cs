@@ -37,6 +37,8 @@ namespace Invest.WebApp.Models
 
 	public class OperationViewModel : BaseViewModel
 	{
+		public DateTime? Start;
+		public DateTime? End;
 		public string Ticker;
 		public BaseStock Stock;
 		public List<Operation> Operations;

@@ -71,7 +71,7 @@
 
 							<tr>
 								<td class="td-qty" style="color:saddlebrown; text-align: left;" title="@o.Account.Name">@(o.Account.Id)</td>
-								<td class="td-date">@($"{o.Date:dd MMM yy, ddd}")</td>
+								<td class="td-date" title="@o.Date">@($"{o.Date:dd MMM yy, ddd}")</td>
 								<td class="td-ticker">@o.Stock.Ticker</td>
 
 								@if (o.Qty.HasValue)
@@ -93,7 +93,7 @@
 								}
 								else
 								{
-									<td class="td-sum @cssSum">@($"{o.Summa:N2}")</td>
+									<td title="@o.Comment" class="td-sum @cssSum">@($"{o.Summa:N2}")</td>
 								}
 							</tr>
 

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Invest.WebApp.Models.OperationViewModel;
+@{
 	Layout = "_Layout";
 	ViewData["Title"] = "Home";
 }
@@ -7,6 +8,27 @@
         const h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divTickerList")) - 10;
         $("#divTickerList").height(h);
         $("#divGrid").height(h);
+
+        document.querySelector(".btn-operations-refresh").onclick = () => {
+            showWaitContainer();
+
+            var params = {};
+            params.start = document.querySelector("#dpStart").value;
+            params.end = document.querySelector("#dpEnd").value;
+            params.accounts = [];
+        
+            const accItems = document.querySelectorAll(".operation-acc");
+            for(let i=0; i < accItems.length; i++) {
+                if (accItems[i].checked)
+                    params.accounts.push(accItems[i].value);
+            }
+
+            //console.log("params: ", params, params.accounts);
+
+            ax.send("Post", "/Home/OperationList", params, function() {
+                document.getElementById("divGrid").innerHTML = this.responseText;
+                hideWaitContainer();
+            })};
     });
 </script>
 
@@ -19,8 +41,16 @@
             </div>
         </td>
         <td class="td-2">
-            <div id="divGrid" style="margin:0; padding:0;">
-                @{ Html.RenderPartial("OperationList"); }
+            <div class="" style="">
+                <input type="date" id="dpStart" value="2022-01-01" /> - <input type="date" id="dpEnd" value="2022-12-31" /> 
+                @foreach (var a in Model.Accounts)
+				{
+				    <span><input type="checkbox" class="operation-acc" value="@a.BitCode" id="@a.Id" checked="checked">@a.Id</span>
+				}
+                <span class="icon-eye btn-operations-refresh" style="cursor: pointer"></span>
+            </div>
+            <div id="divGrid" style="margin: 0; padding: 0;">
+                @{ Html.RenderPartial("OperationList", Model); }
             </div>
         </td>
     </tr>

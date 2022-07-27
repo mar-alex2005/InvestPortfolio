@@ -76,6 +76,87 @@ namespace Invest.Core
 			    Comment = comment,
 			    TransId="p003"
 		    });
+
+
+		    // out of the xml report
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,16, 16,0,54),
+			    Summa = 191.95m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.Coupon,
+			    Comment = "погашение купона 4B02-03-04715-A-001P (облигации ПАО МТС) д.ф.04.05.22",
+			    TransId="c0001"
+		    });
+
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,23, 14,16,53),
+			    Summa = 74.28m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.Coupon,
+			    Comment = "погашение купона 4B02-04-20075-F-001P (облигации ПАО Русал Братск) д.ф.11.05.22",
+			    TransId="c0002"
+		    });
+
+			// currency usd, eur < 1
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,23, 19,44,31),
+			    Summa = 0.74m,
+			    Currency = Currency.Eur,
+			    Type = OperationType.CacheOut,
+			    Comment = "тех. конвертация (перевод иис)",
+			    TransId="i0001"
+		    });
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,23, 19,44,31),
+			    Summa = 45.06m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheIn,
+			    Comment = "тех. конвертация приход за 0.74 eur (перевод иис)",
+			    TransId="i0002"
+		    });
+
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,23, 20,14,57),
+			    Summa = 0.7m,
+			    Currency = Currency.Usd,
+			    Type = OperationType.CacheOut,
+			    Comment = "тех. конвертация (перевод иис)",
+			    TransId="i0003"
+		    });
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,23, 20,14,57),
+			    Summa = 41.22m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheIn,
+			    Comment = "тех. конвертация. приход за 0.7 usd (перевод иис)",
+			    TransId="i0004"
+		    });
+
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,25, 13,16,08),
+			    Summa = 418.47m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.Dividend,
+			    Comment = "Дивиденды за 2012 г. по акциям ПАО Новатэк (1-02-00268-E). (Удержан налог 63 руб.)",
+			    TransId="d0001"
+		    });
+
+		    _builder.AddOperation(new Operation {
+			    Account = a,
+			    Date = new DateTime(2022,5,26, 14,29,14),
+			    Summa = -54745.81m,
+			    Currency = Currency.Rur,
+			    Type = OperationType.CacheOut,
+			    Comment = "Перевод денежгых средств со сечтов ИИС в рамках перевода активов другим брокерам",
+			    TransId="p1111"
+		    });
 	    }
 
 	    private void LoadReportFile(BaseAccount account, int year)
@@ -257,7 +338,7 @@ namespace Invest.Core
 				var summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture);
 				BaseStock stock = null;
 
-                if (opGroup == "Купоны" && opComment.StartsWith("погашение купона", StringComparison.OrdinalIgnoreCase))
+                if ((opGroup == "Купоны" || string.IsNullOrEmpty(opGroup)) && opComment.StartsWith("погашение купона", StringComparison.OrdinalIgnoreCase))
                     type = OperationType.Coupon;
                 if (opGroup == "" && opComment.StartsWith("полное погашение номинала", StringComparison.OrdinalIgnoreCase))
 				{
@@ -272,21 +353,11 @@ namespace Invest.Core
 
 	                stock = s ?? throw new Exception($"ReadMoneyMoves(): Alfa, not found stock by {opComment}, {opDate}");
 				}
-
-                //            if (opType == "Вознаграждение Брокера")
-                //                type = OperationType.BrokerFee;
-                //            if (opType == "Дивиденды" 
-                //                || (opType.Equals("Зачисление денежных средств", StringComparison.OrdinalIgnoreCase) 
-                //                        && !string.IsNullOrEmpty(opComment) 
-                //                        && opComment.ToLower().Contains("дивиденды"))
-				//)
-			    //                type = OperationType.Dividend;
-			    //if (opType == "НДФЛ")
-				//{
-				//	if (!string.IsNullOrEmpty(opCur) && opCur == "RUR")
-				//                    type = OperationType.Ndfl;
-				//}
-
+				if (opGroup == "" && opComment.StartsWith("Возврат переплаты по НДФЛ", StringComparison.OrdinalIgnoreCase))
+				{
+					type = OperationType.CacheIn;
+				}
+                
                 if (type == null)
                     continue;
 
@@ -325,6 +396,18 @@ namespace Invest.Core
 						Qty = (int?)(summa / 1000),
 						Price = 1000,
 						BankCommission1 = 0, BankCommission2 = 0
+					};
+				}
+				else if (type == OperationType.CacheIn)
+				{
+					op = new Operation {
+						AccountType = (AccountType)account.BitCode,
+						Account = account,
+						Date = date,
+						Summa = summa,
+						Currency = (Currency)Enum.Parse(typeof(Currency), opCur, true),
+						Type = type.Value,
+						Comment = opComment
 					};
 				}
 
