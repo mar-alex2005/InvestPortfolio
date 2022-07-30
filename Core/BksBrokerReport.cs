@@ -87,43 +87,42 @@ namespace Invest.Core
 	    private void Parse(BaseAccount account, int year, FileStream fs)
 		{
 			var map = new BksExcelMapping(account.BitCode, year);
+			const string firstColName = "B";
 
 			using (var reader = ExcelReaderFactory.CreateReader(fs))
 			{
 				var emptyCellCount = 0;
 				const int startRowIndex = 0;
 				var rowIndex = 0;
-
+				
 				while (reader.Read())
 				{
 					if (rowIndex > startRowIndex)
 					{
-						var titleCell = reader.GetValue(ExcelUtil.ExcelCell("B"));
+						var titleCell = reader.GetValue(ExcelUtil.ExcelCell(firstColName));
 						if (titleCell != null)
 						{
 							var b = titleCell.ToString().Trim();
 
-							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "Рубль") { //"1. Движение денежных средств")
+							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "Рубль") //"1. Движение денежных средств")
 								ReadCache(reader, account, map);
-								emptyCellCount = 0;
-							}
 
-							if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Акция"))
-							{
+							else if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Акция"))
 								ReadShareOperations(reader, account, map);
-								emptyCellCount = 0;
-							}
 
-							if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Облигация")) {
+							else if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Облигация"))
 								ReadBondsOperations(reader, account, map);
-								emptyCellCount = 0;
-							}
+
+							else if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Иностранная валюта"))
+								ReadCurrencyOperations(reader, account, map);
+
+							emptyCellCount = 0;
 						}
 
 						if (titleCell == null)
 							emptyCellCount++;
 
-						if (emptyCellCount >= 10)
+						if (emptyCellCount >= 30)
 							break;
 					}
 					rowIndex++;
@@ -191,6 +190,13 @@ namespace Invest.Core
 					op.BankCommission2 = 0;
 					op.Stock = s;
 				}
+				else if (opType == "Дивиденды")
+				{
+					op.Type = OperationType.Dividend;
+					op.Currency = Currency.Rur;
+					op.BankCommission1 = 0;
+					op.BankCommission2 = 0;
+				}
 				else
 					continue;
 
@@ -244,7 +250,7 @@ namespace Invest.Core
 			    }
 
 			    //var opType = ExcelUtil.GetCellValue(cells.Type, rd);
-					var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
+				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
 			    var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
 			    var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
 			    //var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
@@ -346,6 +352,85 @@ namespace Invest.Core
 			    _builder.AddOperation(op);
 		    }
 	    }
+
+		private void ReadCurrencyOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+	    {
+			var isDataStarting = false;
+		    var cells = map.GetMappingForCurrencyOperations();
+
+		    while (rd.Read())
+		    {
+			    var value = ExcelUtil.GetCellValue("B", rd);
+
+				if (string.IsNullOrEmpty(value) && !isDataStarting)
+					continue;
+				if (!string.IsNullOrEmpty(value))
+					isDataStarting = true;
+				if (string.IsNullOrEmpty(value) && isDataStarting)
+					break;
+
+			    Currency? opCur = null;
+				if (value == "USDRUB_TOM")
+					opCur = Currency.Usd;
+				else if (value == "ERURUB_TOM")
+					opCur = Currency.Eur;
+
+				if (opCur != null)
+					ParceCurrencyOperation(opCur.Value, rd, account, map);
+		    }
+	    }
+
+		private void ParceCurrencyOperation(Currency cur, IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+		{
+			var index = 0;
+			var cells = map.GetMappingForCurrencyOperations();
+
+			while (rd.Read())
+			{
+				DateTime dd;
+				var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
+				if (!DateTime.TryParse(opDDate, out dd)) {
+					break;
+				}
+
+				DateTime d;
+				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
+				if (!DateTime.TryParse(opDate, out d)) {
+					continue;
+				}
+
+				TimeSpan time;
+				var opTime = ExcelUtil.GetCellValue(cells.Time, rd);
+				if (!TimeSpan.TryParse(opTime, out time)) {
+					continue;
+				}
+
+				var type = OperationType.CurBuy;
+				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
+				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
+				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
+				var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd);
+				    
+				var op = new Operation
+				{
+					Index = ++index,
+					Account = account,
+					AccountType = (AccountType)account.BitCode,
+					Type = type,
+					Date = d.Add(time),
+					DeliveryDate = dd,
+					Qty = int.Parse(opQty),
+					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
+					Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
+					Currency =  cur,
+					TransId = opTransId,
+					BankCommission1 = 0,
+					BankCommission2 = 0
+				};
+
+				_builder.AddOperation(op);
+			}
+		}
     }
 
     public class BksExcelMapping 
@@ -357,6 +442,19 @@ namespace Invest.Core
 		{
 			_accountCode = accountCode;
 			_year = year;
+		}
+
+		public class CurrencyMap
+		{
+			public string Name;
+			public string Date, Time;
+			public string Type;
+			public string DeliveryDate;		// плановая дата поставки
+			public string Currency;			// 
+			public string Comment; 
+			public string Summa;
+			public string TransId;
+			public string Qty, Price;
 		}
 
 		public class CacheMap
@@ -474,6 +572,29 @@ namespace Invest.Core
 				};
 			else
 				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year}, {_accountCode}");
+
+			return m;
+		}
+
+		public CurrencyMap GetMappingForCurrencyOperations()
+		{
+			CurrencyMap m;
+
+			if (_year == 2022)
+				m = new CurrencyMap {
+					Name = "B",
+					Date = "K",
+					Time = "L",
+					DeliveryDate = "N", 
+					Currency = "P",
+					Comment = "O",
+					Summa = "G",
+					TransId = "C",
+					Qty = "F",
+					Price = "E"
+				};
+			else
+				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year},{_accountCode}");
 
 			return m;
 		}

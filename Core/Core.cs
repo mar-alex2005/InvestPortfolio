@@ -483,6 +483,7 @@ namespace Invest.Core
                     && (
                        x.Company?.Name != null && op.Comment.ToLower().Contains(x.Company.Name.ToLower())
                        || (x.Company != null && !string.IsNullOrEmpty(x.Company.DivName) && op.Comment.ToLower().Contains(x.Company.DivName.ToLower())
+					   || (x.Company != null && x.RegNum != null && op.Comment.ToLower().Contains(x.RegNum))
                     )
                 ));
                 
