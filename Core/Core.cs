@@ -476,16 +476,18 @@ namespace Invest.Core
 		private void LinkDivsToTickers()
         {
             var ops = Operations.Where(x => x.Type == OperationType.Dividend);
-            foreach(var op in ops)
+            foreach(var op in ops.Where(x => x.Comment != null))
             {
-                //if (op.Summa == .58m) { var r =0; }
-                var s = Stocks.FirstOrDefault(x => op.Comment != null 
-                    && (
-                       x.Company?.Name != null && op.Comment.ToLower().Contains(x.Company.Name.ToLower())
-                       || (x.Company != null && !string.IsNullOrEmpty(x.Company.DivName) && op.Comment.ToLower().Contains(x.Company.DivName.ToLower())
-					   || (x.Company != null && x.RegNum != null && op.Comment.ToLower().Contains(x.RegNum))
-                    )
-                ));
+	            //if (op.Summa == .58m) { var r =0; }
+                var s = Stocks.FirstOrDefault(x => 
+					x.Type == StockType.Share 
+						&& (
+							x.Company?.Name != null && op.Comment.ToLower().Contains(x.Company.Name.ToLower())
+	                         || (x.RegNum != null && op.Comment.ToLower().Contains(x.RegNum.ToLower()))
+						     || (x.Isin?.Length != 0 && x.Isin?[0] != null && op.Comment.ToLower().Contains(x.Isin[0].ToLower()))
+							 || (!string.IsNullOrEmpty(x.Company?.DivName) && op.Comment.ToLower().Contains(x.Company.DivName.ToLower()))
+					)
+				);
                 
                 if (s == null)
                     throw new Exception($"LinkDivsToTickers(): not found stock by {op.Comment}, {op.Date}");

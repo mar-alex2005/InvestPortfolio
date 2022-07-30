@@ -229,59 +229,68 @@ namespace Invest.Core
 			    if (s == null)
 				    throw new Exception($"ReadShareOperations(): Bks, not found stock by {name}, {isin}"); 
 	
-			    rd.Read(); //next row
-				
-			    DateTime d;
-			    var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
-			    if (!DateTime.TryParse(opDate, out d)) {
-				    continue;
-			    }
+			    ParseShareOperation(s, rd, account, map);
+		    }
+	    }
 
-			    TimeSpan time;
-			    var opTime = ExcelUtil.GetCellValue(cells.Time, rd);
-			    if (!TimeSpan.TryParse(opTime, out time)) {
-				    continue;
-			    }
+		private void ParseShareOperation(BaseStock s, IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+		{
+			var index = 0;
+			var cells = map.GetMappingForSharesOpeartions();
 
-			    DateTime dd;
-			    var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
-			    if (!DateTime.TryParse(opDDate, out dd)) {
-				    continue;
-			    }
+			while (rd.Read())
+			{
+				DateTime d;
+				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
+				if (!DateTime.TryParse(opDate, out d)) {
+					break;
+				}
 
-			    //var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+				TimeSpan time;
+				var opTime = ExcelUtil.GetCellValue(cells.Time, rd);
+				if (!TimeSpan.TryParse(opTime, out time)) {
+					continue;
+				}
+
+				DateTime dd;
+				var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
+				if (!DateTime.TryParse(opDDate, out dd)) {
+					continue;
+				}
+
+				//var opType = ExcelUtil.GetCellValue(cells.Type, rd);
 				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
-			    var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
-			    var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
-			    //var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
-				
-			    var op = new Operation
-			    {
-				    Index = ++index,
-				    Account = account,
-				    AccountType = (AccountType)account.BitCode,
-				    Date = d.Add(time),
+				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
+				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
+				//var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+					
+				var op = new Operation
+				{
+					Index = ++index,
+					Account = account,
+					AccountType = (AccountType)account.BitCode,
+					Date = d.Add(time),
 					DeliveryDate = dd,
 					Qty = int.Parse(opQty),
 					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
-				    Currency = Currency.Rur,
+					Currency = Currency.Rur,
 					Stock = s,
 					//Comment = opComment
 					TransId = opTransId
-			    };
+				};
 
 				op.Summa = op.Price * op.Qty;
-			    op.Type = OperationType.Buy;
+				op.Type = OperationType.Buy;
 
 				if (op.Type == OperationType.Buy)
 				{
 					op.BankCommission1 = 0;
 					op.BankCommission2 = 0;
 				}
-				
-			    _builder.AddOperation(op);
-		    }
-	    }
+					
+				_builder.AddOperation(op);
+			}
+		}
 	    
 		private void ReadBondsOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 	    {
@@ -305,53 +314,62 @@ namespace Invest.Core
 			    if (s == null)
 				    throw new Exception($"ReadBondsOperations(): Bks, not found stock by {name}"); 
 	
-			    rd.Read(); //next row
-				
-			    DateTime d;
-			    var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
-			    if (!DateTime.TryParse(opDate, out d)) {
-				    continue;
-			    }
+			    ParseBondOperation(s, rd, account, map);
+		    }
+	    }
 
-			    DateTime dd;
-			    var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
-			    if (!DateTime.TryParse(opDDate, out dd)) {
-				    continue;
-			    }
+		void ParseBondOperation(BaseStock s, IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+		{
+			var index = 0;
+			var cells = map.GetMappingForBondsOpeartions();
 
-			    //var opType = ExcelUtil.GetCellValue(cells.Type, rd);
-			    var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
-			    var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
-			    var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
-			    var opNkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
-			    //var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
-				
-			    var op = new Operation
-			    {
-				    Index = ++index,
-				    Account = account,
-				    AccountType = (AccountType)account.BitCode,
-				    Date = d,
+			while (rd.Read()) //next row
+			{
+				DateTime d;
+				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
+				if (!DateTime.TryParse(opDate, out d)) {
+					break;
+				}
+
+				DateTime dd;
+				var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
+				if (!DateTime.TryParse(opDDate, out dd)) {
+					continue;
+				}
+
+				//var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
+				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
+				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
+				var opNkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
+				//var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+					
+				var op = new Operation
+				{
+					Index = ++index,
+					Account = account,
+					AccountType = (AccountType)account.BitCode,
+					Date = d,
 					DeliveryDate = dd,
 					Qty = int.Parse(opQty),
 					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
-				    //Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
+					//Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
 					Nkd = decimal.Parse(opNkd, CultureInfo.InvariantCulture),
-				    Currency = Currency.Rur,
+					Currency = Currency.Rur,
 					Stock = s,
 					//Comment = opComment
 					TransId = opTransId,
 					BankCommission1 = 0,
 					BankCommission2 = 0
-			    };
+				};
 
-			    op.Price *= 10;
-			    op.Summa = op.Price * op.Qty;
-			    op.Type = OperationType.Buy;
-				
-			    _builder.AddOperation(op);
-		    }
-	    }
+				op.Price *= 10;
+				op.Summa = op.Price * op.Qty;
+				op.Type = OperationType.Buy;
+					
+				_builder.AddOperation(op);
+			}
+		}
 
 		private void ReadCurrencyOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 	    {
