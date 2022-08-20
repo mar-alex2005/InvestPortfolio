@@ -258,10 +258,17 @@ namespace Invest.Core
 					continue;
 				}
 
-				//var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+				var opType = OperationType.Buy;
 				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
-				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
-				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
+				var opQty = ExcelUtil.GetCellValue(cells.BuyQty, rd);
+				var opPrice = ExcelUtil.GetCellValue(cells.BuyPrice, rd);
+
+				if (opQty == null && ExcelUtil.GetCellValue(cells.SellQty, rd) != null)
+				{
+					opType = OperationType.Sell;
+					opQty = ExcelUtil.GetCellValue(cells.SellQty, rd);
+					opPrice = ExcelUtil.GetCellValue(cells.SellPrice, rd);
+				}
 				//var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
 					
 				var op = new Operation
@@ -280,9 +287,10 @@ namespace Invest.Core
 				};
 
 				op.Summa = op.Price * op.Qty;
-				op.Type = OperationType.Buy;
+				op.Type = opType;
 
-				if (op.Type == OperationType.Buy)
+				//todo: calc commision by 0.01 percent
+				//if (op.Type == OperationType.Buy)
 				{
 					op.BankCommission1 = 0;
 					op.BankCommission2 = 0;
@@ -337,13 +345,19 @@ namespace Invest.Core
 					continue;
 				}
 
-				//var opType = ExcelUtil.GetCellValue(cells.Type, rd);
+				var opType = OperationType.Buy;
 				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
-				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
-				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
+				var opQty = ExcelUtil.GetCellValue(cells.BuyQty, rd);
+				var opPrice = ExcelUtil.GetCellValue(cells.BuyPrice, rd);
 				var opNkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
 				//var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
-					
+				if (opQty == null && ExcelUtil.GetCellValue(cells.SellQty, rd) != null)
+				{
+					opType = OperationType.Sell;
+					opQty = ExcelUtil.GetCellValue(cells.SellQty, rd);
+					opPrice = ExcelUtil.GetCellValue(cells.SellPrice, rd);
+				}
+
 				var op = new Operation
 				{
 					Index = ++index,
@@ -354,7 +368,7 @@ namespace Invest.Core
 					Qty = int.Parse(opQty),
 					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
 					//Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
-					Nkd = decimal.Parse(opNkd, CultureInfo.InvariantCulture),
+					Nkd = decimal.Parse(opNkd ?? "0", CultureInfo.InvariantCulture),
 					Currency = Currency.Rur,
 					Stock = s,
 					//Comment = opComment
@@ -365,7 +379,7 @@ namespace Invest.Core
 
 				op.Price *= 10;
 				op.Summa = op.Price * op.Qty;
-				op.Type = OperationType.Buy;
+				op.Type = opType;
 					
 				_builder.AddOperation(op);
 			}
@@ -425,9 +439,17 @@ namespace Invest.Core
 
 				var type = OperationType.CurBuy;
 				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
-				var opQty = ExcelUtil.GetCellValue(cells.Qty, rd);
-				var opPrice = ExcelUtil.GetCellValue(cells.Price, rd);
-				var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd);
+				var opQty = ExcelUtil.GetCellValue(cells.BuyQty, rd);
+				var opPrice = ExcelUtil.GetCellValue(cells.BuyPrice, rd);
+				var opSumma = ExcelUtil.GetCellValue(cells.BuySumma, rd);
+
+				if (opQty == null && opPrice == null && ExcelUtil.GetCellValue(cells.SellQty, rd) != null)
+				{
+					type = OperationType.CurSell;
+					opQty = ExcelUtil.GetCellValue(cells.SellQty, rd);
+					opPrice = ExcelUtil.GetCellValue(cells.SellPrice, rd);
+					opSumma = ExcelUtil.GetCellValue(cells.SellSumma, rd);
+				}
 				    
 				var op = new Operation
 				{
@@ -470,9 +492,10 @@ namespace Invest.Core
 			public string DeliveryDate;		// плановая дата поставки
 			public string Currency;			// 
 			public string Comment; 
-			public string Summa;
+			public string BuySumma, SellSumma;
 			public string TransId;
-			public string Qty, Price;
+			public string BuyQty, BuyPrice;
+			public string SellQty, SellPrice;
 		}
 
 		public class CacheMap
@@ -488,8 +511,8 @@ namespace Invest.Core
 		public class ShareOperationMap
 		{
 			public string Name, Date, Time;
-			public string Price;
-			public string Qty;
+			public string BuyPrice, SellPrice;
+			public string BuyQty, SellQty;
 			public string Type;
 			public string BankCommission1;  // Комиссия Банка за расчет по сделке
 			public string BankCommission2;  // Комиссия Банка за заключение сделки
@@ -505,8 +528,8 @@ namespace Invest.Core
 		{
 			public string Name;
 			public string Date;
-			public string Price;
-			public string Qty;
+			public string BuyPrice, SellPrice;
+			public string BuyQty, SellQty;
 			public string Type;
 			public string BankCommission1;  // Комиссия Банка за расчет по сделке
 			public string BankCommission2;  // Комиссия Банка за заключение сделки
@@ -551,8 +574,10 @@ namespace Invest.Core
 					Date = "M",
 					Time = "N",
 					Type = "C",
-					Qty = "E",
-					Price = "F",
+					BuyQty = "E",
+					SellQty = "H",
+					BuyPrice = "F",
+					SellPrice = "I",
 					BankCommission1 = "P",
 					BankCommission2 = "O",
 					OrderId = "",
@@ -578,8 +603,11 @@ namespace Invest.Core
 					Name = "B",
 					Date = "O",
 					Type = "",
-					Qty = "E",
-					Price = "F",
+					BuyQty = "E",
+					BuyPrice = "F",
+					SellQty = "",
+					SellPrice = "",
+
 					BankCommission1 = "P",
 					BankCommission2 = "O",
 					OrderId = "",
@@ -606,10 +634,13 @@ namespace Invest.Core
 					DeliveryDate = "N", 
 					Currency = "P",
 					Comment = "O",
-					Summa = "G",
+					BuySumma = "G",
 					TransId = "C",
-					Qty = "F",
-					Price = "E"
+					BuyQty = "F",
+					BuyPrice = "E",
+					SellQty = "I",
+					SellPrice = "H",
+					SellSumma = "J",
 				};
 			else
 				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year},{_accountCode}");
