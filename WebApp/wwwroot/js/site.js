@@ -436,10 +436,10 @@ function openDivs(cur) {
 
             // Create chart instance
             var chart = am4core.create("chartDivsUsd", am4charts.PieChart);
-            loadChartDivs(2, chart);
+            //loadChartDivs(2, chart);
 
             chart = am4core.create("chartDivsRur", am4charts.PieChart);
-            loadChartDivs(1, chart);
+            //loadChartDivs(1, chart);
         });
 
         hideWaitContainer();

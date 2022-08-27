@@ -191,6 +191,7 @@ table TD {
 
 .tbl-1 .td-1 {
     padding-top: 5px;
+    white-space: nowrap;
 }
 
 .tbl-1 .td-2 {
@@ -1263,7 +1264,8 @@ TD.sell {
     border-bottom: 1px solid silver;
     font-family: 'Trebuchet MS', roboto;
     padding-top: 1px;
-    padding-bottom: 1px
+    padding-bottom: 1px;
+    white-space: nowrap;
 }
 
 .tbl-divs-acc .td-total {
@@ -1282,6 +1284,10 @@ TD.sell {
 .tbl-divs-acc .td-ticker-summa {
     text-align: right;
 	color: blue;
+}
+
+.tbl-divs-acc TR:hover td {
+    background-color: #e8edff;
 }
 
 

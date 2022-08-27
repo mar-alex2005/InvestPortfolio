@@ -72,7 +72,7 @@
 							<tr>
 								<td class="td-qty" style="color:saddlebrown; text-align: left;" title="@o.Account.Name">@(o.Account.Id)</td>
 								<td class="td-date" title="@o.Date">@($"{o.Date:dd MMM yy, ddd}")</td>
-								<td class="td-ticker">@o.Stock.Ticker</td>
+								<td class="td-ticker" onclick="openOperationsByTicker('@o.Stock.Ticker')">@o.Stock.Ticker</td>
 
 								@if (o.Qty.HasValue)
 								{
