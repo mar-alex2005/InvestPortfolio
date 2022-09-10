@@ -453,4 +453,15 @@ namespace Invest.Core
 			}
 		}
 	}
+
+	//public abstract class A
+	//{
+	//	public virtual void test (){}
+
+	//}
+
+	//public class B : A
+	//{
+	//	public override void test (){}
+	//}
 }
