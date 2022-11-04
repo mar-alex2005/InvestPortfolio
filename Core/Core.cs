@@ -523,6 +523,16 @@ namespace Invest.Core
                         && op.Comment.ToLower().Contains(x.Isin[0].ToLower())
 					);
 				}
+
+				// by brokerName
+				if (s == null)
+				{
+					s = Stocks.FirstOrDefault(x => x.Type == StockType.Bond && x.Isin != null 
+					                                && !string.IsNullOrEmpty(x.Name)
+					                               && x.Company != null 
+					                               && op.Comment.ToLower().Contains(x.Name.ToLower())
+					);
+				}
                 
 				// for ofz russia
 				if (s == null)
