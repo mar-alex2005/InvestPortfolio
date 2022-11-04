@@ -58,8 +58,10 @@
         <table class="tbl-ticker-d">
         <tr>
             <td>Ticker:</td>
-            <td class="td-name" colspan="6" title="@(stock.Isin != null && stock.Isin.Length != 0 ? stock.Isin[0] : ""), @stock.RegNum">@Model.Ticker</td>
+            <td class="td-name" colspan="6">@Model.Ticker</td>
             <td class="td-cur-price">@($"{stock.CurPrice:N5}")</td>
+            <td class="td-isin" colspan="4">isin: @(stock.Isin != null && stock.Isin.Length != 0 ? stock.Isin[0] : "") @(stock.Isin != null && stock.Isin.Length == 2 ? stock.Isin[1] : "")</td>
+            <td class="td-isin" colspan="4">reg: @stock.RegNum</td>
         </tr>
         <tr>
             <td>Наличие:</td>

@@ -830,6 +830,11 @@ table TD {
     font-size: 14px;
     text-decoration:underline;
 }
+.tbl-ticker-d .td-isin {
+    font-weight: normal;
+    font-size: 14px;
+    white-space: nowrap;
+}
 .tbl-ticker-d .td-cur-price {
     vertical-align: middle;
     font-weight: bold;
