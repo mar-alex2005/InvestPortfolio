@@ -56,6 +56,15 @@ function init() {
     console.log("init...");
     gridColumns.push({ className: "tbl-profit", orderCol: "ticker", orderBy: "asc" });
     gridColumns.push({ className: "tbl-g", orderCol: "ticker", orderBy: "asc" });
+    resize();
+	
+	window.onresize = resize;
+}
+
+function resize() {
+	const h = document.documentElement.clientHeight - absoluteTop(document.querySelector(".body-content")) - 9;
+	$(".body-content").height(h);
+	//console.debug(">>", h);
 }
 
 function getColumnByTbl(className)
@@ -414,36 +423,29 @@ function openCache() {
 }
 
 function openDivs(cur) {
-    if (cur == undefined)
-        cur = null;
-
-    const params = { cur: cur, year: null };
-
-    const divYear = document.getElementById("tbDivYear");
-    if (divYear != null) 
-        params.year = divYear.value;
-
+	var divsUi = new DivUi();
+	divsUi.load();
     showWaitContainer();
 
-    ax.send("Post", "/Home/Divs", params, function () {
-        document.getElementById("divMain").innerHTML = this.responseText;
+    //ax.send("Post", "/Home/Divs", params, function () {
+    //    document.getElementById("divMain").innerHTML = this.responseText;
 
-        //getCacheInData();
+    //    //getCacheInData();
 
-        am4core.ready(function () {
-            // Themes begin
-            am4core.useTheme(am4themes_animated);
+    //    am4core.ready(function () {
+    //        // Themes begin
+    //        am4core.useTheme(am4themes_animated);
 
-            // Create chart instance
-            var chart = am4core.create("chartDivsUsd", am4charts.PieChart);
-            //loadChartDivs(2, chart);
+    //        // Create chart instance
+    //        var chart = am4core.create("chartDivsUsd", am4charts.PieChart);
+    //        //loadChartDivs(2, chart);
 
-            chart = am4core.create("chartDivsRur", am4charts.PieChart);
-            //loadChartDivs(1, chart);
-        });
+    //        chart = am4core.create("chartDivsRur", am4charts.PieChart);
+    //        //loadChartDivs(1, chart);
+    //    });
 
-        hideWaitContainer();
-    });
+    //    hideWaitContainer();
+    //});
 }
 
 

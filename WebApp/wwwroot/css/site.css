@@ -6,6 +6,7 @@
 .body-content {
     padding: 0;
     margin: 0;
+    overflow-y: auto;
 }
 
 div {
@@ -1200,121 +1201,26 @@ TD.sell {
 
 
 /***/
-.tbl-divs {
-}
-.tbl-divs caption {
-    font-weight: bold;
-    color: dimgray;
-    padding: 0px;
-}
-
-.tbl-divs th {
-    font-weight: bold;
-    font-size: 8pt;
-    border-bottom: 1px solid silver;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    color: navy;
-    text-align: center;
-    background-color: #f0f0f0;
-}
-
-.tbl-divs td {
-    border-bottom: 1px solid silver;
-    font-size: 8pt;
-}
-.tbl-divs .td-cur {
-    color: black;
-}
-.tbl-divs .td-summa {
-    color: blue;
-    text-align: right;
-}
-.tbl-divs .td-comment {
-    font-size: 7pt;
-    color: gray;
-    width: 470px;
-}
-.tbl-divs .td-month-separator {
-    font-weight: bold;
-    padding-top: 6px;
-    padding-bottom: 4px;
-    background-color: antiquewhite;
-}
 
 
-
-/**/
-.tbl-divs-acc {
-}
-.tbl-divs-acc caption {
-    font-weight: bold;
-    color: dimgray;
-    padding: 0px;
-}
-
-.tbl-divs-acc th {
-    font-weight: bold;
-    font-size: 8pt;
-    border-bottom: 1px solid silver;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    color: navy;
-    text-align: center;
-    background-color: #f0f0f0;
-}
-
-.tbl-divs-acc td {
-    font-size: 8pt;
-    border-bottom: 1px solid silver;
-    font-family: 'Trebuchet MS', roboto;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    white-space: nowrap;
-}
-
-.tbl-divs-acc .td-total {
-    text-align: right;
-    font-weight: bold;
-    padding: 2px;
-}
-.tbl-divs-acc .td-sum {
-    text-align: right;
-    color: blue;
-}
-.tbl-divs-acc .td-ticker {
-    white-space: nowrap;
-}
-
-.tbl-divs-acc .td-ticker-summa {
-    text-align: right;
-	color: blue;
-}
-
-.tbl-divs-acc TR:hover td {
-    background-color: #e8edff;
-}
-
-
-/**/
 
 .tbl-oper-period {
 }
 .tbl-oper-period caption {
     font-weight: bold;
     color: dimgray;
-    padding: 0px;
+    padding: 0;
 }
 .tbl-oper-period th {
-        font-weight: bold;
-        font-size: 8pt;
-        border-bottom: 1px solid silver;
-        padding-top: 1px;
-        padding-bottom: 1px;
-        color: navy;
-        text-align: center;
-        background-color: #f0f0f0;
-    }
+    font-weight: bold;
+    font-size: 8pt;
+    border-bottom: 1px solid silver;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    color: navy;
+    text-align: center;
+    background-color: #f0f0f0;
+}
 .tbl-oper-period td {
     font-size: 8pt;
     border-bottom: 1px solid silver;

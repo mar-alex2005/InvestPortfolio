@@ -17,200 +17,324 @@
 		.Select(g => new { Stock = g.Key, Sum = g.Sum(x1 => x1.Summa) })
 		.ToList();
 }
+<style>
+	.divs-main {
+		display: grid;
+		grid-template-columns: 260px 260px auto auto;
+		grid-column-gap: 6px;
+		grid-row-gap: 6px;
+		align-content: flex-start;
+		grid-template-areas: "a a b b" "c d e f";
+	}
+	.divs-area {
+        border: 1px solid red;
+    }
 
-<table class="tbl-cache-main">
-	<tr>
-		<td>
-			<div style="overflow-y: scroll; height: 840px;">
-				year: <input id="tbDivYear" type="text" value="" style="width: 50px;" maxlength="4" />&nbsp;&nbsp;
-				<span onclick="openDivs()">all</span>&nbsp;
-				<span onclick="openDivs(@((int)Currency.Usd))">usd</span>&nbsp;
-				<span onclick="openDivs(@((int)Currency.Rur))">rur</span>
+	.tbl-divs caption,
+	.tbl-divs-acc caption {
+		text-align: left;
+		font-size: 14px;
+		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		font-weight: 600;
+	}
 
-				<table class="tbl-divs">
-					<caption>Дивиденты</caption>
+    .tbl-divs th {
+        padding: 5px;
+        font-weight: bold;
+        font-size: 8pt;
+        border-bottom: 1px solid silver;
+        color: navy;
+        text-align: center;
+        background-color: #f0f0f0;
+    }
+
+    .tbl-divs td {
+        border-bottom: 1px solid silver;
+        font-size: 8pt;
+        padding: 4px;
+    }
+    .tbl-divs .td-cur {
+        color: black;
+    }
+	.tbl-divs .td-summa {
+		color: blue;
+		text-align: right;
+		font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+	}
+    .tbl-divs .td-comment {
+        font-size: 8pt;
+        color: gray;
+        width: 470px;
+    }
+    .tbl-divs .td-acc {
+        font-weight: 500;
+        color: navy;
+    }
+    .tbl-divs .td-month-separator {
+        font-weight: bold;
+        padding-top: 6px;
+        padding-bottom: 4px;
+        background-color: antiquewhite;
+    }
+
+
+	.tbl-divs-acc {
+		height: 450px
+	}
+
+    .tbl-divs-acc th {
+        font-weight: bold;
+        font-size: 8pt;
+        border-bottom: 1px solid silver;
+        color: navy;
+        padding: 4px;
+        text-align: center;
+        background-color: #f0f0f0;
+        min-width: 40px;
+    }
+
+	.tbl-divs-acc td {
+		font-size: 8pt;
+		border-bottom: 1px solid silver;
+		font-family: 'Trebuchet MS', roboto;
+		white-space: nowrap;
+		padding: 3px;
+		padding-top: 2px;
+		padding-bottom: 2px;
+	}
+
+    .tbl-divs-acc .td-total {
+        text-align: right;
+        font-weight: bold;
+    }
+    .tbl-divs-acc .td-sum {
+        text-align: right;
+        color: blue;
+    }
+    .tbl-divs-acc .td-sum-total {
+        text-align: right;
+        color: blue;
+        padding-left:14px; 
+        background-color: papayawhip;
+    }
+    .tbl-divs-acc .td-ticker {
+        white-space: nowrap;
+    }
+
+    .tbl-divs-acc .td-ticker-summa {
+        text-align: right;
+        color: blue;
+    }
+
+    .tbl-divs-acc TR:hover td {
+        background-color: #e8edff;
+    }
+
+	.tbl-divs-acc .cur {
+		width: 80px;
+	}
+</style>
+
+<div class="divs-main">
+
+    <div class="divs-area" style="grid-area: a">
+        <div class="" style="overflow-y: scroll; height: 720px;">
+            year: <input id="tbDivYear" type="text" value="" style="width: 50px;" maxlength="4" />&nbsp;&nbsp;
+            <span onclick="openDivs()">all</span>&nbsp;
+            <span onclick="openDivs(@((int)Currency.Usd))">usd</span>&nbsp;
+            <span onclick="openDivs(@((int)Currency.Rur))">rur</span>
+
+            <table class="tbl-divs">
+                <caption>Дивиденты:</caption>
+                <tr>
+                    <th>Дата</th>
+                    <th>Acc.</th>
+                    <th>Сумма</th>
+                    <th>Cur</th>
+                    <th>Прим.</th>
+                </tr>
+                @{
+                    DateTime? lastDate = null;
+                    foreach (var o in divs)
+                    {
+                        if (lastDate == null || lastDate.Value.Month != o.Date.Month)
+                        {
+                            <tr><td class="td-month-separator" colspan="5">@($"{o.Date:yyyy, MMMM}")</td></tr>
+                        }
+                        <tr>
+                            <td class="td-date">@($"{o.Date:dd.MM.yyyy}")</td>
+                            <td class="td-acc" title="@o.Account.Name">@o.Account.Id</td>
+                            <td class="td-summa">@($"{o.Summa:N2}")</td>
+                            <td class="td-cur">@o.Currency</td>
+                            <td class="td-comment">[@o.Stock?.Ticker] @o.Comment</td>
+                        </tr>
+
+                        lastDate = o.Date;
+                    }
+                }
+            </table>
+        </div>
+    </div>
+
+    <div class="divs-area" style="grid-area: b">
+        <table class="tbl-divs-acc">
+			<caption>По счетам:</caption>
+			<tr>
+				<th></th>
+				@foreach (var a in Model.Accounts)
+				{
+					<th colspan="@Model.Currencies.Count" title="@a.Name">@a.Id</th>
+				}
+				<th colspan="@Model.Currencies.Count">Total</th>
+			</tr>
+			<tr>
+				<th></th>
+				@foreach (var a in Model.Accounts)
+				{
+				    @foreach (var cur in Model.Currencies) {
+						<th class="cur">@cur</th>
+					}
+				}
+				@foreach (var cur in Model.Currencies) {
+					<th class="cur">@cur</th>
+				}
+			</tr>
+			<tr>
+				<td>>></td>
+				@foreach (var a in Model.Accounts)
+				{
+					foreach (var cur in Model.Currencies)
+					{
+						var accountDivs = divs
+							.Where(x => x.Account == a && x.Currency == cur)
+							.Sum(x => x.Summa);
+
+						<td class="td-total">@Util.GetSum(accountDivs, "-")</td>
+					}
+				}
+
+				@foreach (var cur in Model.Currencies)
+				{
+					<td class="td-total">@Util.GetSum(divs.Where(x => x.Currency == cur).Sum(x => x.Summa), "-")</td>
+				}
+			</tr>
+
+			@{
+				for (var year = DateTime.Today.Year; year >= 2019; year--)
+				{
 					<tr>
-						<th>Дата</th>
-						<th>Acc.</th>
-						<th>Сумма</th>
-						<th>Cur</th>
-						<th>Прим.</th>
-					</tr>
-					@{
-						DateTime? lastDate = null;
-						foreach (var o in divs)
+						<td class="td-1"><b>@(year)</b></td>
+						@foreach (var a in Model.Accounts)
 						{
-							if (lastDate == null || lastDate.Value.Month != o.Date.Month)
+							foreach (var cur in Model.Currencies)
 							{
-								<tr><td class="td-month-separator" colspan="5">@($"{o.Date:yyyy, MMMM}")</td></tr>
-							}
-							<tr>
-								<td class="td-date">@($"{o.Date:dd.MM.yyyy}")</td>
-								<td class="td-acc" title="@o.Account.Name">@o.Account.Id</td>
-								<td class="td-summa">@($"{o.Summa:N2}")</td>
-								<td class="td-cur">@o.Currency</td>
-								<td class="td-comment">[@o.Stock?.Ticker] @o.Comment</td>
-							</tr>
+								var accountSum = divs
+									.Where(x => x.Account == a && x.Currency == cur && x.Date.Year == year)
+									.Sum(x => x.Summa);
 
-							lastDate = o.Date;
+								<td class="td-sum">@Util.GetSum(accountSum, "-")</td>
+							}
 						}
-					}
-				</table>
-			</div>
-		</td>
-		<td>
-			<table class="tbl-divs-acc">
-				<caption>По счетам:</caption>
-				<tr>
-					<th></th>
-					@foreach (var a in Model.Accounts)
-					{
-						<th colspan="4" title="@a.Name">@a.Id</th>
-					}
-					<th colspan="4">Total</th>
-				</tr>
-				<tr>
-					<th></th>
-					@foreach (var a in Model.Accounts)
-					{
-						foreach (int curId in Enum.GetValues(typeof(Currency)))
+						@foreach (var cur in Model.Currencies)
 						{
-							<th>@Enum.ToObject(typeof(Currency), curId)</th>
-						}
-					}
-					@foreach (int curId in Enum.GetValues(typeof(Currency)))
-					{
-						<th>@Enum.ToObject(typeof(Currency), curId)</th>
-					}
-				</tr>
-				<tr>
-					<td>>></td>
-					@foreach (var a in Model.Accounts)
-					{
-						foreach (int curId in Enum.GetValues(typeof(Currency)))
-						{
-							var accountDivs = divs
-								.Where(x => x.Account == a && (int)x.Currency == curId)
+							var val = divs
+								.Where(x => x.Currency == cur && x.Date.Year == year)
 								.Sum(x => x.Summa);
 
-							<td class="td-total">@Util.GetSum(accountDivs, "-")</td>
+							<td class="td-sum-total">@Util.GetSum(val, "-")</td>
 						}
-					}
-
-					@foreach (int curId in Enum.GetValues(typeof(Currency)))
-					{
-						<td class="td-total">@Util.GetSum(divs.Where(x => (int)x.Currency == curId).Sum(x => x.Summa), "-")</td>
-					}
-				</tr>
-
-				@{
-					for (var year = DateTime.Today.Year; year >= 2019; year--)
+					</tr>
+				}
+			}
+			<tr>
+				<td colspan="30">&nbsp;</td>
+			</tr>
+			@{
+				var lastYear = DateTime.Today.Year;
+				var periods = Invest.Core.Builder.GetPeriods();
+				foreach (var p in periods)
+				{
+					if (lastYear != p.Year)
 					{
 						<tr>
-							<td class="td-1"><b>@(year)</b></td>
-							@foreach (var a in Model.Accounts)
+							<td colspan="30">&nbsp;</td>
+						</tr>
+					}
+
+					<tr>
+						<td class="td-1">@($"{p.Name}")</td>
+						@foreach (var a in Model.Accounts)
+						{
+							foreach (var cur in Model.Currencies)
 							{
-								foreach (int curId in Enum.GetValues(typeof(Currency)))
-								{
-									var accountSum = divs
-										.Where(x => x.Account == a && (int)x.Currency == curId && x.Date.Year == year)
+								var accountSum = divs
+										.Where(x => x.Account == a && x.Currency == cur
+											&& x.Date.Year == p.Year && x.Date.Month == p.Month)
 										.Sum(x => x.Summa);
 
-									<td class="td-sum" style="padding-left: 12px;">@Util.GetSum(accountSum, "-")</td>
-								}
+								<td class="td-sum" style="padding-left: 12px;">@Util.GetSum(accountSum, "-")</td>
 							}
-							@foreach (int curId in Enum.GetValues(typeof(Currency)))
-							{
-								var val = divs
-									.Where(x => (int)x.Currency == curId && x.Date.Year == year)
-									.Sum(x => x.Summa);
-
-								<td style="text-align: right; padding-left:14px; background-color: papayawhip;">@Util.GetSum(val, "-")</td>
-							}
-						</tr>
-					}
-				}
-				<tr>
-					<td colspan="30">&nbsp;</td>
-				</tr>
-				@{
-					var lastYear = DateTime.Today.Year;
-					var periods = Invest.Core.Builder.GetPeriods();
-					foreach (var p in periods)
-					{
-						if (lastYear != p.Year)
-						{
-							<tr>
-								<td colspan="30">&nbsp;</td>
-							</tr>
 						}
 
-						<tr>
-							<td class="td-1">@($"{p.Name}")</td>
-							@foreach (var a in Model.Accounts)
-							{
-								foreach (int curId in Enum.GetValues(typeof(Currency)))
-								{
-									var accountSum = divs
-											.Where(x => x.Account == a && (int)x.Currency == curId
-												&& x.Date.Year == p.Year && x.Date.Month == p.Month)
-											.Sum(x => x.Summa);
+						@foreach (var cur in Model.Currencies)
+						{
+							var val = divs
+								.Where(x => x.Currency == cur && x.Date.Year == p.Year && x.Date.Month == p.Month)
+								.Sum(x => x.Summa);
 
-									<td class="td-sum" style="padding-left: 12px;">@Util.GetSum(accountSum, "-")</td>
-								}
-							}
-
-							@foreach (int curId in Enum.GetValues(typeof(Currency)))
-							{
-								var val = divs
-									.Where(x => (int)x.Currency == curId && x.Date.Year == p.Year && x.Date.Month == p.Month)
-									.Sum(x => x.Summa);
-
-								<td class="td-sum-total">@Util.GetSum(val, "-")</td>
-							}
-						</tr>
-						lastYear = p.Year;
-					}
-				}
-			</table>
-			<br />
-			<table class="tbl-divs-acc">
-				<caption>Divs. company</caption>
-				<tr>
-					<th></th>
-					<th></th>
-					<th></th>
-				</tr>
-				@foreach (var d in divsStocks.Where(x => x.Stock.Currency == Currency.Rur).OrderByDescending(x => x.Sum))
-				{
-					<tr>
-						<td class="td-ticker">@(d.Stock != null ? d.Stock.Ticker : "n/a")</td>
-						<td class="td-ticker">@(d.Stock != null ? d.Stock.Company.Name : "n/a")</td>
-						<td class="td-ticker-summa">@string.Format("{0:N2}", d.Sum)</td>
+							<td class="td-sum-total">@Util.GetSum(val, "-")</td>
+						}
 					</tr>
+					lastYear = p.Year;
 				}
-			</table>
-			<table class="tbl-divs-acc">
-				<caption>Divs. company</caption>
-				<tr>
-					<th></th>
-					<th></th>
-					<th></th>
-				</tr>
-				@foreach (var d in divsStocks.Where(x => x.Stock.Currency == Currency.Usd).OrderByDescending(x => x.Sum))
-				{
-					<tr>
-						<td class="td-ticker">@(d.Stock != null ? d.Stock.Ticker : "n/a")</td>
-						<td class="td-ticker">@(d.Stock != null ? d.Stock.Company.Name : "n/a")</td>
-						<td class="td-ticker-summa">@string.Format("{0:N2}", d.Sum)</td>
-					</tr>
-				}
-			</table>
-		</td>
-		<td>
-			<div id="chartDivsUsd" style="height: 350px;"></div>
-			<br />
-			<div id="chartDivsRur" style="height: 350px;"></div>
-		</td>
-	</tr>
-</table>
+			}
+		</table>
+    </div>
+    <div class="divs-area" style="grid-area: c">
+
+        <table class="tbl-divs-acc" style="width: 220px; border: 1px solid black;">
+            <caption>Divs. company</caption>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+            @foreach (var d in divsStocks.Where(x => x.Stock.Currency == Currency.Rur).OrderByDescending(x => x.Sum))
+            {
+                <tr>
+                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Ticker : "n/a")</td>
+                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Company.Name : "n/a")</td>
+                    <td class="td-ticker-summa">@string.Format("{0:N2}", d.Sum)</td>
+                </tr>
+            }
+        </table>
+    </div>
+    <div class="divs-area" style="grid-area: d">    
+        <table class="tbl-divs-acc" style="width: 220px;">
+            <caption>Divs. company</caption>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+            @foreach (var d in divsStocks.Where(x => x.Stock.Currency == Currency.Usd).OrderByDescending(x => x.Sum))
+            {
+                <tr>
+                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Ticker : "n/a")</td>
+                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Company.Name : "n/a")</td>
+                    <td class="td-ticker-summa">@string.Format("{0:N2}", d.Sum)</td>
+                </tr>
+            }
+        </table>
+
+    </div>
+    <div class="divs-area" style="grid-area: e">
+        <div id="chartDivsUsd" style="height: 350px;"></div>
+    </div>
+
+    <div class="divs-area" style="grid-area: f">
+        <div id="chartDivsRur" style="height: 350px;"></div>
+    </div>
+
+</div>
