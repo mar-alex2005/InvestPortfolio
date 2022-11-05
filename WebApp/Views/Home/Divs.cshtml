@@ -1,20 +1,13 @@
-﻿@model Invest.WebApp.Models.DivsViewModel;
+﻿@model Invest.WebApp.Models.DivsViewModel
 @using Invest.Core.Enums
 @using Invest.WebApp
 @{
 	Layout = null;
-	ViewData["Title"] = "Home Page";
-
-	var divs = Model.Operations
+    var divs = Model.Operations
 		.Where(x => (Model.Cur == null || x.Currency == Model.Cur)
 			&& (Model.Year == null || x.Date.Year == Model.Year)
 		)
 		.OrderByDescending(x => x.Date)
-		.ToList();
-
-	var divsStocks = divs
-		.GroupBy(x => x.Stock)
-		.Select(g => new { Stock = g.Key, Sum = g.Sum(x1 => x1.Summa) })
 		.ToList();
 }
 <style>
@@ -25,9 +18,10 @@
 		grid-row-gap: 6px;
 		align-content: flex-start;
 		grid-template-areas: "a a b b" "c d e f";
+        justify-content: flex-start;
 	}
 	.divs-area {
-        border: 1px solid red;
+        padding: 0;
     }
 
 	.tbl-divs caption,
@@ -119,6 +113,11 @@
         background-color: papayawhip;
     }
     .tbl-divs-acc .td-ticker {
+        white-space: nowrap;
+        color: blueviolet;
+    }
+
+    .tbl-divs-acc .td-company {
         white-space: nowrap;
     }
 
@@ -224,7 +223,7 @@
 				for (var year = DateTime.Today.Year; year >= 2019; year--)
 				{
 					<tr>
-						<td class="td-1"><b>@(year)</b></td>
+						<td class="td-1"><b>@year</b></td>
 						@foreach (var a in Model.Accounts)
 						{
 							foreach (var cur in Model.Currencies)
@@ -292,49 +291,23 @@
 		</table>
     </div>
     <div class="divs-area" style="grid-area: c">
-
-        <table class="tbl-divs-acc" style="width: 220px; border: 1px solid black;">
-            <caption>Divs. company</caption>
-            <tr>
-                <th></th>
-                <th></th>
-                <th></th>
-            </tr>
-            @foreach (var d in divsStocks.Where(x => x.Stock.Currency == Currency.Rur).OrderByDescending(x => x.Sum))
-            {
-                <tr>
-                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Ticker : "n/a")</td>
-                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Company.Name : "n/a")</td>
-                    <td class="td-ticker-summa">@string.Format("{0:N2}", d.Sum)</td>
-                </tr>
-            }
-        </table>
+        @{
+            Model.Cur = Currency.Rur;
+			await Html.RenderPartialAsync("DivsByCur", Model);
+        }
     </div>
     <div class="divs-area" style="grid-area: d">    
-        <table class="tbl-divs-acc" style="width: 220px;">
-            <caption>Divs. company</caption>
-            <tr>
-                <th></th>
-                <th></th>
-                <th></th>
-            </tr>
-            @foreach (var d in divsStocks.Where(x => x.Stock.Currency == Currency.Usd).OrderByDescending(x => x.Sum))
-            {
-                <tr>
-                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Ticker : "n/a")</td>
-                    <td class="td-ticker">@(d.Stock != null ? d.Stock.Company.Name : "n/a")</td>
-                    <td class="td-ticker-summa">@string.Format("{0:N2}", d.Sum)</td>
-                </tr>
-            }
-        </table>
-
+        @{
+            Model.Cur = Currency.Usd;
+            await Html.RenderPartialAsync("DivsByCur", Model);
+        }
     </div>
     <div class="divs-area" style="grid-area: e">
-        <div id="chartDivsUsd" style="height: 350px;"></div>
+        <div id="chartDivsRur" style="height: 350px;"></div>
     </div>
 
     <div class="divs-area" style="grid-area: f">
-        <div id="chartDivsRur" style="height: 350px;"></div>
+        <div id="chartDivsUsd" style="height: 350px;"></div>
     </div>
 
 </div>

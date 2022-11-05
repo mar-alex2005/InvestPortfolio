@@ -62,6 +62,10 @@ namespace Invest.Core
 								: StockType.Share
 						};
 
+						stock.DivCurrency = s["divCur"] != null && s["divCur"].ToString() != ""
+							? (Currency)Enum.Parse(typeof(Currency), s["divCur"].ToString(), true)
+							: stock.Currency;
+
 						if (!string.IsNullOrEmpty(s["isin"].ToString()))	
 						{
 							var isins = s["isin"].ToString().Replace(" ", "");

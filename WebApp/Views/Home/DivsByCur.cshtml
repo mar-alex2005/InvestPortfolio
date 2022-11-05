@@ -1,0 +1,29 @@
+﻿@model Invest.WebApp.Models.DivsViewModel
+@{
+	var divsStocksRur = Model.Operations
+		.Where(x => x.Currency == Model.Cur)
+		.GroupBy(x => x.Stock)
+		.Select(g => new { Stock = g.Key, Sum = g.Sum(x1 => x1.Summa) })
+		.ToList();
+}
+
+<table class="tbl-divs-acc">
+    <caption>Company (@Model.Cur)</caption>
+    @{
+		decimal total = 0;
+		foreach (var d in divsStocksRur.OrderByDescending(x => x.Sum))
+		{
+			total += d.Sum ?? 0;
+            <tr>
+                <td class="td-ticker">@d.Stock.Ticker</td>
+                <td class="td-company">@d.Stock.Company.Name</td>
+                <td class="td-ticker-summa">@($"{d.Sum:N2}")</td>
+            </tr>
+        }
+    }
+    <tr>
+        <td></td>
+        <td>Total:</td>
+        <td class="td-ticker-summa">@($"{total:N2}")</td>
+    </tr>
+</table>

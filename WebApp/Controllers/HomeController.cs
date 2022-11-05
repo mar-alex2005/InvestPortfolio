@@ -698,12 +698,18 @@ namespace Invest.WebApp.Controllers
 		//           return new JsonResult(list);
 		//       }
 
-		//       public JsonResult StockChartData()
-		//       {
-		//           var ss = Invest.WebApp.Core.Instance.Stocks.Where(x => x.Data.QtyBalance > 0).OrderBy(x => x.SortIndex);
+		public JsonResult StockChartData(Currency cur)
+		{
+			//var ss = _builder.Stocks.Where(x => x.Data.QtyBalance > 0).OrderBy(x => x.SortIndex);
 
-		//           return new JsonResult(ss);
-		//       }
+			var divsStocksRur = _builder.Operations.Where(x => x.Type == OperationType.Dividend)
+				.Where(x => x.Currency == cur)
+				.GroupBy(x => x.Stock)
+				.Select(g => new { Stock = g.Key, Sum = g.Sum(x1 => x1.Summa) })
+				.ToList();
+
+			return new JsonResult(divsStocksRur);
+		}
 
 		//       public JsonResult LoadPrices()
 		//       {
@@ -712,7 +718,7 @@ namespace Invest.WebApp.Controllers
 		//           return new JsonResult(null);
 		//       } 
 
-		
+
 
 		//	public IActionResult Hist(bool isJson = false)
 		//       {

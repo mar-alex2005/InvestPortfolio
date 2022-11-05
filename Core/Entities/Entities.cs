@@ -74,6 +74,8 @@ namespace Invest.Core.Entities
         // Name of stock in excel (brokerName)
         public string Name;
         public Currency Currency;
+		/// <summary>for divs</summary>
+        public Currency DivCurrency;
 
 		public DateTime LastHistotyDate;
 
@@ -188,7 +190,6 @@ namespace Invest.Core.Entities
 
     public class Stock : BaseStock
     {
-	    
     }
 
 
@@ -562,7 +563,7 @@ namespace Invest.Core.Entities
 		{
 			get
 			{
-				var position = Positions.LastOrDefault();
+				var position = Positions?.LastOrDefault();
 				return position?.Items[position.Items.Count-1].PosPrice;
 			}
 		}
@@ -765,7 +766,6 @@ namespace Invest.Core.Entities
 	}
 
 
-	/// <summary></summary>
 	//public class CurRates
 	//{
 	//	public Currency Currency;
