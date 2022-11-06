@@ -2,305 +2,434 @@
 @using Invest.Core.Enums
 @using Invest.WebApp
 @{
-    ViewData["Title"] = "Home Page";
-
-    //var account = ViewBag.Account != null
-    //    ? (InvApp.Entities.AccountType?)Enum.ToObject(typeof(InvApp.Entities.AccountType), ViewBag.Account)
-    //    : null;
-    // Currency? currency = ViewBag.Currency;
     var rurStocks = Model.Stocks.Where(x => x.Currency == Currency.Rur);
     var usdStocks = Model.Stocks.Where(x => x.Currency == Currency.Usd);
 }
+<style>
+    .page-bonds {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: 50% 50%;
+        grid-column-gap: 6px;
+        grid-row-gap: 6px;
+        align-content: flex-start;
+        grid-template-areas: "a b" "a c" "a d" "a e";
+        justify-content: flex-start;
+    }
+    .divs-area {
+        padding: 0;
+    }
+
+    .page-bonds > .tbl-g {
+	    border: 1px solid silver;
+	    width: auto;
+    }
+
+    .page-bonds .tbl-g TR {
+	    background-color: white;
+    }
+
+    .page-bonds .tbl-g TH {
+	    background-color: #f0f0f0;
+	    font-weight: bold;
+	    text-align: center;
+	    border-bottom: 1px solid silver;
+	    padding: 2px;
+	    padding-left: 6px;
+	    padding-right: 6px;
+	    font-family: Calibri, Verdana, Tahoma;
+	    font-size: 14px;
+    }
+
+    .page-bonds .tbl-g TD {
+	    padding: 3px;
+	    border-bottom: 1px solid silver;
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	    font-size: 11px;
+	    padding-left: 4px;
+	    padding-right: 4px;
+    }
+
+    .page-bonds .tbl-g .td-comp {
+	    font-weight: bold;
+	    text-align: left;
+	    padding-left: 4px;
+	    padding-right: 4px;
+        font-size: 12px;
+    }
+
+    .page-bonds .tbl-g .td-ticker {
+	    color: navy;
+	    text-align: left;
+	    cursor: pointer;
+	    padding-left: 18px;
+	    padding-right: 4px;
+	    font-family: Calibri, Verdana, Tahoma;
+        font-size: 12px;
+    }
+
+    .page-bonds .tbl-g .td-qty {
+	    text-align: right;
+	    padding-left: 9px;
+	    padding-right: 8px;
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    }
+
+    .page-bonds .tbl-g .td-sum {
+	    text-align: right;
+	    padding-left: 8px;
+	    padding-right: 8px;
+	    color: green;
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    }
+    .page-bonds .tbl-g .td-sum-nkd {
+	    text-align: right;
+	    padding-left: 8px;
+	    padding-right: 8px;
+	    color: black;
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    }
+
+    .page-bonds .tbl-g .td-coupon {
+	    text-align: center;
+	    padding-left: 8px;
+	    padding-right: 8px;
+	    color: rgb(43, 201, 226);
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    }
+
+    .page-bonds .tbl-g .td-sell {
+	    color: red; 
+	    background-color: antiquewhite; 
+	    text-align: right;
+	    padding-left: 9px;
+	    padding-right: 8px;
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    }
+
+    .page-bonds .tbl-g .td-saldo {
+	    text-align: right;
+	    padding-left: 9px;
+	    padding-right: 8px;
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    }
+
+    .page-bonds .tbl-g .td-weight {
+	    text-align: right;
+	    padding-left: 8px;
+	    padding-right: 8px;
+	    font-family: 'Trebuchet MS', Roboto;
+	    font-size: 11px;
+	    color: navy;
+    }
+
+    .page-bonds .tbl-g .td-comm {
+	    text-align: right;
+	    padding-left: 8px;
+	    padding-right: 8px;
+	    font-family: 'Trebuchet MS', Roboto;
+	    font-size: 11px;
+	    color: red;
+    }
+
+    .page-bonds .tbl-g .td-buy {
+	    color: black;
+	    text-align: center;
+	    padding-left: 9px;
+	    padding-right: 8px;
+	    background-color: rgba(121,242,110,0.7)
+    }
+
+    .page-bonds .tbl-g .td-total {
+	    text-align: right;
+	    padding: 11px;
+	    padding-left: 9px;
+	    padding-right: 8px;
+	    font-family: 'Trebuchet MS', Roboto;
+	    font-size: 12px;
+	    vertical-align: middle;
+    }
+
+    .page-bonds .tbl-g .td-head {
+	    font-weight: bold !important;
+	    padding-top: 18px !important;
+    }
+
+    .page-bonds .tbl-g TR:hover td {
+	    background-color: #e8edff;
+    }
+
+    .page-bonds .chart-bonds {
+	    height: 350px;
+    }
+</style>
 
 <div class="page-bonds">
-    <table class="tbl-g">
-    <tr>
-        <th rowspan="2" col="ticker">Ticker</th>
-        <th rowspan="2" col="qty">Кол-во</th>
-        <th rowspan="2" col="buySum">Сумма,<br />buy</th>
-        <th rowspan="2" col="buyQty">Сумма,<br />с НКД</th>
-        <th rowspan="2" col="coupon">Купон</th>
-        <th rowspan="2" col="sellSum">Сумма,<br />sell</th>
-        <th rowspan="2" col="saldo">Saldo</th>
-        <th rowspan="2" col="weight">Weight</th>
-        <th rowspan="2" col="comm">Comm</th>
-
-        @*@foreach(var a in Model.Accounts.Where( x => x != null)) {
-            <th rowspan="2">@a</th>
-        }*@
-        
-        <th colspan="2" class="td-total">*</th>        
-    </tr>
-    <tr>
-        <th col="StockSum">Stock<br/>sum.</th>
-        <th col="CurrentSum">Cur<br/>sum.</th>
-    </tr>
-    @{
-		string company = null;
-        decimal? totalBuySum = 0;
-		decimal? totalBuySumWithNkd = 0;
-		decimal? totalComm = 0;
-		decimal? totalCoupon = 0;
-        decimal? totalSellSum = 0;
-        decimal? saldo = 0;
-    }
-    @foreach (var item in Model.Items)
-    {
-        var s = item.Stock;
-
-        totalBuySum += item.BuySum;
-        totalBuySumWithNkd += item.BuySum + item.Nkd;
-        totalSellSum += item.SellSum;
-        totalComm += item.Commission;
-        totalCoupon += item.Coupon;
-        saldo += item.BuySum - item.SellSum;
-
-        if (company == null || company != s.Company.Name)
-        {
-            var comItems = Model.Items.Where(x => x.Stock.Company == s.Company).ToArray();
-
-            <tr>
-                <td class="td-head td-comp">@s.Company.Name</td>
-                <td class="td-head td-qty">@($"{Util.KFormat(comItems.Sum(x => x.CurrentQty))}")</td>
-                <td class="td-head td-sum">@($"{comItems.Sum(x => x.BuySum):N2}")</td>
-                <td class="td-head td-sum-nkd">@($"{comItems.Sum(x => x.BuySum + x.Nkd):N2}")</td>
-                <td class="td-head td-coupon">@($"{comItems.Sum(x => x.Coupon):N2}")</td>
-                <td class="td-head td-sell">@($"{Util.GetSum(comItems.Sum(x => x.SellSum)):N2}")</td>
-                <td class="td-head"></td>
-                <td class="td-head td-weight">@(comItems.Sum(x => x.CurrentQty) == 0 ? "" : $"{comItems.Where(x => x.CurrentQty != 0).Sum(x => (x.BuySum - x.SellSum) / Model.TotalSaldo):P2}")</td>
-                <td class="td-head td-comm">@($"{comItems.Sum(x => x.Commission):N2}")</td>
-            </tr>
-        }
-
-	    <tr>
-            <td class="td-ticker" title="@s.Isin[0] (@s.RegNum)" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
-            <td class="td-qty">
-                @($"{Util.KFormat(item.CurrentQty)}")
-            </td>
-            <td class="td-sum">
-                @($"{item.BuySum:N2}")
-            </td>
-            <td class="td-sum-nkd" title="Nkd: @($"{item.Nkd:N2}")">
-                @($"{item.BuySum + item.Nkd:N2}")
-            </td>
-            <td class="td-coupon">
-                @($"{(item.Coupon != 0 ? item.Coupon : null)}")
-            </td>
-            <td class="td-sell">
-                @($"{Util.GetSum(item.SellSum)}")
-            </td>
-            <td class="td-saldo">
-                @($"{item.SellSum - item.BuySum + item.Coupon - item.Commission:N2}")
-            </td>
-            <td class="td-weight">
-                @(item.CurrentQty == 0 ? "" : $"{(item.BuySum - item.SellSum) / Model.TotalSaldo:P2}")
-            </td>
-            <td class="td-comm">
-                @($"{item.Commission:N2}")
-            </td>
-        </tr>
-
-	    company = s.Company.Name;
-    }
-    
-    <tr>
-        <td colspan="2"></td>
-        <td class="td-total td-sum">
-            @($"{totalBuySum:N2}")
-        </td>
-        <td class="td-total td-sum-nkd">
-            @($"{totalBuySumWithNkd:N2}")
-        </td>
-        <td class="td-total td-coupon">@($"{totalCoupon:N2}")</td>
-        <td></td>
-        <td class="td-total">@($"{saldo:N2}")</td>
-        <td></td>
-        <td class="td-total td-comm">@($"{totalComm:N2}")</td>
-    </tr>
-    </table><br/>
-
-    <div id="chartBonds" class="chart-bonds"></div>
-    
-    <div>
-        <table class="tbl-g tbl-g-acc" style="width: 680px;">
+    <div class="divs-area" style="grid-area: a">
+        <table class="tbl-g">
         <tr>
-            <th>Acc</th>
-            <th>Qty</th>
-            <th>-</th>
+            <th col="ticker">Ticker</th>
+            <th col="qty">Кол-во</th>
+            <th col="buySum">Сумма,<br/>buy</th>
+            <th col="buyQty">Сумма,<br/>с НКД</th>
+            <th col="coupon">Купон</th>
+            <th col="sellSum">Сумма,<br/>sell</th>
+            <th col="saldo">Saldo</th>
+            <th col="weight">Weight</th>
+            <th col="comm">Comm</th>
+            <th class="td-total">*</th>
         </tr>
-        @foreach (var a in Model.Accounts)
+            @{
+                string company = null;
+                decimal? totalBuySum = 0;
+                decimal? totalBuySumWithNkd = 0;
+                decimal? totalComm = 0;
+                decimal? totalCoupon = 0;
+                decimal? totalSellSum = 0;
+                decimal? saldo = 0;
+            }
+            @foreach (var item in Model.Items)
+            {
+                var s = item.Stock;
+
+                totalBuySum += item.BuySum;
+                totalBuySumWithNkd += item.BuySum + item.Nkd;
+                totalSellSum += item.SellSum;
+                totalComm += item.Commission;
+                totalCoupon += item.Coupon;
+                saldo += item.BuySum - item.SellSum;
+
+                if (company == null || company != s.Company.Name)
+                {
+                    var comItems = Model.Items.Where(x => x.Stock.Company == s.Company).ToArray();
+                    <tr>
+                        <td class="td-head td-comp">@s.Company.Name</td>
+                        <td class="td-head td-qty">@($"{Util.KFormat(comItems.Sum(x => x.CurrentQty))}")</td>
+                        <td class="td-head td-sum">@($"{comItems.Sum(x => x.BuySum):N2}")</td>
+                        <td class="td-head td-sum-nkd">@($"{comItems.Sum(x => x.BuySum + x.Nkd):N2}")</td>
+                        <td class="td-head td-coupon">@($"{comItems.Sum(x => x.Coupon):N2}")</td>
+                        <td class="td-head td-sell">@($"{Util.GetSum(comItems.Sum(x => x.SellSum)):N2}")</td>
+                        <td class="td-head"></td>
+                        <td class="td-head td-weight">@(comItems.Sum(x => x.CurrentQty) == 0 ? "" : $"{comItems.Where(x => x.CurrentQty != 0).Sum(x => (x.BuySum - x.SellSum) / Model.TotalSaldo):P2}")</td>
+                        <td class="td-head td-comm">@($"{comItems.Sum(x => x.Commission):N2}")</td>
+                    </tr>
+                }
+
+                <tr>
+                    <td class="td-ticker" title="@s.Isin[0] (@s.RegNum)" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
+                    <td class="td-qty">
+                        @($"{Util.KFormat(item.CurrentQty)}")
+                    </td>
+                    <td class="td-sum">
+                        @($"{item.BuySum:N2}")
+                    </td>
+                    <td class="td-sum-nkd" title="Nkd: @($"{item.Nkd:N2}")">
+                        @($"{item.BuySum + item.Nkd:N2}")
+                    </td>
+                    <td class="td-coupon">
+                        @($"{(item.Coupon != 0 ? item.Coupon : null)}")
+                    </td>
+                    <td class="td-sell">
+                        @($"{Util.GetSum(item.SellSum)}")
+                    </td>
+                    <td class="td-saldo">
+                        @($"{item.SellSum - item.BuySum + item.Coupon - item.Commission:N2}")
+                    </td>
+                    <td class="td-weight">
+                        @(item.CurrentQty == 0 ? "" : $"{(item.BuySum - item.SellSum) / Model.TotalSaldo:P2}")
+                    </td>
+                    <td class="td-comm">
+                        @($"{item.Commission:N2}")
+                    </td>
+                </tr>
+
+                company = s.Company.Name;
+            }
+
+            <tr>
+                <td colspan="2"></td>
+                <td class="td-total td-sum">
+                    @($"{totalBuySum:N2}")
+                </td>
+                <td class="td-total td-sum-nkd">
+                    @($"{totalBuySumWithNkd:N2}")
+                </td>
+                <td class="td-total td-coupon">@($"{totalCoupon:N2}")</td>
+                <td></td>
+                <td class="td-total">@($"{saldo:N2}")</td>
+                <td></td>
+                <td class="td-total td-comm">@($"{totalComm:N2}")</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="divs-area" style="grid-area: b">
+        <table class="tbl-g tbl-g-acc">
+            <tr>
+                <th>Acc</th>
+                <th>Qty</th>
+                <th>-</th>
+            </tr>
+            @foreach (var a in Model.Accounts)
+            {
+                <tr>
+                    <td></td>
+                    <td>@a.Id</td>
+                    <td>-</td>
+                </tr>
+            }
+        </table>
+    </div>
+
+    <div class="divs-area" style="grid-area: c">
+        <div id="chartBonds" class="chart-bonds"></div>
+    </div>
+
+    <div class="divs-area" style="grid-area: d">
+        <table class="tbl-g tbl-g-acc" style="width: 480px;">
+                        <tr>
+                            <th></th>
+                            @foreach (var a in Model.Accounts)
+                            {
+                                if (a != null)
+                                {
+                                    <th colspan="2">@a.Id</th>
+                                }
+                                else
+                                {
+                                    <th colspan="2">Total</th>
+                                }
+                            }
+                        </tr>
+                        <tr>
+                            <th></th>
+                            @foreach (var unused in Model.Accounts)
+                            {
+                                <th>Usd</th>
+                                <th>Rur</th>
+                            }
+                        </tr>
+                        <tr>
+                            <td>Close result:</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.FinResultForClosedPositions))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.FinResultForClosedPositions))</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.FinResultForClosedPositions))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.FinResultForClosedPositions))</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
+                        </tr>
+                        <tr>
+                            <td>Current result:</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.TotalFinResult))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.TotalFinResult))</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.TotalFinResult))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.TotalFinResult))</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.FinResult))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.FinResult))</td>
+                        </tr>
+
+                        <tr>
+                            <td>Total result:</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.TotalFinResult))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.TotalFinResult))</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.TotalFinResult))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.TotalFinResult))</td>
+
+                            <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.TotalFinResult))</td>
+                            <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.TotalFinResult))</td>
+                        </tr>
+
+                        <tr>
+                            <td>Profit, summa:</td>
+
+                            <td class="td-total" style="color: blue;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit))</td>
+                            <td class="td-total" style="color: blue;">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit))</td>
+
+                            <td class="td-total" style="color: blue;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit))</td>
+                            <td class="td-total" style="color: blue;">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit))</td>
+
+                            <td class="td-total" style="color: blue; font-weight: bold;">@Util.GetSum(usdStocks?.Sum(x => x.Data.Profit))</td>
+                            <td class="td-total" style="color: blue; font-weight: bold;">@Util.GetSum(rurStocks?.Sum(x => x.Data.Profit))</td>
+                        </tr>
+
+                        <tr>
+                            <td>Profit, summa in rur:</td>
+
+                            <td class="td-total" style="color: navy;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
+                            <td class="td-total" style="color: navy;"></td>
+
+                            <td class="td-total" style="color: navy;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
+                            <td class="td-total" style="color: navy;"></td>
+
+                            <td class="td-total" style="color: navy; font-weight: bold;">@Util.GetSum(usdStocks?.Sum(x => x.Data.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
+                            <td class="td-total" style="color: navy; font-weight: bold;"></td>
+                        </tr>
+
+                        <tr>
+                            @*accData.Profit / buySumInAcc * 100*@
+                            @{
+                                var ppUsdIis = usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit / x.AccountData[(int) AccountType.Iis].StockSum * 100);
+                                var ppRurIis = rurStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit / x.AccountData[(int) AccountType.Iis].StockSum * 100);
+
+                                var ppUsdVbr = usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit / x.AccountData[(int) AccountType.VBr].StockSum * 100);
+                                var ppRurVbr = rurStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit / x.AccountData[(int) AccountType.VBr].StockSum * 100);
+
+                                var ppUsdTotal = usdStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
+                                var ppRurTotal = 0; //rurStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
+                            }
+                            <td>Profit, %:</td>
+                            <td class="td-total" style="@(ppUsdIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdIis)</td>
+                            <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurIis)</td>
+
+                            <td class="td-total" style="@(ppUsdVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdVbr)</td>
+                            <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurVbr)</td>
+
+                            <td class="td-total" style="@(ppUsdTotal > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdTotal)</td>
+                            <td class="td-total" style="@(ppRurTotal > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurTotal)</td>
+                        </tr>
+
+                        <tr>
+                            <td>Profit in rur, %:</td>
+                            <td class="td-total"></td>
+                            <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurIis)</td>
+
+                            <td class="td-total"></td>
+                            <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurVbr)</td>
+
+                            <td class="td-total"></td>
+                            <td class="td-total" style="@(Model.TotalProfitPercent > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(Model.TotalProfitPercent)</td>
+                        </tr>
+                    </table>
+    </div>
+
+    <div class="divs-area" style="grid-area: e">
+        <table>
+        <caption>Last operations</caption>
+        <tr>
+            <th>Date</th>
+            <th>Acc</th>
+            <th>Summa</th>
+            <th>Stock</th>
+            <th>Comment</th>
+        </tr>
+        @foreach (var o in Model.Operations.OrderByDescending(x => x.Date))
         {
             <tr>
-                <td></td>
-                <td>@a.Id</td>
-                <td>-</td>
+                <td>@($"{o.Date: dd.MM.yyyy}")</td>
+                <td title="@o.Account.Name">@o.Account.Id</td>
+                <td>@($"{o.Summa}")</td>
+                <td>@o.Stock?.Ticker</td>
+                <td>@o.Comment</td>
             </tr>
         }
         </table>
     </div>
-    
-    <div>
-    <table>
-        <tr>
-            <td>
-
-                <table class="tbl-g tbl-g-acc" style="width: 480px;">
-                    <tr>
-                        <th></th>
-                        @foreach (var a in Model.Accounts)
-                        {
-                            if (a != null) {
-                                <th colspan="2">@a.Id</th>
-                            }
-                            else {
-                                <th colspan="2">Total</th>
-                            }
-                        }
-                    </tr>
-                    <tr>
-                        <th></th>
-                        @foreach (var unused in Model.Accounts)
-                        {
-                            <th>Usd</th>
-                            <th>Rur</th>
-                        }
-                    </tr>
-                    <tr>
-                        <td>Close result:</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.FinResultForClosedPositions))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.FinResultForClosedPositions))</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.FinResultForClosedPositions))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.FinResultForClosedPositions))</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.FinResultForClosedPositions))</td>
-                    </tr>
-                    <tr>
-                        <td>Current result:</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.FinResult))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.FinResult))</td>
-                    </tr>
-
-                    <tr>
-                        <td>Total result:</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.TotalFinResult))</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.TotalFinResult))</td>
-
-                        <td class="td-total">@Util.GetSum(usdStocks?.Sum(x => x.Data.TotalFinResult))</td>
-                        <td class="td-total">@Util.GetSum(rurStocks?.Sum(x => x.Data.TotalFinResult))</td>
-                    </tr>
-
-                    <tr>
-                        <td>Profit, summa:</td>
-
-                        <td class="td-total" style="color: blue;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit))</td>
-                        <td class="td-total" style="color: blue;">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit))</td>
-
-                        <td class="td-total" style="color: blue;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit))</td>
-                        <td class="td-total" style="color: blue;">@Util.GetSum(rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit))</td>
-
-                        <td class="td-total" style="color: blue; font-weight: bold;">@Util.GetSum(usdStocks?.Sum(x => x.Data.Profit))</td>
-                        <td class="td-total" style="color: blue; font-weight: bold;">@Util.GetSum(rurStocks?.Sum(x => x.Data.Profit))</td>
-                    </tr>
-        
-                    <tr>
-                        <td>Profit, summa in rur:</td>
-
-                        <td class="td-total" style="color: navy;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
-                        <td class="td-total" style="color: navy;"></td>
-
-                        <td class="td-total" style="color: navy;">@Util.GetSum(usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
-                        <td class="td-total" style="color: navy;"></td>
-
-                        <td class="td-total" style="color: navy; font-weight: bold;">@Util.GetSum(usdStocks?.Sum(x => x.Data.Profit) * Invest.Core.Builder.GetCurRate(Currency.Usd))</td>
-                        <td class="td-total" style="color: navy; font-weight: bold;"></td>
-                    </tr>
-
-                    <tr>
-                        @*accData.Profit / buySumInAcc * 100*@
-                        @{
-                            var ppUsdIis = usdStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit / x.AccountData[(int)AccountType.Iis].StockSum * 100);
-                            var ppRurIis = rurStocks?.Sum(x => x.AccountData[(int)AccountType.Iis]?.Profit / x.AccountData[(int)AccountType.Iis].StockSum * 100);
-
-                            var ppUsdVbr = usdStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit / x.AccountData[(int)AccountType.VBr].StockSum * 100);
-                            var ppRurVbr = rurStocks?.Sum(x => x.AccountData[(int)AccountType.VBr]?.Profit / x.AccountData[(int)AccountType.VBr].StockSum * 100);
-
-                            var ppUsdTotal = usdStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
-                            var ppRurTotal = 0; //rurStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
-                        }
-                        <td>Profit, %:</td>
-                        <td class="td-total" style="@(ppUsdIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdIis)</td>
-                        <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurIis)</td>
-
-                        <td class="td-total" style="@(ppUsdVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdVbr)</td>
-                        <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurVbr)</td>
-
-                        <td class="td-total" style="@(ppUsdTotal > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdTotal)</td>
-                        <td class="td-total" style="@(ppRurTotal > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurTotal)</td>
-                    </tr>
-        
-                    <tr>
-                        <td>Profit in rur, %:</td>
-                        <td class="td-total"></td>
-                        <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurIis)</td>
-
-                        <td class="td-total"></td>
-                        <td class="td-total" style="@(ppRurVbr > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurVbr)</td>
-
-                        <td class="td-total"></td>
-                        <td class="td-total" style="@(Model.TotalProfitPercent > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(Model.TotalProfitPercent)</td>
-                    </tr>
-                </table>
-    
-            </td>
-            <td>
-                @*<div style="border: 1px solid lightgrey; background-color:  #f0f0f0; padding: 7px;">
-            <div style="border: 1px solid lightgrey; background-color: white; padding: 8px;">
-                @(Html.DevExtreme().Chart().ID("piePortfolio"))
-            </div>
-        </div>*@
-            </td>
-        </tr>
-    </table>
-    </div>
-
-<table>
-    <caption>Last operations</caption>
-    <tr>
-        <th>Date</th>
-        <th>Acc</th>
-        <th>Summa</th>
-        <th>Stock</th>
-        <th>Comment</th>
-    </tr>
-    @foreach (var o in Model.Operations.OrderByDescending(x => x.Date))
-    {
-        <tr>
-            <td>@($"{o.Date: dd.MM.yyyy}")</td>
-            <td title="@o.Account.Name">@o.Account.Id</td>
-            <td>@($"{o.Summa}")</td>
-            <td>@o.Stock?.Ticker</td>
-            <td>@o.Comment</td>
-        </tr>
-    }
-</table>
-
-@*<div style="border: 1px solid lightgrey; margin-top: 6px; background-color:  #f0f0f0; padding: 7px;">
-        <div style="border: 1px solid lightgrey; background-color: white; padding: 14px;">
-            @(Html.DevExtreme().Chart().ID("chartPortfolio"))
-        </div>
-    </div>*@
 </div>

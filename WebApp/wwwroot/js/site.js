@@ -426,62 +426,13 @@ function openDivs(cur) {
 	var divsUi = new DivUi();
 	divsUi.load();
     showWaitContainer();
-
-    //ax.send("Post", "/Home/Divs", params, function () {
-    //    document.getElementById("divMain").innerHTML = this.responseText;
-
-    //    //getCacheInData();
-
-    //    am4core.ready(function () {
-    //        // Themes begin
-    //        am4core.useTheme(am4themes_animated);
-
-    //        // Create chart instance
-    //        var chart = am4core.create("chartDivsUsd", am4charts.PieChart);
-    //        //loadChartDivs(2, chart);
-
-    //        chart = am4core.create("chartDivsRur", am4charts.PieChart);
-    //        //loadChartDivs(1, chart);
-    //    });
-
-    //    hideWaitContainer();
-    //});
 }
 
 
 function openBonds(cur) {
-	if (cur == undefined)
-		cur = null;
-
-	const params = { cur: cur, year: null };
-
-	const divYear = document.getElementById("tbDivYear");
-	if (divYear != null) 
-		params.year = divYear.value;
-
+	var bondsUi = new BondsUi();
+	bondsUi.load();
 	showWaitContainer();
-
-    ax.send("Post", "/Home/Bonds", params, function () {
-        document.querySelector(".body-content").innerHTML = this.responseText;
-
-        //getCacheInData();
-
-		am4core.ready(function () {
-			// Themes begin
-			am4core.useTheme(am4themes_animated);
-
-			// Create chart instance
-			const chart = am4core.create("chartBonds", am4charts.PieChart);
-			loadChartBonds(chart);
-		});
-
-        $(document).ready(function () {
-            let h = document.documentElement.clientHeight - absoluteTop(document.querySelector(".page-bonds")) - 6;
-            $(".page-bonds").height(h);
-        });
-
-		hideWaitContainer();
-    });
 }
 
 

@@ -238,15 +238,33 @@
             <td></td>
             <td style="text-align: right;">Divs:</td>
             <td class="td-divs" style="text-align: right; color:cornflowerblue;">
-                @*@Util.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker).Sum(x => x.Value.DivSumma))*@
+                @Util.GetSum(Model.Operations.Where(x => x.Stock == stock && x.Type == OperationType.Dividend).Sum(x => x.Summa))
             </td>
             @foreach (var a in Model.Accounts)
             {
                 <td style="text-align: right; color:cornflowerblue;">
-                    @*@Util.GetSum(Core.Instance.FinIndicators.Where(x => x.Key.Ticker == stock.Ticker && x.Key.AccountType == a.Type).Sum(x => x.Value.DivSumma))*@
+                    @Util.GetSum(Model.Operations.Where(x => x.Stock == stock && x.Type == OperationType.Dividend && x.Account == a).Sum(x => x.Summa))
                 </td>
             }
         </tr>
+
+        @if (stock.Type == StockType.Bond) {
+        <tr>
+            <td style="text-align: right;"></td>
+            <td></td>
+            <td style="text-align: right;">Coupons:</td>
+            <td class="td-divs" style="text-align: right; color:cornflowerblue;">
+                @Util.GetSum(Model.Operations.Where(x => x.Type == OperationType.Coupon).Sum(x => x.Summa))
+            </td>
+            @foreach (var a in Model.Accounts)
+            {
+                <td style="text-align: right; color:cornflowerblue;">
+                    @Util.GetSum(Model.Operations.Where(x => x.Type == OperationType.Coupon && x.Account == a).Sum(x => x.Summa))
+                </td>
+            }
+        </tr>
+        }
+
         <tr>
             @{
                 var total = (stock.Data.Profit ?? 0) + (stock.Data.FinResultForClosedPositions ?? 0) + (stock.Data.FinResult ?? 0);

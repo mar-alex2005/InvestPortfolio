@@ -131,7 +131,7 @@ namespace Invest.WebApp.Controllers
 
 			var operations = _builder.Operations
 				.Where(
-					x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
+					x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend)
 				//&& (tickerId == null || x.Stock.Ticker == tickerId)
 				)
 				.OrderByDescending(x => x.Date).ThenByDescending(x => x.TransId) // Index
@@ -797,6 +797,7 @@ namespace Invest.WebApp.Controllers
 				//&& (x.Ticker == "MTSS" || x.Ticker == "NVTK" || x.Ticker == "TDC" || x.Ticker == "AAL" || x.Ticker == "CLF" )
 				//&& (currency == null || (int)x.Currency == currency)
 				//&& (account == null || Core.Instance.Operations.Any(o => o.Stock == x && (int)o.AccountType == account))
+				.OrderBy(x => x.Company.Name).ThenBy(x => x.Ticker)
 				.ToList();
 
 			var model = new BondsViewModel
