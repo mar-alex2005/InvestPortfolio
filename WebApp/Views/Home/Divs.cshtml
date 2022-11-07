@@ -268,11 +268,10 @@
 							foreach (var cur in Model.Currencies)
 							{
 								var accountSum = divs
-										.Where(x => x.Account == a && x.Currency == cur
-											&& x.Date.Year == p.Year && x.Date.Month == p.Month)
-										.Sum(x => x.Summa);
-
-								<td class="td-sum" style="padding-left: 12px;">@Util.GetSum(accountSum, "-")</td>
+									.Where(x => x.Account == a && x.Currency == cur
+										&& x.Date.Year == p.Year && x.Date.Month == p.Month)
+									.Sum(x => x.Summa);
+							    <td class="td-sum" style="padding-left: 12px;">@Util.GetSum(accountSum, "-")</td>
 							}
 						}
 

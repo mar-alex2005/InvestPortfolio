@@ -91,7 +91,7 @@
     }
 
     .page-bonds .tbl-g .td-coupon {
-	    text-align: center;
+	    text-align: right;
 	    padding-left: 8px;
 	    padding-right: 8px;
 	    color: rgb(43, 201, 226);
@@ -142,12 +142,23 @@
 
     .page-bonds .tbl-g .td-total {
 	    text-align: right;
-	    padding: 11px;
+	    padding: 3px;
 	    padding-left: 9px;
 	    padding-right: 8px;
 	    font-family: 'Trebuchet MS', Roboto;
 	    font-size: 12px;
 	    vertical-align: middle;
+    }
+
+    .page-bonds .tbl-g .td-sum-total {
+        text-align: right;
+        padding: 3px;
+        padding-left: 7px;
+        padding-right: 5px;
+        font-family: 'Trebuchet MS', Roboto;
+        font-size: 12px;
+        vertical-align: middle;
+        font-weight: 500;
     }
 
     .page-bonds .tbl-g .td-head {
@@ -160,25 +171,34 @@
     }
 
     .page-bonds .chart-bonds {
-	    height: 350px;
+	    height: 430px;
+        padding: 2px;
+    }
+
+    .tbl-g caption {
+        text-align: left;
+        font-size: 14px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 600;
     }
 </style>
 
 <div class="page-bonds">
     <div class="divs-area" style="grid-area: a">
         <table class="tbl-g">
-        <tr>
-            <th col="ticker">Ticker</th>
-            <th col="qty">Кол-во</th>
-            <th col="buySum">Сумма,<br/>buy</th>
-            <th col="buyQty">Сумма,<br/>с НКД</th>
-            <th col="coupon">Купон</th>
-            <th col="sellSum">Сумма,<br/>sell</th>
-            <th col="saldo">Saldo</th>
-            <th col="weight">Weight</th>
-            <th col="comm">Comm</th>
-            <th class="td-total">*</th>
-        </tr>
+            <caption>Open positions</caption>
+            <tr>
+                <th col="ticker">Ticker</th>
+                <th col="qty">Кол-во</th>
+                <th col="buySum">Сумма,<br/>buy</th>
+                <th col="buyQty">Сумма,<br/>с НКД</th>
+                <th col="coupon">Купон</th>
+                <th col="sellSum">Сумма,<br/>sell</th>
+                <th col="saldo">Saldo</th>
+                <th col="weight">Weight</th>
+                <th col="comm">Comm</th>
+                <th class="td-total">*</th>
+            </tr>
             @{
                 string company = null;
                 decimal? totalBuySum = 0;
@@ -188,7 +208,7 @@
                 decimal? totalSellSum = 0;
                 decimal? saldo = 0;
             }
-            @foreach (var item in Model.Items)
+            @foreach (var item in Model.Items.Where(x => x.CurrentQty != 0))
             {
                 var s = item.Stock;
 
@@ -261,22 +281,183 @@
                 <td class="td-total td-comm">@($"{totalComm:N2}")</td>
             </tr>
         </table>
+
+        <table class="tbl-g">
+            <caption>Close positions</caption>
+            <tr>
+                <th col="ticker">Ticker</th>
+                <th col="qty">Кол-во</th>
+                <th col="buySum">Сумма,<br/>buy</th>
+                <th col="buyQty">Сумма,<br/>с НКД</th>
+                <th col="coupon">Купон</th>
+                <th col="sellSum">Сумма,<br/>sell</th>
+                <th col="saldo">Saldo</th>
+                <th col="weight">Weight</th>
+                <th col="comm">Comm</th>
+                <th class="td-total">*</th>
+            </tr>
+            @{
+                company = null;
+                totalBuySum = 0;
+                totalBuySumWithNkd = 0;
+                totalComm = 0;
+                totalCoupon = 0;
+                totalSellSum = 0;
+                saldo = 0;
+            }
+            @foreach (var item in Model.Items.Where(x => x.CurrentQty == 0))
+            {
+                var s = item.Stock;
+
+                totalBuySum += item.BuySum;
+                totalBuySumWithNkd += item.BuySum + item.Nkd;
+                totalSellSum += item.SellSum;
+                totalComm += item.Commission;
+                totalCoupon += item.Coupon;
+                saldo += item.BuySum - item.SellSum;
+
+                if (company == null || company != s.Company.Name)
+                {
+                    var comItems = Model.Items.Where(x => x.Stock.Company == s.Company && x.CurrentQty == 0).ToArray();
+                    <tr>
+                        <td class="td-head td-comp">@s.Company.Name</td>
+                        <td class="td-head td-qty">@($"{Util.KFormat(comItems.Sum(x => x.CurrentQty))}")</td>
+                        <td class="td-head td-sum">@($"{comItems.Sum(x => x.BuySum):N2}")</td>
+                        <td class="td-head td-sum-nkd">@($"{comItems.Sum(x => x.BuySum + x.Nkd):N2}")</td>
+                        <td class="td-head td-coupon">@($"{comItems.Sum(x => x.Coupon):N2}")</td>
+                        <td class="td-head td-sell">@($"{Util.GetSum(comItems.Sum(x => x.SellSum)):N2}")</td>
+                        <td class="td-head"></td>
+                        <td class="td-head td-weight">@(comItems.Sum(x => x.CurrentQty) == 0 ? "" : $"{comItems.Where(x => x.CurrentQty != 0).Sum(x => (x.BuySum - x.SellSum) / Model.TotalSaldo):P2}")</td>
+                        <td class="td-head td-comm">@($"{comItems.Sum(x => x.Commission):N2}")</td>
+                    </tr>
+                }
+
+                <tr>
+                    <td class="td-ticker" title="@s.Isin[0] (@s.RegNum)" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
+                    <td class="td-qty">
+                        @($"{Util.KFormat(item.CurrentQty)}")
+                    </td>
+                    <td class="td-sum">
+                        @($"{item.BuySum:N2}")
+                    </td>
+                    <td class="td-sum-nkd" title="Nkd: @($"{item.Nkd:N2}")">
+                        @($"{item.BuySum + item.Nkd:N2}")
+                    </td>
+                    <td class="td-coupon">
+                        @($"{(item.Coupon != 0 ? item.Coupon : null)}")
+                    </td>
+                    <td class="td-sell">
+                        @($"{Util.GetSum(item.SellSum)}")
+                    </td>
+                    <td class="td-saldo">
+                        @($"{item.SellSum - item.BuySum + item.Coupon - item.Commission:N2}")
+                    </td>
+                    <td class="td-weight">
+                        @(item.CurrentQty == 0 ? "" : $"{(item.BuySum - item.SellSum) / Model.TotalSaldo:P2}")
+                    </td>
+                    <td class="td-comm">
+                        @($"{item.Commission:N2}")
+                    </td>
+                </tr>
+
+                company = s.Company.Name;
+            }
+
+            <tr>
+                <td colspan="2"></td>
+                <td class="td-total td-sum">
+                    @($"{totalBuySum:N2}")
+                </td>
+                <td class="td-total td-sum-nkd">
+                    @($"{totalBuySumWithNkd:N2}")
+                </td>
+                <td class="td-total td-coupon">@($"{totalCoupon:N2}")</td>
+                <td></td>
+                <td class="td-total">@($"{saldo:N2}")</td>
+                <td></td>
+                <td class="td-total td-comm">@($"{totalComm:N2}")</td>
+            </tr>
+        </table>
     </div>
 
     <div class="divs-area" style="grid-area: b">
         <table class="tbl-g tbl-g-acc">
+            <caption>By accounts</caption>
             <tr>
-                <th>Acc</th>
-                <th>Qty</th>
-                <th>-</th>
+                <th></th>
+                @foreach (var a in Model.Accounts)
+                {
+                    <th title="@a.Name">@a.Id</th>
+                }
+                <th>Total</th>
             </tr>
-            @foreach (var a in Model.Accounts)
-            {
-                <tr>
-                    <td></td>
-                    <td>@a.Id</td>
-                    <td>-</td>
-                </tr>
+            <tr>
+                <td>>></td>
+                @foreach (var a in Model.Accounts)
+                {
+                    var d = Model.Operations
+                        .Where(x => x.Account == a && x.Type == OperationType.Coupon)
+                        .Sum(x => x.Summa);
+
+                    <td class="td-total">@Util.GetSum(d, "-")</td>
+                }
+                <td class="td-total">@Util.GetSum(Model.Operations.Where(x => x.Type == OperationType.Coupon).Sum(x => x.Summa), "-")</td>
+            </tr>
+            @{
+                for (var year = DateTime.Today.Year; year >= 2021; year--)
+                {
+                    <tr>
+                        <td class="td-1"><b>@year</b></td>
+                        @foreach (var a in Model.Accounts)
+						{
+							var accountSum = Model.Operations
+								.Where(x => x.Type == OperationType.Coupon && x.Account == a && x.Date.Year == year)
+								.Sum(x => x.Summa);
+
+                            <td class="td-sum">@Util.GetSum(accountSum, "-")</td>
+                        }
+                        @{ 
+							var val = Model.Operations
+								.Where(x => x.Type == OperationType.Coupon && x.Date.Year == year)
+								.Sum(x => x.Summa);
+						}
+                        <td class="td-sum-total">@Util.GetSum(val, "-")</td>
+                    </tr>
+                }
+            }
+            <tr>
+                <td colspan="11">&nbsp;</td>
+            </tr>
+            @{
+                var lastYear = DateTime.Today.Year;
+                var periods = Invest.Core.Builder.GetPeriods(new DateTime(2021, 8,1));
+                foreach (var p in periods)
+                {
+                    if (lastYear != p.Year)
+                    {
+                        <tr>
+                            <td colspan="30">&nbsp;</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td class="td-1">@($"{p.Name}")</td>
+                        @foreach (var a in Model.Accounts)
+						{
+							var accountSum = Model.Operations
+								.Where(x => x.Account == a && x.Type == OperationType.Coupon && x.Date.Year == p.Year && x.Date.Month == p.Month)
+								.Sum(x => x.Summa);
+
+                            <td class="td-sum">@Util.GetSum(accountSum, "-")</td>
+                        }
+                        @{
+							var val = Model.Operations
+								.Where(x => x.Type == OperationType.Coupon && x.Date.Year == p.Year && x.Date.Month == p.Month)
+								.Sum(x => x.Summa);
+						}
+                        <td class="td-sum-total">@Util.GetSum(val, "-")</td>
+                    </tr>
+                    lastYear = p.Year;
+                }
             }
         </table>
     </div>
@@ -411,7 +592,7 @@
     </div>
 
     <div class="divs-area" style="grid-area: e">
-        <table>
+        <table class="tbl-g">
         <caption>Last operations</caption>
         <tr>
             <th>Date</th>
@@ -425,7 +606,7 @@
             <tr>
                 <td>@($"{o.Date: dd.MM.yyyy}")</td>
                 <td title="@o.Account.Name">@o.Account.Id</td>
-                <td>@($"{o.Summa}")</td>
+                <td class="td-sum">@($"{o.Summa}")</td>
                 <td>@o.Stock?.Ticker</td>
                 <td>@o.Comment</td>
             </tr>

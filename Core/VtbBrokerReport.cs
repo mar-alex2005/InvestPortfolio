@@ -55,10 +55,9 @@ namespace Invest.Core
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 			var dir = new DirectoryInfo(_reportDir);
-
 			var fileMask = $"{account.Name}_{year}*.xls";
 			var xslFiles = dir.GetFiles(fileMask);
-			
+
 			//if (xslFiles.Length == 0)
 			//	throw new Exception($"There are no xsl files in directory with mask: '{fileMask}'");
 
@@ -119,7 +118,6 @@ namespace Invest.Core
 		private void ReadCacheOperations(ExcelDataReader.IExcelDataReader rd, BaseAccount account, VtbExcelMapping cellMapping)
         {
             var ops = new List<Operation>();
-
             var cells = cellMapping.GetMappingForCache();
 
             while(rd.Read())
@@ -171,6 +169,9 @@ namespace Invest.Core
 					if (opType == "Списание денежных средств")
 						type = OperationType.CacheOut;
 
+					if (opType == "Погашение ценных бумаг")
+						type = OperationType.Sell;
+
                     if (type == null)
                         continue;
 
@@ -189,6 +190,22 @@ namespace Invest.Core
                         Type = type.Value,
                         Comment = opComment
                     };
+
+                    if (op.Type == OperationType.Sell) {
+	                    var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond 
+                            && !string.IsNullOrEmpty(x.RegNum) && x.Company != null 
+                            && (op.Comment.ToLower().Contains(x.RegNum.ToLower()) 
+                                || (x.Isin?[0] != null && op.Comment.ToLower().Contains(x.Isin[0].ToLower()))
+                            )
+	                    );
+
+	                    op.Stock = s ?? throw new Exception($"ReadCacheOperations(): Vtb, not found stock by {opComment}, {opDate}");
+						op.Price = 1000;  //todo: use constant for lot size
+	                    op.Qty = (int?) ((int)op.Summa / op.Price); 
+						op.BankCommission1 = 0;
+						op.BankCommission2 = 0;
+						op.DeliveryDate = op.Date;
+                    }
 
                     ops.Add(op); //Instance.Operations.Add(op);
                 }                

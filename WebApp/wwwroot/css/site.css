@@ -852,16 +852,21 @@ table TD {
 .tbl-ticker-d .td-buy {
     color: black;
     text-align: right;
-    padding-left: 9px;
+	padding: 4px;
+    padding-left: 7px;
     padding-right: 8px;
-    background-color: rgba(121,242,110,0.3)
+    background-color: rgba(121,242,110,0.3);
+	white-space: nowrap;
+
 }
 .tbl-ticker-d .td-sell {
     color: black;
     text-align: right;
-    padding-left: 9px;
+	padding: 4px;
+	padding-left: 7px;
     padding-right: 8px;
-    background-color: rgba(252,73,49,0.3)
+    background-color: rgba(252,73,49,0.3);
+	white-space: nowrap;
 }
 
 .tbl-ticker-d .td-saldo-plus {

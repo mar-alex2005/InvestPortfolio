@@ -59,9 +59,11 @@
         <tr>
             <td>Ticker:</td>
             <td class="td-name" colspan="6">@Model.Ticker</td>
+            <td class="td-isin" colspan="10">
+                isin: @(stock.Isin != null && stock.Isin.Length != 0 ? stock.Isin[0] : "") @(stock.Isin != null && stock.Isin.Length == 2 ? stock.Isin[1] : "")
+                reg: @stock.RegNum
+            </td>
             <td class="td-cur-price">@($"{stock.CurPrice:N5}")</td>
-            <td class="td-isin" colspan="4">isin: @(stock.Isin != null && stock.Isin.Length != 0 ? stock.Isin[0] : "") @(stock.Isin != null && stock.Isin.Length == 2 ? stock.Isin[1] : "")</td>
-            <td class="td-isin" colspan="4">reg: @stock.RegNum</td>
         </tr>
         <tr>
             <td>Наличие:</td>
@@ -110,12 +112,8 @@
 
         <tr>
             <td>Total buy:</td>            
-            <td style="text-align: right; color:red">@Util.GetSum(stock.Data.BuySum)</td>            
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td style="text-align: right; color:red">@Util.GetSum(stock.Data.BuySum)</td>    
+            @foreach (var a in Model.Accounts){ <td></td> }
             <td class="" style="text-align:right;">com b.:</td>            
             @foreach (var a in Model.Accounts) {
                 <td style="text-align: right; color:red;">@Util.GetSum(stock.AccountData[a.BitCode].BuyCommission)</td>
@@ -125,11 +123,7 @@
         <tr>
             <td>Total sell:</td>
             <td style="text-align: right; color: green;" class="">@Util.GetSum(stock.Data.SellSum)</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            @foreach (var a in Model.Accounts){ <td></td> }
             <td class="" style="text-align:right;">com s.:</td>            
             @foreach (var a in Model.Accounts) {
                 <td style="text-align: right; color:red;">@Util.GetSum(stock.AccountData[a.BitCode].SellCommission)</td>
@@ -139,11 +133,7 @@
         <tr>
             <td>saldo:</td>
             <td style="text-align: right" class="">@($"{stock.Data.SellSum - stock.Data.BuySum:N2}")</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            @foreach (var a in Model.Accounts){ <td></td> }
             <td style="text-align:right;">total com:</td>
             @foreach (var a in Model.Accounts) {
                 <td style="text-align: right; color:red;">@Util.GetSum(stock.AccountData[a.BitCode].Commission)</td>
