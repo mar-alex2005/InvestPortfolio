@@ -389,7 +389,7 @@
     @{
         if (stock.Type == StockType.Bond) {
             <th>Нкд</th>
-			<th>Сумма с Нкд</th>
+			<th>Сумма без Нкд</th>
 		}
 	}
     <th>PosPrice</th>
@@ -541,7 +541,7 @@
                     {
                         @if (stock.Type == StockType.Bond)
                         {
-                            <td class="td-sum @cssSum" style="@trCss">@($"{o.Operation.Summa:N2}")</td>
+                            <td class="td-sum @cssSum" style="@trCss">@($"{o.Operation.Summa + o.Operation.Nkd:N2}")</td>
                         }
                         else {
                             <td class="td-sum @cssSum" style="@trCss">@($"{o.Operation.Price * o.Qty:N2}")</td>
@@ -555,7 +555,7 @@
                     @if (stock.Type == StockType.Bond)
 					{
 					    <td class="td-sum" style="@trCss color: cornflowerblue;">@($"{o.Operation.Nkd:N2}")</td>
-					    <td class="td-sum" style="@trCss">@($"{o.Operation.Summa + o.Operation.Nkd:N2}")</td>
+					    <td class="td-sum" style="@trCss">@($"{o.Operation.Summa:N2}")</td>
 					}
 
                     <td class="td-pos-price" style="@trCss">

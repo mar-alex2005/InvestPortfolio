@@ -184,8 +184,16 @@ namespace Invest.Core
 
 	                    foreach (var pos in accData.Positions)
 	                    {
-		                    pos.CalcPosPrice();
-		                    pos.CalcFinResult();
+		                    if (s.Type == StockType.Bond)
+			                    pos.CalcBondPosPrice();
+		                    else
+								pos.CalcPosPrice();
+
+							if (s.Type == StockType.Bond)
+								pos.CalcBondFinResult();
+							else
+								pos.CalcFinResult();
+
 		                    CalcFifoResult(pos, s, null, a);
 	                    }
 
@@ -381,6 +389,12 @@ namespace Invest.Core
 						var profit = stock.LotSize * (item.Operation.Price - opBuy.Operation.Price).Value;
 						if (pos.Type == PositionType.Short)
 							profit = stock.LotSize * (opBuy.Operation.Price - item.Operation.Price).Value;
+
+						if (stock.Type == StockType.Bond)
+						{
+							if (stock.Ticker == "ИКС5ФинБО6") { var r=0; }
+							profit = stock.LotSize * (item.Operation.Price + (item.Operation.Nkd ?? 0 / item.Qty) - (opBuy.Operation.Price + (opBuy.Operation.Nkd ?? 0 / opBuy.Qty))).Value;
+						}
 
 						var commission = (item.Commission / (item.Qty / stock.LotSize)) + (opBuy.Commission / (opBuy.Qty));
 

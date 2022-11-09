@@ -438,6 +438,34 @@ namespace Invest.Core.Entities
 			}
 		}
 
+		public void CalcBondPosPrice()
+		{
+			var curentQty = 0;
+			var list = new List<PositionItem>();
+
+			for(var i=0; i < Items.Count; i++)
+			{
+				var item = Items[i];
+				list.Add(item);
+
+				curentQty += item.Operation.Type == OperationType.Buy
+					? item.Qty
+					: -item.Qty;
+
+				if (list.Count == 1 || i == 0) {
+					list[i].PosPrice = item.Operation.Price + (item.Operation.Nkd / item.Qty) ?? 0;
+					continue;
+				}
+
+				var recB = list.Where(x => x.Operation.Type == OperationType.Buy).Sum(x => x.Operation.Price * x.Qty) ?? 0;
+				var recS = list.Where(x => x.Operation.Type == OperationType.Sell).Sum(x => x.PosPrice * x.Qty);
+
+				item.PosPrice = !item.ForCalc 
+					? (recB - recS) / curentQty 
+					: list[i-1].PosPrice;
+			}
+		}
+
 		public void Close(DateTime closeDate)
 		{
 			CloseDate = closeDate;
@@ -461,6 +489,30 @@ namespace Invest.Core.Entities
 					if (Type == PositionType.Short)
 						item.FinResult *= -1;
 
+					totalFinResult += item.FinResult.Value;
+					item.TotalFinResult = totalFinResult;
+				}
+
+				item.Commission = item.Qty == item.Operation.Qty
+					? op.Commission.Value
+					: op.Commission.Value / (op.LotCount * item.Qty);
+			}
+		}
+
+		public void CalcBondFinResult()
+		{
+			decimal totalFinResult = 0;
+			foreach(var item in Items)
+			{
+				var op = item.Operation;
+
+				if (op.Commission == null || op.Qty == null)
+					throw new Exception("CalcBondFinResult(): op.Commission == null || op.Qty == null");
+
+				if (item.ForCalc)
+				{
+					item.FinResult = ((op.Price ?? 0) - item.PosPrice) * item.Qty;
+					
 					totalFinResult += item.FinResult.Value;
 					item.TotalFinResult = totalFinResult;
 				}

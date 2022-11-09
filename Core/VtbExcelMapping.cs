@@ -177,7 +177,7 @@ namespace Invest.Core
 						OrderId = "BC",
 						TransId = "BH",
 						DeliveryDate = "AU",
-						Nkd = "AF"
+						Nkd = "AG"
 					};
 			}
 			else if (_accountCode == (int)AccountType.SBr)
