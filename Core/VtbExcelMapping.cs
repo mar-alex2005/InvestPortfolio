@@ -17,6 +17,17 @@ namespace Invest.Core
 
 		public class OperationMap
 		{
+			public OperationMap()
+			{
+				Name = "B";
+				Date = "D";
+				Type = "G";
+				Qty = "K";
+				Price = "S";
+				BankCommission1 = "AL";
+				BankCommission2 = "AP";
+			}
+
 			public string Name;
 			public string Date;
 			public string Price;
@@ -68,8 +79,6 @@ namespace Invest.Core
 			{
 				if (_year == 2019)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
 						Type = "G",
 						Qty = "K",
 						Price = "R",
@@ -81,8 +90,6 @@ namespace Invest.Core
 					};
 				else if (_year == 2020)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
 						Type = "F",
 						Qty = "J",
 						Price = "Q",
@@ -94,8 +101,6 @@ namespace Invest.Core
 					};
 				else if (_year == 2021)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
 						Type = "G",
 						Qty = "K",
 						Price = "S",
@@ -108,8 +113,6 @@ namespace Invest.Core
 					};
 				else if (_year == 2022)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
 						Type = "F",
 						Qty = "J",
 						Price = "Q",
@@ -123,29 +126,15 @@ namespace Invest.Core
 					};
 			}
 			else if (_accountCode == (int)AccountType.VBr)
-			{ 
+			{
 				if (_year == 2019)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
-						Type = "G",
-						Qty = "K",
-						Price = "S",
-						BankCommission1 = "AL",
-						BankCommission2 = "AP",
 						OrderId = "BC",
 						TransId = "BG",
 						DeliveryDate = "AU"
 					};
 				else if (_year == 2020)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
-						Type = "G",
-						Qty = "K",
-						Price = "S",
-						BankCommission1 = "AL",
-						BankCommission2 = "AP",
 						OrderId = "BC",
 						TransId = "BH",
 						DeliveryDate = "AU",
@@ -153,13 +142,6 @@ namespace Invest.Core
 					};
 				else if (_year == 2021)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
-						Type = "G",
-						Qty = "K",
-						Price = "S",
-						BankCommission1 = "AL",
-						BankCommission2 = "AP",
 						OrderId = "BC",
 						TransId = "BH",
 						DeliveryDate = "AU",
@@ -167,17 +149,16 @@ namespace Invest.Core
 					};
 				else if (_year == 2022)
 					m = new OperationMap {
-						Name = "B",
-						Date = "D",
-						Type = "G",
-						Qty = "K",
-						Price = "S",
-						BankCommission1 = "AL",
-						BankCommission2 = "AP",
-						OrderId = "BC",
-						TransId = "BH",
-						DeliveryDate = "AU",
-						Nkd = "AG"
+						Type = "F",
+						Qty = "J",
+						Price = "Q",
+						BankCommission1 = "AH",
+						BankCommission2 = "AK",
+						OrderId = "AW",
+						TransId = "BA",
+						DeliveryDate = "AP",
+						Nkd = "AC",
+						Currency = "U"
 					};
 			}
 			else if (_accountCode == (int)AccountType.SBr)
@@ -246,26 +227,34 @@ namespace Invest.Core
 			else if (_accountCode == (int)AccountType.VBr)
 			{ 
 				if (_year == 2019)
-					m = new CacheMap() {
+					m = new CacheMap {
 						Date = "B",
 						Summa = "D",
 						Cur = "H",
 						Type = "M",
 						Comment = "Y"
 					};
-				else if (_year == 2020 || _year == 2021 || _year == 2022)
-					m = new CacheMap() {
+				else if (_year == 2020 || _year == 2021)
+					m = new CacheMap {
 						Date = "B",
 						Summa = "D",
 						Cur = "J",
 						Type = "Q",
 						Comment = "AI"
 					};
+				else if (_year == 2022)
+					m = new CacheMap {
+						Date = "B",
+						Summa = "D",
+						Cur = "I",
+						Type = "O",
+						Comment = "AE"
+					};
 			}
 			else if (_accountCode == (int)AccountType.SBr)
 			{
 				if (_year == 2022)
-					m = new CacheMap() {
+					m = new CacheMap {
 						Date = "B",
 						Summa = "D",
 						Cur = "H",

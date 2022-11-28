@@ -288,11 +288,11 @@
                 <th col="ticker">Ticker</th>
                 <th col="qty">Кол-во</th>
                 <th col="buySum">Сумма,<br/>buy</th>
-                <th col="buyQty">Сумма,<br/>с НКД</th>
+                <th col="buyQty">НКД,<br/>buy</th>
                 <th col="coupon">Купон</th>
                 <th col="sellSum">Сумма,<br/>sell</th>
-                <th col="saldo">Saldo</th>
-                <th col="weight">Weight</th>
+                <th col="saldo">Saldo,<br>buy-sell</th>
+                <th col="weight">Profit</th>
                 <th col="comm">Comm</th>
                 <th class="td-total">*</th>
             </tr>
@@ -321,13 +321,15 @@
                     var comItems = Model.Items.Where(x => x.Stock.Company == s.Company && x.CurrentQty == 0).ToArray();
                     <tr>
                         <td class="td-head td-comp">@s.Company.Name</td>
-                        <td class="td-head td-qty">@($"{Util.KFormat(comItems.Sum(x => x.CurrentQty))}")</td>
+                        <td class="td-head td-qty">@($"{Util.KFormat(comItems.Sum(x => x.BuyQty))}")</td>
                         <td class="td-head td-sum">@($"{comItems.Sum(x => x.BuySum):N2}")</td>
                         <td class="td-head td-sum-nkd">@($"{comItems.Sum(x => x.BuySum + x.Nkd):N2}")</td>
                         <td class="td-head td-coupon">@($"{comItems.Sum(x => x.Coupon):N2}")</td>
                         <td class="td-head td-sell">@($"{Util.GetSum(comItems.Sum(x => x.SellSum)):N2}")</td>
-                        <td class="td-head"></td>
-                        <td class="td-head td-weight">@(comItems.Sum(x => x.CurrentQty) == 0 ? "" : $"{comItems.Where(x => x.CurrentQty != 0).Sum(x => (x.BuySum - x.SellSum) / Model.TotalSaldo):P2}")</td>
+                        <td class="td-head td-sum-nkd">@($"{comItems.Sum(x => x.SellSum - (x.BuySum + x.Nkd)):N2}")</td>
+                        <td class="td-head td-weight">
+                            @($"{comItems.Sum(x => x.Coupon + (x.SellSum - (x.BuySum + x.Nkd))):N2}")
+                        </td>
                         <td class="td-head td-comm">@($"{comItems.Sum(x => x.Commission):N2}")</td>
                     </tr>
                 }
@@ -335,7 +337,7 @@
                 <tr>
                     <td class="td-ticker" title="@s.Isin[0] (@s.RegNum)" onclick="openOperationsByTicker('@s.Ticker')">@s.Ticker</td>
                     <td class="td-qty">
-                        @($"{Util.KFormat(item.CurrentQty)}")
+                        @($"{Util.KFormat(item.BuyQty)}")
                     </td>
                     <td class="td-sum">
                         @($"{item.BuySum:N2}")
@@ -349,11 +351,11 @@
                     <td class="td-sell">
                         @($"{Util.GetSum(item.SellSum)}")
                     </td>
-                    <td class="td-saldo">
-                        @($"{item.SellSum - item.BuySum + item.Coupon - item.Commission:N2}")
+                    <td class="td-sum-nkd" title="">
+                        @($"{item.SellSum - (item.BuySum + item.Nkd):N2}")
                     </td>
-                    <td class="td-weight">
-                        @(item.CurrentQty == 0 ? "" : $"{(item.BuySum - item.SellSum) / Model.TotalSaldo:P2}")
+                    <td class="td-weight" title="">
+                        @($"{item.Coupon + (item.SellSum - (item.BuySum + item.Nkd)):N2}")
                     </td>
                     <td class="td-comm">
                         @($"{item.Commission:N2}")
@@ -557,15 +559,17 @@
                         <tr>
                             @*accData.Profit / buySumInAcc * 100*@
                             @{
-                                var ppUsdIis = usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit / x.AccountData[(int) AccountType.Iis].StockSum * 100);
-                                var ppRurIis = rurStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit / x.AccountData[(int) AccountType.Iis].StockSum * 100);
+								var ppUsdIis = usdStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit / x.AccountData[(int) AccountType.Iis].StockSum * 100);
+								var ppRurIis = rurStocks?.Sum(x => x.AccountData[(int) AccountType.Iis]?.Profit / x.AccountData[(int) AccountType.Iis].StockSum * 100);
 
-                                var ppUsdVbr = usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit / x.AccountData[(int) AccountType.VBr].StockSum * 100);
-                                var ppRurVbr = rurStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit / x.AccountData[(int) AccountType.VBr].StockSum * 100);
+								var ppUsdVbr = usdStocks?.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit / x.AccountData[(int) AccountType.VBr].StockSum * 100);
+								var ppRurVbr = rurStocks?
+									.Where(x => x.AccountData[(int)AccountType.VBr].StockSum != 0)
+									.Sum(x => x.AccountData[(int) AccountType.VBr]?.Profit / x.AccountData[(int) AccountType.VBr].StockSum * 100);
 
                                 var ppUsdTotal = usdStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
-                                var ppRurTotal = 0; //rurStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
-                            }
+								var ppRurTotal = 0; //rurStocks?.Sum(x => x.Data?.Profit / x.Data.StockSum * 100);
+							}
                             <td>Profit, %:</td>
                             <td class="td-total" style="@(ppUsdIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppUsdIis)</td>
                             <td class="td-total" style="@(ppRurIis > 0 ? "color:limegreen" : "color:red")">@Util.GetPercent(ppRurIis)</td>

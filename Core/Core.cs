@@ -194,7 +194,9 @@ namespace Invest.Core
 							else
 								pos.CalcFinResult();
 
-		                    CalcFifoResult(pos, s, null, a);
+							if (s.Type == StockType.Bond) {}
+							else
+								CalcFifoResult(pos, s, null, a);
 	                    }
 
 	                    stockOperations.AddRange(accData.Operations);
@@ -209,16 +211,23 @@ namespace Invest.Core
 
 	                foreach (var pos in s.Positions)
 	                {
-		                pos.CalcPosPrice();
-		                pos.CalcFinResult();
-		                CalcFifoResult(pos, s, va, null);
+		                if (s.Type == StockType.Bond)
+							pos.CalcBondPosPrice();
+		                else
+							pos.CalcPosPrice();
+
+		                if (s.Type == StockType.Bond)
+							pos.CalcFinResult();
+						else 
+			                pos.CalcBondFinResult();
+
+		                CalcFifoResult(pos, s, va, null); //todo: double call
 	                }
 				}
 
 
 
-
-                var operations = Operations.Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase))
+				var operations = Operations.Where(x => x.Stock != null && x.Stock.Ticker.Equals(s.Ticker, StringComparison.OrdinalIgnoreCase))
 	                .ToList();
 
                 var buys = operations.Where(x => x.Type == OperationType.Buy).ToList();
@@ -393,7 +402,7 @@ namespace Invest.Core
 						if (stock.Type == StockType.Bond)
 						{
 							if (stock.Ticker == "ИКС5ФинБО6") { var r=0; }
-							profit = stock.LotSize * (item.Operation.Price + (item.Operation.Nkd ?? 0 / item.Qty) - (opBuy.Operation.Price + (opBuy.Operation.Nkd ?? 0 / opBuy.Qty))).Value;
+							profit = stock.LotSize * (item.Operation.Price + (item.Operation.Nkd ?? 0 / item.Qty) - (opBuy.Operation.Price + ((opBuy.Operation.Nkd ?? 0) / opBuy.Qty))).Value;
 						}
 
 						var commission = (item.Commission / (item.Qty / stock.LotSize)) + (opBuy.Commission / (opBuy.Qty));

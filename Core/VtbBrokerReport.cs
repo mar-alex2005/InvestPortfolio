@@ -191,6 +191,9 @@ namespace Invest.Core
                         Comment = opComment
                     };
 
+                    if (op.Type == OperationType.Sell && string.IsNullOrEmpty(opComment))
+	                    throw new Exception($"ReadCacheIn(): opComment == null. a: {account.Id}, t: {op.Type}");
+   
                     if (op.Type == OperationType.Sell) {
 	                    var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond 
                             && !string.IsNullOrEmpty(x.RegNum) && x.Company != null 
@@ -244,6 +247,8 @@ namespace Invest.Core
 			var index = 0;
 			var cells = cellMapping.GetMappingForOperation();
 
+			if (account.Type == AccountType.VBr) { var r1 = 1; }
+
 			// "Заключенные в отчетном периоде сделки с ценными бумагами"
 			while (rd.Read())
 			{
@@ -261,7 +266,7 @@ namespace Invest.Core
 					isin = cellArr[2].Trim();
 				}
 				else
-					throw new Exception("Name of cell don`t contains three count literals");
+					throw new Exception("Name of cell doesn`t contain three count literals");
 
 				if (string.IsNullOrEmpty(name))
 					continue;
@@ -296,7 +301,7 @@ namespace Invest.Core
 					throw new Exception($"ReadOperations(): stock '{name}'. Wtong opType = '{opType}'");
 
 				if (string.IsNullOrEmpty(opDate) || opType == null || opPrice == null)
-					continue;
+					throw new Exception($"ReadOperations(): opDate == null || opType == null || opPrice == null, ({opDate}, {opType}, {opPrice})");
 
 				var op = new Operation
 				{
@@ -315,6 +320,16 @@ namespace Invest.Core
 					OrderId = ExcelUtil.GetCellValue(cells.OrderId, rd),
 					TransId = ExcelUtil.GetCellValue(cells.TransId, rd)
 				};
+
+				if (s.Ticker == "ИКС5ФинБО6")
+				{
+					var r = 0;
+				}
+
+				if (op.TransId == "B5224995156")
+				{
+					var r = 0;
+				}
 
 				if (op.TransId == null)
 					throw new Exception($"ReadOperations(): op.TransId == null. {account.Id}, {op.Date.Year}, {op}");
