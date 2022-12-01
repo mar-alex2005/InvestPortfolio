@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Invest.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Invest.Core.Enums;
 using Invest.WebApp.Models;
@@ -857,6 +856,73 @@ namespace Invest.WebApp.Controllers
                 .ToList();
 
 			return new JsonResult(list);
+		}
+
+		public IActionResult Cur()
+		{
+			var model = new CurrencyViewModel {
+				VirtualAccounts = _builder.VirtualAccounts,
+				Accounts = _builder.Accounts, 
+				Currencies = new List<Currency> { Currency.Usd, Currency.Eur, Currency.Cny },
+				//NotExecutedOperations = _builder.Operations
+			};
+
+			var sellStack = new List<CurSellItem>();
+			var sellsOps = _builder.Operations.Where(x => x.Type == OperationType.CurSell).ToList();
+			foreach (var o in sellsOps)
+				sellStack.Add(new CurSellItem { 
+					SellOperation = o, Account = o.Account, Cur = o.Currency, 
+					Qty = o.Qty.Value, Saldo = 0, BuyOperations = new List<CurBuytem>() });
+
+			foreach (var a in _builder.Accounts)
+			{
+				foreach (var cur in model.Currencies)
+				{
+					var buyStack = new Stack<CurBuytem>();
+					foreach (var o in _builder.Operations
+						.Where(x => x.Type == OperationType.CurBuy && x.Currency == cur && x.Account == a).OrderByDescending(x => x.DeliveryDate))
+							buyStack.Push(new CurBuytem{ BuyOperation = o, Qty = o.Qty.Value });
+
+					foreach (var sell in sellStack.Where(x => x.Cur == cur && x.Account == a))
+					{
+						if (cur == Currency.Usd && a.Id == "Vii")
+						{
+							var r=0;
+						}
+
+						if (buyStack.Count == 0) 
+							continue;
+
+						while(sell.Saldo != sell.SellOperation.Qty.Value) 
+						{
+							var bOper = buyStack.Peek();
+							if (bOper.Qty <= sell.Saldo)
+							{
+								sell.Saldo += bOper.Qty;
+								sell.BuySumma += bOper.Qty * bOper.BuyOperation.Price;
+								sell.BuyOperations.Add(new CurBuytem { BuyOperation = bOper.BuyOperation, Qty = bOper.Qty });
+								buyStack.Pop();
+							}
+							else
+							{
+								var q = sell.SellOperation.Qty.Value - sell.Saldo;
+								if (q < 0)
+									throw new Exception($"Cur(): q < 0, {sell.SellOperation.Qty.Value}, {sell.Saldo}");
+								
+								sell.Saldo += q;
+								sell.BuySumma += q * bOper.BuyOperation.Price;
+								sell.BuyOperations.Add(new CurBuytem { BuyOperation = bOper.BuyOperation, Qty = q });
+								bOper.Qty -= q;
+							}
+						}
+					}
+				}
+			}
+
+			model.Operations = _builder.Operations.Where(x => x.Type == OperationType.CurSell || x.Type == OperationType.CurBuy).ToList();
+			model.Items = sellStack;
+
+			return View(model);
 		}
 	}
 

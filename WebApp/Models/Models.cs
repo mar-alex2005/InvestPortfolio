@@ -330,4 +330,36 @@ namespace Invest.WebApp.Models
 		public Decimal? NotLossPrice;
 		public Decimal? LastMinBuyPrice, LastAvgBuyPrice;
 	}
+
+
+	public class CurrencyViewModel : BaseViewModel
+	{
+		public IOrderedEnumerable<StockItem> StockItems;
+		public Currency? Cur;
+		public int? Year;
+		public List<Operation> Operations;
+		public List<BaseAccount> Accounts;
+
+		public List<VirtualAccount> VirtualAccounts;
+		public List<Currency> Currencies;
+		public List<CurSellItem> Items;
+	}
+
+	public class CurSellItem
+	{
+		public BaseAccount Account;
+		public Currency Cur;
+		public int Qty, Saldo;
+		public Operation SellOperation;
+		public DateTime SellDate;
+		public Decimal? SellSumma, BuySumma;
+		public Decimal? Commission;
+		public List<CurBuytem> BuyOperations;
+	}
+
+	public class CurBuytem
+	{
+		public int Qty;
+		public Operation BuyOperation;
+	}
 }

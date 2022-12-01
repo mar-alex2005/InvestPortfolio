@@ -1,0 +1,160 @@
+﻿@model Invest.WebApp.Models.CurrencyViewModel
+@using Invest.Core.Enums
+@{
+	Layout = null;
+	ViewData["Title"] = "Cache";
+}
+
+<style>
+    .page-cur {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: 50% 50%;
+        grid-column-gap: 6px;
+        grid-row-gap: 6px;
+        align-content: flex-start;
+        grid-template-areas: "a b" "a c" "a d" "a e";
+        justify-content: flex-start;
+    }
+    .divs-area {
+        padding: 0;
+    }
+
+    .page-cur .tbl-usdrur TD {
+	    padding: 3px;
+	    border-bottom: 1px solid silver;
+	    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	    font-size: 11px;
+	    padding-left: 4px;
+	    padding-right: 4px;
+    }
+
+    .page-cur .tbl-g .td-head {
+	    font-weight: bold !important;
+	    padding-top: 18px !important;
+    }
+
+    .page-cur .tbl-g TR:hover td {
+	    background-color: #e8edff;
+    }
+
+    .tbl-g caption {
+        text-align: left;
+        font-size: 14px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 600;
+    }
+
+    .tbl-usdrur .cur-caption {
+        font-size: 15px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 500;
+        padding: 4px;
+        padding-top: 10px;
+        text-transform: uppercase;
+        border-top: 1px solid transparent;
+        border-left: 1px solid transparent;
+        border-right: 1px solid transparent;
+    }
+    .tbl-usdrur .acc-caption {
+        font-size: 13px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 4px;
+        padding-top: 14px;
+        font-weight: 400;
+    }
+
+    .tbl-usdrur .td-date {
+        font-size: 12px;
+    }
+    .tbl-usdrur .td-qty {
+        font-size: 12px;
+    }
+    .tbl-usdrur .td-sell {
+        font-size: 12px;
+        text-align: right;
+    }
+    .tbl-usdrur .td-comm {
+        font-size: 12px;
+        text-align: right;
+        color: grey;
+    }
+
+    .tbl-usdrur .td-buy {
+        font-size: 12px;
+        text-align: right;
+        color: green;
+    }
+    .tbl-usdrur .td-pofit {
+        font-size: 12px;
+        text-align: right;
+        color: navy;
+    }
+    .tbl-usdrur .td-total {
+        font-size: 12px;
+        text-align: right;
+        font-weight: bold;
+    }
+</style>
+
+<div class="page-bonds">
+    <div class="divs-area" style="grid-area: a">
+        <table class="tbl-usdrur">
+        @foreach (var cur in Model.Currencies)
+		{
+		    <tr>
+                <td colspan="8" class="cur-caption">@cur</td>
+            </tr>
+
+		    foreach (var a in Model.Accounts)
+		    {
+		        if (!Model.Items.Any(x => x.Cur == cur && x.Account == a)) { continue; }
+
+                decimal totalProfit = 0;
+
+		        <tr>
+                    <td class="acc-caption">>></td>
+                    <td colspan="8" class="acc-caption">@a.Name (@a.Id), @a.BrokerName</td>
+                </tr>
+                <tr>
+                    <th>Date</th>
+                    <th>Qty</th>
+                    <th>Summa</th>
+                    <th>Com.</th>
+                    <th>.</th>
+                    <th>.</th>
+                    <th>profit</th>
+                    <th>13%</th>
+                </tr>
+
+				foreach (var item in Model.Items.Where(x => x.Cur == cur && x.Account == a))
+				{
+					var profit = item.SellOperation.Summa.Value - item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price.Value);
+					totalProfit += profit;
+
+                    <tr>
+                        <td class="td-date" title="@item.SellOperation.Date, @item.SellOperation.Comment, @item.SellOperation.TransId">@($"{item.SellOperation.DeliveryDate:dd.MM.yyyy}")</td>
+                        <td class="td-qty" style="color: red">-@($"{item.Qty:N0}")</td>
+                        
+                        <td class="td-sell">@($"{item.SellOperation.Summa:N2}")</td>
+                        <td class="td-comm">@($"{item.SellOperation.Commission:N2}")</td>
+                        <td class="td-qty">@($"{item.BuyOperations.Sum(x => x.Qty):N0}")</td>
+                        <td class="td-buy">
+                            @($"{item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price):N2}")
+                        </td>
+                        <td class="td-pofit">@($"{profit:N2}")</td>
+                        <td class="td-pofit">@($"{profit * (decimal)0.13:N2}")</td>
+                    </tr>
+			    }
+
+		        <tr>
+                    <td colspan="6"></td>
+                    <td class="td-total td-pofit">@($"{totalProfit:N2}")</td>
+                    <td class="td-total td-pofit">@($"{totalProfit * (decimal)0.13:N2}")</td>
+                </tr>
+		    }
+		}
+
+        </table>
+    </div>
+</div>

@@ -1,7 +1,6 @@
 ﻿@model Invest.WebApp.Models.CacheViewModel
 @using Invest.Core.Enums
 @using Invest.WebApp
-@using Invest.WebApp.Models
 @{
 	Layout = null;
 	ViewData["Title"] = "Cache";
@@ -188,8 +187,7 @@
 							</tr>
 							@foreach (var cur in (Currency[])Enum.GetValues(typeof(Currency)))
 							{
-								if (Model.GetSum(OperationType.Buy, cur) == 0)
-								{ continue; }
+								if (Model.GetSum(OperationType.Buy, cur) == 0) { continue; }
 								<tr>
 									<td class="td-name-sub">@cur:</td>
 									@foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
@@ -573,8 +571,8 @@
 								.Where(x => x.Type == OperationType.UsdExchange)
 								.Sum(x => x.Summa);
 						}
-						@string.Format("{0:N2}", totalUsdExch)
-					</td>
+                        @($"{totalUsdExch:N2}")
+                    </td>
 				</tr>
 				@{
 					var usdExchangeOps = Model.Operations
@@ -584,7 +582,7 @@
 					foreach (var o in usdExchangeOps)
 					{
 						<tr>
-							<td class="td-1">@string.Format("{0:dd.MM.yyyy}", o.Date)</td>
+							<td class="td-1">@($"{o.Date:dd.MM.yyyy}")</td>
 							<td style="text-align: right;">@($"{o.Summa:N2}")</td>
 							@*<td class="td-lot" style="text-align: right; color:darkgreen; padding-left:10px;">@string.Format("{0:N2}", accountCacheInTotal)</td>*@
 						</tr>

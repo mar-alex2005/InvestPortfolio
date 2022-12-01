@@ -44,6 +44,12 @@ namespace Invest.Core
 
 		public class CacheMap
 		{
+			public CacheMap()
+			{
+				Date = "B";
+				Summa = "D";
+			}
+
 			public string Date;
 			public string Summa;
 			public string Cur;
@@ -53,6 +59,11 @@ namespace Invest.Core
 
 		public class CurrencyOperationMap
 		{
+			public CurrencyOperationMap() {
+				OrderDate = "D";
+				FinInstrument = "B";
+			}
+
 			public string OrderDate;	// order date
 			public string Date;			// execution date
 			public string Summa;
@@ -64,7 +75,7 @@ namespace Invest.Core
 			public string BankCommission2;  // Комиссия Банка за заключение сделки
 			public string OrderId;			// № заявки
 			public string TransId;				// № сделки
-			public string FinInstrument = "B";	// Финансовый инструмент ("USDRUB_CNGD, EURRUB_CNGD")
+			public string FinInstrument = "B";	// Финансовый инструмент ("USDRUB_CNGD, EURRUB_CNGD, CNYRUB_TOM")
 		}
 
 		/// <summary>
@@ -193,32 +204,24 @@ namespace Invest.Core
 			{
 				if (_year == 2019)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "J",
 						Type = "P",
 						Comment = "AH"
 					};
 				else if (_year == 2020)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "I",
 						Type = "O",
 						Comment = "AD"
 					};
 				else if (_year == 2021)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "J",
 						Type = "Q",
 						Comment = "AH"
 					};
 				else if (_year == 2022)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "I",
 						Type = "O",
 						Comment = "AD"
@@ -228,24 +231,18 @@ namespace Invest.Core
 			{ 
 				if (_year == 2019)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "H",
 						Type = "M",
 						Comment = "Y"
 					};
 				else if (_year == 2020 || _year == 2021)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "J",
 						Type = "Q",
 						Comment = "AI"
 					};
 				else if (_year == 2022)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "I",
 						Type = "O",
 						Comment = "AE"
@@ -255,8 +252,6 @@ namespace Invest.Core
 			{
 				if (_year == 2022)
 					m = new CacheMap {
-						Date = "B",
-						Summa = "D",
 						Cur = "H",
 						Type = "M",
 						Comment = "Y"
@@ -277,7 +272,6 @@ namespace Invest.Core
 				if (_year == 2019)
 					m = new CurrencyOperationMap
 					{
-						OrderDate = "D",
 						Date = "AA",
 						Summa = "R",
 						Qty = "I",
@@ -287,13 +281,11 @@ namespace Invest.Core
 						BankCommission1 = "U",
 						BankCommission2 = "W",
 						OrderId = "AB",
-						TransId = "AF",
-						FinInstrument = "B"
+						TransId = "AF"
 					};
 				else if (_year == 2020)
 					m = new CurrencyOperationMap
 					{
-						OrderDate = "D",
 						Date = "AL",
 						Summa = "X",
 						Qty = "K",
@@ -303,13 +295,11 @@ namespace Invest.Core
 						BankCommission1 = "AB",
 						BankCommission2 = "AG",
 						OrderId = "AP",
-						TransId = "AU",
-						FinInstrument = "B"
+						TransId = "AU"
 					};
 				else if (_year == 2021)
 					m = new CurrencyOperationMap
 					{
-						OrderDate = "D",
 						Date = "AL",
 						Summa = "X",
 						Qty = "K",
@@ -319,24 +309,21 @@ namespace Invest.Core
 						BankCommission1 = "AB",
 						BankCommission2 = "AG",
 						OrderId = "AP",
-						TransId = "AU",
-						FinInstrument = "B"
+						TransId = "AU"
 					};
 				else if (_year == 2022)
 					m = new CurrencyOperationMap
 					{
-						OrderDate = "D",
-						Date = "AL",
-						Summa = "X",
-						Qty = "K",
-						Cur = "S",
-						Type = "G",
-						Price = "O",
-						BankCommission1 = "AB",
-						BankCommission2 = "AG",
-						OrderId = "AP",
-						TransId = "AU",
-						FinInstrument = "B"
+						Date = "AH",
+						Summa = "U",
+						Qty = "J",
+						Cur = "Q",
+						Type = "F",
+						Price = "M",
+						BankCommission1 = "Y",
+						BankCommission2 = "AC",
+						OrderId = "AK",
+						TransId = "AP",
 					};
 			}
 			else if (_accountCode == (int)AccountType.Iis)
@@ -344,8 +331,7 @@ namespace Invest.Core
 				if (_year == 2021)
 					m = new CurrencyOperationMap
 					{
-						OrderDate = "D",
-						Date = "AL",
+						Date = "AK",
 						Summa = "X",
 						Qty = "K",
 						Cur = "S",
@@ -354,12 +340,10 @@ namespace Invest.Core
 						BankCommission1 = "AA",
 						BankCommission2 = "AF",
 						OrderId = "AO",
-						TransId = "AT",
-						FinInstrument = "B"
+						TransId = "AT"
 					};
 				if (_year == 2022)
 					m = new CurrencyOperationMap {
-						OrderDate = "D",
 						Date = "AG",
 						Summa = "U",
 						Qty = "J",
@@ -369,15 +353,13 @@ namespace Invest.Core
 						BankCommission1 = "X",
 						BankCommission2 = "AB",
 						OrderId = "AJ",
-						TransId = "AO",
-						FinInstrument = "B"
+						TransId = "AO"
 					};
 			}
 			else if (_accountCode == (int)AccountType.SBr)
 			{
 				if (_year == 2022)
 					m = new CurrencyOperationMap {
-						OrderDate = "D",
 						Date = "AL",
 						Summa = "X",
 						Qty = "K",
@@ -387,8 +369,7 @@ namespace Invest.Core
 						BankCommission1 = "AA",
 						BankCommission2 = "AF",
 						OrderId = "AO",
-						TransId = "AT",
-						FinInstrument = "B"
+						TransId = "AT"
 					};
 			}
 			else

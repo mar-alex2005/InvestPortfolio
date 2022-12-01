@@ -1,5 +1,4 @@
 ﻿using System;
-using Invest.Core.Entities;
 using Invest.Core.Enums;
 
 namespace Invest.Core
@@ -44,7 +43,7 @@ namespace Invest.Core
 			public string BankCommission2;  // Комиссия Банка за заключение сделки
 			public string OrderId;			// № заявки
 			public string TransId;				// № сделки
-			public string FinInstrument = "B";	// Финансовый инструмент ("USDRUB_CNGD, EURRUB_CNGD")
+			public string FinInstrument = "B";	// Финансовый инструмент ("USDRUB_CNGD, EURRUB_CNGD, CNYRUB_TOM")
 		}
 
 		/// <summary>

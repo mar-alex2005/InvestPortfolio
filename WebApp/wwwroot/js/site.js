@@ -422,6 +422,31 @@ function openCache() {
     });
 }
 
+function openCur() {
+	const params = {};
+
+	showWaitContainer();
+
+	ax.send("Post", "/Home/Cur", params, function () {
+		document.getElementById("divMain").innerHTML = this.responseText;
+
+		getCacheInData();
+
+		hideWaitContainer();
+
+		$(document).ready(function () {
+			//console.log("Объектная модель готова к использованию!");
+			let h = document.documentElement.clientHeight - absoluteTop(document.getElementById("divOperCache")) - 10;
+			$("#divOperCache").height(h);
+
+			//const chart = am4core.create("chartCache", am4charts.PieSeries);
+			//let series = chart.series.push(new am4charts.PieSeries());
+			//series.dataFields.value = "litres";
+			//series.dataFields.category = "country";
+		});
+	});
+}
+
 function openDivs(cur) {
 	var divsUi = new DivUi();
 	divsUi.load();

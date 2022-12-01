@@ -134,6 +134,9 @@ namespace Invest.Core
                 var opType = ExcelUtil.GetCellValue(cells.Type, rd);			// 15
                 var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);	//rd.GetValue(33);
 
+				if (string.IsNullOrEmpty(opSumma))
+					throw new Exception($"ReadCacheOperations(): opSumma == null. a: {account.Name}, '{opDate}'");
+
                 if (!string.IsNullOrEmpty(opType))
                 {
                     OperationType? type = null;
@@ -247,8 +250,6 @@ namespace Invest.Core
 			var index = 0;
 			var cells = cellMapping.GetMappingForOperation();
 
-			if (account.Type == AccountType.VBr) { var r1 = 1; }
-
 			// "Заключенные в отчетном периоде сделки с ценными бумагами"
 			while (rd.Read())
 			{
@@ -321,16 +322,6 @@ namespace Invest.Core
 					TransId = ExcelUtil.GetCellValue(cells.TransId, rd)
 				};
 
-				if (s.Ticker == "ИКС5ФинБО6")
-				{
-					var r = 0;
-				}
-
-				if (op.TransId == "B5224995156")
-				{
-					var r = 0;
-				}
-
 				if (op.TransId == null)
 					throw new Exception($"ReadOperations(): op.TransId == null. {account.Id}, {op.Date.Year}, {op}");
 				if (op.TransId != null && op.TransId.Length < 5)
@@ -356,8 +347,6 @@ namespace Invest.Core
 				if (opBankCommission2 != null)
 					op.BankCommission2 = decimal.Parse(opBankCommission2);
 
-				if (op.TransId == "B4540260083") {  var t = 0; }
-
 				_builder.AddOperation(op);
 			}
 		}
@@ -380,11 +369,16 @@ namespace Invest.Core
 				var opType = ExcelUtil.GetCellValue(cells.Type, rd); // 15
 				var opFinIns = ExcelUtil.GetCellValue(cells.FinInstrument, rd); // "USDRUB_CNGD, EURRUB_CNGD, USDRUB_TOM, EURRUB_TOM, CNYRUB_TOM"
 				var cur = Currency.Usd;
+				var opDelDate = ExcelUtil.GetCellValue(cells.Date, rd);
+				
 				//var opCur = VtbExcelMapping.GetCellValue(cells.Cur, rd);
 				//var opComment = GetCellValue(cellMapping.Comment, rd); //rd.GetValue(33);
 
 				if (string.IsNullOrEmpty(opFinIns))
 					throw new Exception("ReadCurOperations(): opFinIns is null or empty (for example, USDRUB_CNGD)");
+
+				if (!DateTime.TryParse(opDelDate, out var dDate))
+					throw new Exception("ReadCurOperations(): opDelDate is null or empty");
 				
 				OperationType? type = null;
 
@@ -400,6 +394,9 @@ namespace Invest.Core
 				else if (opType == "Продажа")
 					type = OperationType.CurSell;
 
+				if (opFinIns != null && type == null)
+					throw new Exception($"ReadCurOperations(): type is null or empty ({opFinIns})");
+
 				if (type == null)
 					continue;
 
@@ -411,6 +408,7 @@ namespace Invest.Core
 					Account = account,
 					AccountType = (AccountType)account.BitCode,
 					Date = date,
+					DeliveryDate = dDate,
 					Summa = decimal.Parse(opSumma),
 					Currency = cur,
 					Qty = int.Parse(ExcelUtil.GetCellValue(cells.Qty, rd)),
