@@ -347,7 +347,7 @@ namespace Invest.WebApp.Models
 
 	public class CurSellItem
 	{
-		public BaseAccount Account;
+		public VirtualAccount VAccount;
 		public Currency Cur;
 		public int Qty, Saldo;
 		public Operation SellOperation;

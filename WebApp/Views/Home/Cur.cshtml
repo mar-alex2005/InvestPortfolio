@@ -85,15 +85,26 @@
         text-align: right;
         color: green;
     }
+    .tbl-usdrur .td-acc {
+        font-size: 12px;
+        text-align: center;
+        color: black;
+    }
     .tbl-usdrur .td-pofit {
         font-size: 12px;
         text-align: right;
         color: navy;
     }
+    .tbl-usdrur .td-nalog {
+        font-size: 12px;
+        text-align: right;
+        color: orange;
+    }
     .tbl-usdrur .td-total {
         font-size: 12px;
         text-align: right;
         font-weight: bold;
+        background-color: rgb(185, 227, 100);
     }
 </style>
 
@@ -106,17 +117,18 @@
                 <td colspan="8" class="cur-caption">@cur</td>
             </tr>
 
-		    foreach (var a in Model.Accounts)
+		    foreach (var va in Model.VirtualAccounts)
 		    {
-		        if (!Model.Items.Any(x => x.Cur == cur && x.Account == a)) { continue; }
+		        if (!Model.Items.Any(x => x.Cur == cur && x.VAccount == va)) { continue; }
 
                 decimal totalProfit = 0;
 
 		        <tr>
                     <td class="acc-caption">>></td>
-                    <td colspan="8" class="acc-caption">@a.Name (@a.Id), @a.BrokerName</td>
+                    <td colspan="8" class="acc-caption">@va.Name (@va.Id)</td>
                 </tr>
-                <tr>
+		        <tr>
+                    <th>Date</th>
                     <th>Date</th>
                     <th>Qty</th>
                     <th>Summa</th>
@@ -127,15 +139,16 @@
                     <th>13%</th>
                 </tr>
 
-				foreach (var item in Model.Items.Where(x => x.Cur == cur && x.Account == a))
+				foreach (var item in Model.Items.Where(x => x.Cur == cur && x.VAccount == va))
 				{
 					var profit = item.SellOperation.Summa.Value - item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price.Value);
 					totalProfit += profit;
 
-                    <tr>
+				    <tr>
+                        <td class="td-acc">@($"{item.SellOperation.Account.Id}")</td>
                         <td class="td-date" title="@item.SellOperation.Date, @item.SellOperation.Comment, @item.SellOperation.TransId">@($"{item.SellOperation.DeliveryDate:dd.MM.yyyy}")</td>
                         <td class="td-qty" style="color: red">-@($"{item.Qty:N0}")</td>
-                        
+
                         <td class="td-sell">@($"{item.SellOperation.Summa:N2}")</td>
                         <td class="td-comm">@($"{item.SellOperation.Commission:N2}")</td>
                         <td class="td-qty">@($"{item.BuyOperations.Sum(x => x.Qty):N0}")</td>
@@ -143,14 +156,28 @@
                             @($"{item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price):N2}")
                         </td>
                         <td class="td-pofit">@($"{profit:N2}")</td>
-                        <td class="td-pofit">@($"{profit * (decimal)0.13:N2}")</td>
+                        <td class="td-nalog">@($"{profit * (decimal) 0.13:N2}")</td>
                     </tr>
-			    }
+
+					if (item.BuyOperations.Any())
+					{
+						foreach (var b in item.BuyOperations)
+						{
+						    <tr>
+                                <td colspan="4">@($"{b.Qty}")</td>
+                                <td>@($"{b.BuyOperation.DeliveryDate:dd.MM.yyyy}")</td>
+                                <td>@($"{b.BuyOperation.Qty:N0}")</td>
+                                <td>@($"{b.BuyOperation.Summa:N2}")</td>
+                                <td>@($"{b.BuyOperation.Price:N2}")</td>
+                            </tr>
+						}
+					}
+				}
 
 		        <tr>
-                    <td colspan="6"></td>
+                    <td colspan="7"></td>
                     <td class="td-total td-pofit">@($"{totalProfit:N2}")</td>
-                    <td class="td-total td-pofit">@($"{totalProfit * (decimal)0.13:N2}")</td>
+                    <td class="td-total td-nalog">@($"{totalProfit * (decimal)0.13:N2}")</td>
                 </tr>
 		    }
 		}

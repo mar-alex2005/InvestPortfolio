@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Invest.Core.Enums;
@@ -871,48 +872,64 @@ namespace Invest.WebApp.Controllers
 			var sellsOps = _builder.Operations.Where(x => x.Type == OperationType.CurSell).ToList();
 			foreach (var o in sellsOps)
 				sellStack.Add(new CurSellItem { 
-					SellOperation = o, Account = o.Account, Cur = o.Currency, 
-					Qty = o.Qty.Value, Saldo = 0, BuyOperations = new List<CurBuytem>() });
+					SellOperation = o, VAccount = o.Account.VirtualAccount, Cur = o.Currency, 
+					Qty = o.Qty.Value, Saldo = o.Qty.Value, BuyOperations = new List<CurBuytem>() });
 
-			foreach (var a in _builder.Accounts)
+			foreach (var cur in model.Currencies)
 			{
-				foreach (var cur in model.Currencies)
+				foreach (var va in _builder.VirtualAccounts)	
 				{
 					var buyStack = new Stack<CurBuytem>();
 					foreach (var o in _builder.Operations
-						.Where(x => x.Type == OperationType.CurBuy && x.Currency == cur && x.Account == a).OrderByDescending(x => x.DeliveryDate))
-							buyStack.Push(new CurBuytem{ BuyOperation = o, Qty = o.Qty.Value });
+							.Where(x => x.Type == OperationType.CurBuy && x.Currency == cur && x.Account.VirtualAccount == va)
+							.OrderByDescending(x => x.Date))
+						buyStack.Push(new CurBuytem { BuyOperation = o, Qty = o.Qty.Value });
 
-					foreach (var sell in sellStack.Where(x => x.Cur == cur && x.Account == a))
+					if (buyStack.Any(x => x.BuyOperation.Currency == Currency.Eur))
 					{
-						if (cur == Currency.Usd && a.Id == "Vii")
+						var t =0;
+					}
+
+					foreach (var sell in sellStack.Where(x => x.Cur == cur && x.VAccount == va))
+					{
+						if (cur == Currency.Usd && va.Id == "IIS" && sell.SellOperation.DeliveryDate.Value.Year == 2022)
 						{
 							var r=0;
 						}
 
-						if (buyStack.Count == 0) 
-							continue;
-
-						while(sell.Saldo != sell.SellOperation.Qty.Value) 
+						if (buyStack.Count == 0)
 						{
+							continue;
+						}
+
+						while(sell.Saldo != 0) 
+						{
+							if (buyStack.Count == 0)
+								break;
+
 							var bOper = buyStack.Peek();
 							if (bOper.Qty <= sell.Saldo)
 							{
-								sell.Saldo += bOper.Qty;
+								sell.Saldo -= bOper.Qty;
 								sell.BuySumma += bOper.Qty * bOper.BuyOperation.Price;
 								sell.BuyOperations.Add(new CurBuytem { BuyOperation = bOper.BuyOperation, Qty = bOper.Qty });
 								buyStack.Pop();
 							}
 							else
 							{
-								var q = sell.SellOperation.Qty.Value - sell.Saldo;
+								var q = sell.Saldo;
 								if (q < 0)
 									throw new Exception($"Cur(): q < 0, {sell.SellOperation.Qty.Value}, {sell.Saldo}");
 								
-								sell.Saldo += q;
+								sell.Saldo -= q;
 								sell.BuySumma += q * bOper.BuyOperation.Price;
 								sell.BuyOperations.Add(new CurBuytem { BuyOperation = bOper.BuyOperation, Qty = q });
 								bOper.Qty -= q;
+							}
+
+							if (cur == Currency.Usd && va.Id == "VBr" &&  sell.SellOperation.DeliveryDate.Value.Year == 2020)
+							{
+								Debug.WriteLine($"bOper: {bOper.Qty}");
 							}
 						}
 					}
