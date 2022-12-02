@@ -142,7 +142,14 @@
 				foreach (var item in Model.Items.Where(x => x.Cur == cur && x.VAccount == va))
 				{
 					var profit = item.SellOperation.Summa.Value - item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price.Value);
-					totalProfit += profit;
+					if (profit > 0) {
+						totalProfit += profit;
+					}
+
+					decimal nalog = 0;
+					if (profit > 0) {
+						nalog = profit * (decimal) 0.13;
+					}
 
 				    <tr>
                         <td class="td-acc">@($"{item.SellOperation.Account.Id}")</td>
@@ -156,7 +163,7 @@
                             @($"{item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price):N2}")
                         </td>
                         <td class="td-pofit">@($"{profit:N2}")</td>
-                        <td class="td-nalog">@($"{profit * (decimal) 0.13:N2}")</td>
+                        <td class="td-nalog">@($"{nalog:N2}")</td>
                     </tr>
 
 					if (item.BuyOperations.Any())
