@@ -54,10 +54,10 @@ namespace Invest.WebApp
 			
 	        builder.AddStocks(new JsonStocksLoader(fileName));
 			
-	        builder.AddReport(new VtbBrokerReport(Path.Combine(dir, @"inv\vtb"), builder));
-	        builder.AddReport(new SberBrokerReport(Path.Combine(dir, @"inv\sbr"), builder));
-	        builder.AddReport(new AlfaBrokerReport(Path.Combine(dir, @"inv\ab"), builder));
-	        builder.AddReport(new BksBrokerReport(Path.Combine(dir, @"inv\bks"), builder));
+	        builder.Import(new VtbBrokerReport(Path.Combine(dir, @"inv\vtb"), builder));
+	        builder.Import(new SberBrokerReport(Path.Combine(dir, @"inv\sbr"), builder));
+	        builder.Import(new AlfaBrokerReport(Path.Combine(dir, @"inv\ab"), builder));
+	        builder.Import(new BksBrokerReport(Path.Combine(dir, @"inv\bks"), builder));
 			
 	        builder.Calc();
 

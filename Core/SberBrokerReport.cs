@@ -8,7 +8,7 @@ using Invest.Core.Enums;
 
 namespace Invest.Core
 {
-    public class SberBrokerReport : IBrokerReport
+    public class SberBrokerReport : IBrokerImport
     {
 	    private readonly string _reportDir;
 	    private readonly Builder _builder;

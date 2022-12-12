@@ -9,7 +9,7 @@ using Invest.Core.Enums;
 
 namespace Invest.Core
 {
-    public class BksBrokerReport : IBrokerReport
+    public class BksBrokerReport : IBrokerImport
     {
 	    private readonly string _reportDir;
 	    private readonly Builder _builder;
@@ -575,8 +575,8 @@ namespace Invest.Core
 					Time = "N",
 					Type = "C",
 					BuyQty = "E",
-					SellQty = "H",
 					BuyPrice = "F",
+					SellQty = "H",
 					SellPrice = "I",
 					BankCommission1 = "P",
 					BankCommission2 = "O",
@@ -605,8 +605,8 @@ namespace Invest.Core
 					Type = "",
 					BuyQty = "E",
 					BuyPrice = "F",
-					SellQty = "",
-					SellPrice = "",
+					SellQty = "I",
+					SellPrice = "J",
 
 					BankCommission1 = "P",
 					BankCommission2 = "O",

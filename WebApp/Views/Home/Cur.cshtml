@@ -125,7 +125,7 @@
 
 		        <tr>
                     <td class="acc-caption">>></td>
-                    <td colspan="8" class="acc-caption">@va.Name (@va.Id)</td>
+                    <td colspan="9" class="acc-caption">@va.Name (@va.Id)</td>
                 </tr>
 		        <tr>
                     <th>Date</th>
@@ -136,6 +136,7 @@
                     <th>.</th>
                     <th>.</th>
                     <th>profit</th>
+                    <th>profit - comm</th>
                     <th>13%</th>
                 </tr>
 
@@ -146,9 +147,12 @@
 						totalProfit += profit;
 					}
 
+					var profitWithoutComm =
+					    profit - item.SellOperation.Commission.Value - item.BuyOperations.Sum(x => x.BuyOperation.Commission.Value); // todo: 
+
 					decimal nalog = 0;
 					if (profit > 0) {
-						nalog = profit * (decimal) 0.13;
+						nalog = profitWithoutComm * (decimal)0.13;
 					}
 
 				    <tr>
@@ -163,6 +167,7 @@
                             @($"{item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price):N2}")
                         </td>
                         <td class="td-pofit">@($"{profit:N2}")</td>
+                        <td class="td-pofit">@($"{profitWithoutComm:N2}")</td>
                         <td class="td-nalog">@($"{nalog:N2}")</td>
                     </tr>
 
@@ -171,18 +176,21 @@
 						foreach (var b in item.BuyOperations)
 						{
 						    <tr>
-                                <td colspan="4">@($"{b.Qty}")</td>
+                                <td colspan="10"></td>
+                                <td>@($"{b.Qty:N0}")</td>
                                 <td>@($"{b.BuyOperation.DeliveryDate:dd.MM.yyyy}")</td>
                                 <td>@($"{b.BuyOperation.Qty:N0}")</td>
                                 <td>@($"{b.BuyOperation.Summa:N2}")</td>
                                 <td>@($"{b.BuyOperation.Price:N2}")</td>
+                                <td>@($"{b.BuyOperation.Commission:N4}")</td>
+                                <td>@($"{b.BuyOperation.Commission / b.BuyOperation.Qty * b.Qty:N4}")</td>
                             </tr>
 						}
 					}
 				}
 
 		        <tr>
-                    <td colspan="7"></td>
+                    <td colspan="8"></td>
                     <td class="td-total td-pofit">@($"{totalProfit:N2}")</td>
                     <td class="td-total td-nalog">@($"{totalProfit * (decimal)0.13:N2}")</td>
                 </tr>

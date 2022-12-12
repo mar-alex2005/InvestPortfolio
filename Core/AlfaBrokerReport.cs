@@ -9,7 +9,7 @@ using Invest.Core.Enums;
 
 namespace Invest.Core
 {
-    public class AlfaBrokerReport : IBrokerReport
+    public class AlfaBrokerReport : IBrokerImport
     {
 	    private readonly string _reportDir;
 	    private readonly Builder _builder;

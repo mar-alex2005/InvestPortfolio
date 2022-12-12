@@ -1305,7 +1305,7 @@ namespace Invest.Core
 			Portfolios = portolios;
 		}
 
-		public Builder AddReport(IBrokerReport report)
+		public Builder Import(IBrokerImport report)
 		{
 			report.Process();
 			return this;

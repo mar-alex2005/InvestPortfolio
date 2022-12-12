@@ -160,16 +160,13 @@ namespace Invest.Core
 					};
 				else if (_year == 2022)
 					m = new OperationMap {
-						Type = "F",
-						Qty = "J",
-						Price = "Q",
-						BankCommission1 = "AH",
-						BankCommission2 = "AK",
-						OrderId = "AW",
-						TransId = "BA",
-						DeliveryDate = "AP",
-						Nkd = "AC",
-						Currency = "U"
+						BankCommission1 = "AL",
+						BankCommission2 = "AP",
+						OrderId = "BC",
+						TransId = "BH",
+						DeliveryDate = "AU",
+						Nkd = "AG",
+						Currency = "X"
 					};
 			}
 			else if (_accountCode == (int)AccountType.SBr)
@@ -314,16 +311,16 @@ namespace Invest.Core
 				else if (_year == 2022)
 					m = new CurrencyOperationMap
 					{
-						Date = "AH",
-						Summa = "U",
-						Qty = "J",
-						Cur = "Q",
-						Type = "F",
-						Price = "M",
-						BankCommission1 = "Y",
-						BankCommission2 = "AC",
-						OrderId = "AK",
-						TransId = "AP",
+						Date = "AL",
+						Summa = "X",
+						Qty = "K",
+						Cur = "S",
+						Type = "G",
+						Price = "O",
+						BankCommission1 = "AB",
+						BankCommission2 = "AG",
+						OrderId = "AP",
+						TransId = "AU"
 					};
 			}
 			else if (_accountCode == (int)AccountType.Iis)

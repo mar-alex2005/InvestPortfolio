@@ -8,12 +8,12 @@ using Invest.Core.Enums;
 
 namespace Invest.Core
 {
-	public interface IBrokerReport
+	public interface IBrokerImport
 	{
 		void Process();
 	}
 
-	public class VtbBrokerReport : IBrokerReport
+	public class VtbBrokerReport : IBrokerImport
 	{
 		private readonly string _reportDir;
 		private readonly Builder _builder;
@@ -378,7 +378,7 @@ namespace Invest.Core
 					throw new Exception("ReadCurOperations(): opFinIns is null or empty (for example, USDRUB_CNGD)");
 
 				if (!DateTime.TryParse(opDelDate, out var dDate))
-					throw new Exception("ReadCurOperations(): opDelDate is null or empty");
+					throw new Exception($"ReadCurOperations(): opDelDate is null or empty ({account.Name})");
 				
 				OperationType? type = null;
 
