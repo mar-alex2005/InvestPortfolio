@@ -1,24 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using Invest.Common;
-using Newtonsoft.Json;
 
-namespace Core.Console
+namespace Invest.Core.Console
 {
      public delegate void ComnandRecievedHandler(Dictionary<string, string> cmdParams);
 
     public class ApiController : IApiController
     {
         public event ComnandRecievedHandler OnCommandRecieved;
-
+		private Builder _builder;
         //private readonly Config.ServiceAPI _apiConfig;
         
-        public ApiController()
+        public ApiController(Builder builder)
         {
             //_apiConfig = config;
 			//_jobManager = jobManager;
+			_builder = builder;
         }
 
         public ApiResult Parse(string url, string httpMethod, string body, Dictionary<string, string> queryParams)
@@ -67,10 +65,25 @@ namespace Core.Console
 
             result.Data = null;
 
-            if (method == "directories")
+            if (method == "accounts")
             {
                 //var query = new DirectoryQuery(queryParams);
-                //result.Data = _dataProvider.GetDirectories(query);
+                result.Data = _builder.Accounts;
+            }
+            else if (method == "vaccounts")
+            {
+	            //var query = new DirectoryQuery(queryParams);
+	            result.Data = _builder.VirtualAccounts;
+            }
+            else if (method == "stocks")
+            {
+	            //var query = new DirectoryQuery(queryParams);
+	            result.Data = _builder.Stocks;
+            }
+            else if (method == "operations")
+            {
+	            //var query = new DirectoryQuery(queryParams);
+	            result.Data = _builder.Operations;
             }
             else if (method == "files/checkexist")
             {

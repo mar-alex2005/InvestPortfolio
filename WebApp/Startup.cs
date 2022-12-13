@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Invest.Core;
 using Invest.Core.Enums;
 using Microsoft.AspNetCore.Builder;
@@ -7,14 +8,22 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using log4net;
 
 namespace Invest.WebApp
 {
     public class Startup
     {
+	    private readonly ILog _log;
+
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+	        var directory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location) ?? "";
+	        var pathToLog4NetConfig = Path.Combine(directory, "log4Net.config");
+	        log4net.Config.XmlConfigurator.Configure(new FileInfo(pathToLog4NetConfig));
+	        _log = LogManager.GetLogger("Invest.WebApp.Mvc");
+
+	        var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
@@ -27,11 +36,32 @@ namespace Invest.WebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+	        LoadSettings();
+
+#if DEBUG
+	        //services.AddControllersWithViews().AddRazorRuntimeCompilation();
+#else
+            //services.AddControllersWithViews();
+#endif
+
 			var b = InitLayer();
 
             // Add framework services.
             services.AddSingleton(b);
             services.AddMvc();
+        }
+
+        private void LoadSettings()
+        {
+	        try
+	        {
+		        Core.Settings.Load(Configuration);
+	        }
+	        catch (Exception ex)
+	        {
+		        _log.Error("Ошибка во время загрузки параметров из appsettings.json: ", ex);
+		        throw;
+	        }
         }
 
         private static Builder InitLayer()
