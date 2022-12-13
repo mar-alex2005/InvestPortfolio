@@ -5,10 +5,19 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Invest.Core.Console</AssemblyName>
     <RootNamespace>Invest.Core.Console</RootNamespace>
+    <ApplicationIcon />
+    <StartupObject></StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="appsettings.debug.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="log4net.config">

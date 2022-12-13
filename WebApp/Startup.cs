@@ -47,7 +47,7 @@ namespace Invest.WebApp
 			var b = InitLayer();
 
             // Add framework services.
-            services.AddSingleton(b);
+            //services.AddSingleton(b);
             services.AddMvc();
         }
 

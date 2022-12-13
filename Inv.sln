@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.UTest", "Core.UTest\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Console", "Core.Console\Core.Console.csproj", "{6CAE0C35-90C9-49AC-8895-CD0F465E2C56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{EE8BAFF6-1BC9-4C16-B052-9A4AFCC92998}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{EE8BAFF6-1BC9-4C16-B052-9A4AFCC92998}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

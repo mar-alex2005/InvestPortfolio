@@ -2,19 +2,53 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using Invest.Core;
+using Invest.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Invest.Core.Enums;
 using Invest.WebApp.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Invest.WebApp.Controllers
 {
-	public class HomeController : Controller
+	public class NewController : Controller
 	{
-		private readonly Invest.Core.Builder _builder;
+		//private readonly Invest.Core.Builder _builder;
+		private readonly List<BaseAccount> Accounts;
+		private readonly List<VirtualAccount> VirtualAccounts;
+		private readonly List<BaseStock> _stocks;
+		private readonly List<Operation> Operations;
+		private readonly List<Company> Companies;
+		private readonly List<Portfolio> Portfolios;
+		private readonly List<KeyValuePair<Analytics, FifoResult>> FifoResults;
 
-		public HomeController(Invest.Core.Builder builder)
+		public NewController(/*Invest.Core.Builder builder*/)
 		{
-			_builder = builder;
+			//_builder = builder;
+
+			var req = BuildApiRequest("accounts", "", HttpMethod.Get);
+			Accounts = JsonConvert.DeserializeObject<List<BaseAccount>>(GetApiResponse(req), new AccountConverter());
+
+			req = BuildApiRequest("vaccounts", "", HttpMethod.Get);
+			VirtualAccounts = JsonConvert.DeserializeObject<List<VirtualAccount>>(GetApiResponse(req));
+
+			req = BuildApiRequest("companies", "", HttpMethod.Get);
+			Companies = JsonConvert.DeserializeObject<List<Company>>(GetApiResponse(req));
+
+			req = BuildApiRequest("portfolios", "", HttpMethod.Get);
+			Portfolios = JsonConvert.DeserializeObject<List<Portfolio>>(GetApiResponse(req));
+
+			req = BuildApiRequest("stocks", "", HttpMethod.Get);
+			_stocks = JsonConvert.DeserializeObject<List<BaseStock>>(GetApiResponse(req), new AccountConverter(), new CompanyConverter());
+
+			req = BuildApiRequest("operations", "", HttpMethod.Get);
+			Operations = JsonConvert.DeserializeObject<List<Operation>>(GetApiResponse(req), new AccountConverter(), new CompanyConverter());
+
+			req = BuildApiRequest("fiforesults", "", HttpMethod.Get);
+			FifoResults = JsonConvert.DeserializeObject<List<KeyValuePair<Analytics, FifoResult>>>(GetApiResponse(req), new AccountConverter(), new CompanyConverter());
 		}
 
 		public IActionResult Index(DateTime? start, DateTime? end)
@@ -24,7 +58,7 @@ namespace Invest.WebApp.Controllers
 			if (end == null)
 				end = DateTime.Now;
 
-			var operations = _builder.Operations
+			var operations = Operations
 				.Where(x => x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend || x.Type == OperationType.Coupon)
 				.Where(x => x.Date >= start && x.Date <= end)
 				.OrderByDescending(x => x.Date).ThenByDescending(x => x.Index)
@@ -32,11 +66,11 @@ namespace Invest.WebApp.Controllers
 
 			var model = new OperationViewModel {
 				Ticker = null,
-				Stocks = _builder.Stocks,
+				Stocks = _stocks,
 				Operations = operations,
 				Start = start,
 				End = end,
-				Accounts = _builder.Accounts
+				Accounts = Accounts
 			};
 
 			return View(model);
@@ -54,7 +88,7 @@ namespace Invest.WebApp.Controllers
 
 			var accountsList = accounts.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-			var operations = _builder.Operations
+			var operations = Operations
 				.Where(x => x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend || x.Type == OperationType.Coupon)
 				.Where(x => x.Date >= start && x.Date <= end)
 				.Where(x => accountsList.Contains(x.Account.BitCode.ToString()))
@@ -63,11 +97,11 @@ namespace Invest.WebApp.Controllers
 
 			var model = new OperationViewModel {
 				Ticker = null,
-				Stocks = _builder.Stocks,
+				Stocks = _stocks,
 				Operations = operations,
 				Start = start,
 				End = end,
-				Accounts = _builder.Accounts
+				Accounts = Accounts
 			};
 
 			return View(model);
@@ -78,9 +112,13 @@ namespace Invest.WebApp.Controllers
 		public IActionResult TickerIndex()
 		{
 			var tickerId = Request.Query.ContainsKey("tickerId") ? Request.Query["tickerId"].ToString() : null;
-			var stock = _builder.GetStock(tickerId);
+			if (string.IsNullOrEmpty(tickerId))
+				tickerId = "NLMK";
 
-			var operations = _builder.Operations
+			var stock = _stocks.FirstOrDefault(x => x.Ticker == tickerId);
+			//var stock = _builder.GetStock(tickerId);
+
+			var operations = Operations
 				.Where(
 					x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Coupon)
 						&& (tickerId == null || x.Stock.Ticker == tickerId)
@@ -91,11 +129,11 @@ namespace Invest.WebApp.Controllers
 			{
 				Ticker = tickerId,
 				Stock = stock,
-				Stocks = _builder.Stocks,
-				VirtualAccounts = _builder.VirtualAccounts,
-				Accounts = _builder.Accounts,
+				Stocks = _stocks,
+				VirtualAccounts = VirtualAccounts,
+				Accounts = Accounts,
 				Operations = operations,
-				FifoResults = _builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker)
+				FifoResults = FifoResults.Where(x => x.Key.Ticker == stock.Ticker) //_builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker)
 			};
 
 			return View(model);
@@ -103,7 +141,7 @@ namespace Invest.WebApp.Controllers
 
         public IActionResult TickerList(int curId = 0, int typeId = 0, bool showZero = true)
         {
-			var list = _builder.Stocks
+			var list = _stocks
 				.Where(x => (curId == 0 || (int)x.Currency == curId)
                     && (typeId == 0 || (int)x.Type == typeId)
 					&& (showZero || x.Data.QtyBalance != 0)
@@ -127,9 +165,10 @@ namespace Invest.WebApp.Controllers
 			 ? Request.Query["tickerId"].ToString()
 			 : null;
 
-			var stock = _builder.GetStock(tickerId);
+			//var stock = _builder.GetStock(tickerId);
+			var stock = _stocks.FirstOrDefault(x => x.Ticker == tickerId);
 
-			var operations = _builder.Operations
+			var operations = Operations
 				.Where(
 					x => (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Dividend)
 				//&& (tickerId == null || x.Stock.Ticker == tickerId)
@@ -141,10 +180,10 @@ namespace Invest.WebApp.Controllers
 			{
 				Ticker = tickerId,
 				Stock = stock,
-				VirtualAccounts = _builder.VirtualAccounts,
-				Accounts = _builder.Accounts,
+				VirtualAccounts = VirtualAccounts,
+				Accounts = Accounts,
 				Operations = operations,
-				FifoResults = _builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker)
+				FifoResults = FifoResults.Where(x => x.Key.Ticker == stock.Ticker) //_builder.FifoResults.Where(x => x.Key.Ticker == stock.Ticker)
 			};
 
 			return View(model);
@@ -153,13 +192,13 @@ namespace Invest.WebApp.Controllers
 		public IActionResult Stocks(string country, string orderBy = "company")
 		{
 			var list = new List<StockItem>();
-			foreach (var s in _builder.Stocks.Where(x => x.Data.BuyQty > 0))
+			foreach (var s in _stocks.Where(x => x.Data.BuyQty > 0))
 			{
 				var item = new StockItem
 				{
 					Stock = s,
-					BuyQty = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty),
-					SellQty = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty)
+					BuyQty = Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Qty),
+					SellQty = Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).Sum(x => x.Qty)
 				};
 
 				//var qL = string.Format("{0}", q);
@@ -170,7 +209,7 @@ namespace Invest.WebApp.Controllers
 
 				Currency cur = Currency.Rur;
 
-				var opp = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).ToList();
+				var opp = Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).ToList();
 				if (opp.Any())
 				{
 					item.FirstBuy = opp.Min(x => x.Date);
@@ -178,39 +217,39 @@ namespace Invest.WebApp.Controllers
 					cur = opp[0].Currency;
 				}
 
-				opp = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).ToList();
+				opp = Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell).ToList();
 				if (opp.Any())
 				{
 					item.FirstSell = opp.Max(x => x.Date);
 					item.LastSell = opp.Max(x => x.Date);
 				}
 
-				item.BuySum = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
-				item.SellSum = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell)?.Sum(x => x.Summa);
+				item.BuySum = Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).Sum(x => x.Summa);
+				item.SellSum = Operations.Where(x => x.Stock == s && x.Type == OperationType.Sell)?.Sum(x => x.Summa);
 				item.TotalSum = item.BuySum + (item.SellSum ?? 0);
-				item.TotalSumInRur = _builder.Operations.Where(x => x.Stock == s
+				item.TotalSumInRur = Operations.Where(x => x.Stock == s
 				                            && (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.Summa);
 
 				if (cur == Currency.Usd)
 				{
-					item.TotalSumInRur = _builder.Operations.Where(x => x.Stock == s
+					item.TotalSumInRur = Operations.Where(x => x.Stock == s
 						&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.RurSumma);
 				}
 				else
 				{
-					item.TotalSumInRur = _builder.Operations.Where(x => x.Stock == s
+					item.TotalSumInRur = Operations.Where(x => x.Stock == s
 						&& (x.Type == OperationType.Sell || x.Type == OperationType.Buy)).Sum(x => x.Summa);
 				}
 
 				//notloss
-				var notClosedOps = _builder.Operations.Where(x => x.Stock == s && !x.IsClosed).OrderByDescending(x => x.Date);
+				var notClosedOps = Operations.Where(x => x.Stock == s && !x.IsClosed).OrderByDescending(x => x.Date);
 				if (notClosedOps.Count() == 0)
 				{
-					var lastOp = _builder.Operations.Where(x => x.Stock == s && x.PositionNum != null).OrderByDescending(x => x.Date).FirstOrDefault();
+					var lastOp = Operations.Where(x => x.Stock == s && x.PositionNum != null).OrderByDescending(x => x.Date).FirstOrDefault();
 					if (lastOp != null)
 					{
 						//var posNum = lastOp.PositionNum;
-						notClosedOps = _builder.Operations.Where(x => x.Stock == s && x.Date >= lastOp.Date).OrderByDescending(x => x.Date);
+						notClosedOps = Operations.Where(x => x.Stock == s && x.Date >= lastOp.Date).OrderByDescending(x => x.Date);
 					}
 				}
 
@@ -226,9 +265,9 @@ namespace Invest.WebApp.Controllers
 					item.NotLossPrice = Math.Abs(notClosedSaldo.Value) / qty;
 
 				//min, avg (at  months)
-				var ops = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy && x.Date >= DateTime.Today.AddMonths(-6));
+				var ops = Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy && x.Date >= DateTime.Today.AddMonths(-6));
 				if (ops.Count() == 0 || ops.Count() < 2)
-					ops = _builder.Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).OrderByDescending(x => x.Date).Take(6);
+					ops = Operations.Where(x => x.Stock == s && x.Type == OperationType.Buy).OrderByDescending(x => x.Date).Take(6);
 
 				item.LastMinBuyPrice = ops.Min(x => x.Price);
 
@@ -590,18 +629,18 @@ namespace Invest.WebApp.Controllers
 			//var endDate = new DateTime(2021, 12, 01);
 
 			var model = new CacheViewModel {
-				VirtualAccounts = _builder.VirtualAccounts,
-				Accounts = _builder.Accounts, 
-				Operations = _builder.Operations, // _builder.Operations.Where(x => x.Date.Year == 2021 && x.Date < endDate).ToList(),
+				VirtualAccounts = VirtualAccounts,
+				Accounts = Accounts, 
+				Operations = Operations, // _builder.Operations.Where(x => x.Date.Year == 2021 && x.Date < endDate).ToList(),
 				Currencies = new List<Currency> { Currency.Usd, Currency.Eur, Currency.Cny },
 				//NotExecutedOperations = _builder.Operations
 			};
 
-			var allCurOps = _builder.Operations
+			var allCurOps = Operations
 				.Where(x => x.Type == OperationType.CurBuy || x.Type == OperationType.CurSell)
 				.ToList();
 			
-			foreach (var a in _builder.Accounts)
+			foreach (var a in Accounts)
 			{
 				foreach (var cur in model.Currencies)
 				{
@@ -611,15 +650,15 @@ namespace Invest.WebApp.Controllers
 						allCurOps.Where(x => x.Type == OperationType.CurSell && x.Account == a && x.Currency == cur));
 				
 					model.BuysOps.Add(new CacheViewModel.Item(cur, a),
-						_builder.Operations.Where(x => x.Type == OperationType.Buy
+						Operations.Where(x => x.Type == OperationType.Buy
 						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 
 					model.SellOps.Add(new CacheViewModel.Item(cur, a),
-						_builder.Operations.Where(x => x.Type == OperationType.Sell
+						Operations.Where(x => x.Type == OperationType.Sell
 						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 
 					model.Divs.Add(new CacheViewModel.Item(cur, a),
-						_builder.Operations.Where(x => x.Type == OperationType.Dividend
+						Operations.Where(x => x.Type == OperationType.Dividend
 						                               && x.Account == a && x.Stock != null && x.Currency == cur));
 
 					var saldo = 0;
@@ -647,9 +686,9 @@ namespace Invest.WebApp.Controllers
 				Cur = (Currency?)cur,
 				Year = year,
 
-				VirtualAccounts = _builder.VirtualAccounts,
-				Accounts = _builder.Accounts, 
-				Operations = _builder.Operations.Where(x => x.Type == OperationType.Dividend).ToList(),
+				VirtualAccounts = VirtualAccounts,
+				Accounts = Accounts, 
+				Operations = Operations.Where(x => x.Type == OperationType.Dividend).ToList(),
 				Currencies = new List<Currency> { Currency.Rur, Currency.Usd, Currency.Eur }
 			};
 
@@ -702,7 +741,7 @@ namespace Invest.WebApp.Controllers
 		{
 			//var ss = _builder.Stocks.Where(x => x.Data.QtyBalance > 0).OrderBy(x => x.SortIndex);
 
-			var divsStocksRur = _builder.Operations.Where(x => x.Type == OperationType.Dividend)
+			var divsStocksRur = Operations.Where(x => x.Type == OperationType.Dividend)
 				.Where(x => x.Currency == cur)
 				.GroupBy(x => x.Stock)
 				.Select(g => new { Stock = g.Key, Sum = g.Sum(x1 => x1.Summa) })
@@ -792,7 +831,7 @@ namespace Invest.WebApp.Controllers
 
 		public IActionResult Bonds()
 		{
-			var stocks = _builder.Stocks
+			var stocks = _stocks
 				.Where(x => x.Type == StockType.Bond)
 				//&& (x.Ticker == "MTSS" || x.Ticker == "NVTK" || x.Ticker == "TDC" || x.Ticker == "AAL" || x.Ticker == "CLF" )
 				//&& (currency == null || (int)x.Currency == currency)
@@ -803,9 +842,9 @@ namespace Invest.WebApp.Controllers
 			var model = new BondsViewModel
 			{
 				Stocks = stocks,
-				VirtualAccounts = _builder.VirtualAccounts,
-				Accounts = _builder.Accounts,
-				Operations = _builder.Operations.Where(x => x.Type == OperationType.Coupon
+				VirtualAccounts = VirtualAccounts,
+				Accounts = Accounts,
+				Operations = Operations.Where(x => x.Type == OperationType.Coupon
 					|| (x.Type == OperationType.Sell && x.Stock != null && x.Stock.Type == StockType.Bond)).ToList()
 			};
 
@@ -814,7 +853,7 @@ namespace Invest.WebApp.Controllers
 			
 			foreach (var s in stocks)
 			{
-				var ops = _builder.Operations
+				var ops = Operations
 					.Where(x => x.Stock == s
 						&& (x.Type == OperationType.Buy || x.Type == OperationType.Sell || x.Type == OperationType.Coupon)
 					   )
@@ -849,7 +888,7 @@ namespace Invest.WebApp.Controllers
 
 		public JsonResult Tickers(int curId = 0)
 		{
-			var list = _builder.Stocks
+			var list = _stocks
 				.Where(x => curId == 0 || (int)x.Currency == curId)
 				.OrderBy(x => !(x.Data.QtyBalance > 0))
 				.ThenBy(x => x.Company.Name)
@@ -862,14 +901,14 @@ namespace Invest.WebApp.Controllers
 		public IActionResult Cur()
 		{
 			var model = new CurrencyViewModel {
-				VirtualAccounts = _builder.VirtualAccounts,
-				Accounts = _builder.Accounts, 
+				VirtualAccounts = VirtualAccounts,
+				Accounts = Accounts, 
 				Currencies = new List<Currency> { Currency.Usd, Currency.Eur, Currency.Cny },
 				//NotExecutedOperations = _builder.Operations
 			};
 
 			var sellStack = new List<CurSellItem>();
-			var sellsOps = _builder.Operations.Where(x => x.Type == OperationType.CurSell).ToList();
+			var sellsOps = Operations.Where(x => x.Type == OperationType.CurSell).ToList();
 			foreach (var o in sellsOps)
 				sellStack.Add(new CurSellItem { 
 					SellOperation = o, VAccount = o.Account.VirtualAccount, Cur = o.Currency, 
@@ -877,10 +916,10 @@ namespace Invest.WebApp.Controllers
 
 			foreach (var cur in model.Currencies)
 			{
-				foreach (var va in _builder.VirtualAccounts)	
+				foreach (var va in VirtualAccounts)	
 				{
 					var buyStack = new Stack<CurBuytem>();
-					foreach (var o in _builder.Operations
+					foreach (var o in Operations
 							.Where(x => x.Type == OperationType.CurBuy && x.Currency == cur && x.Account.VirtualAccount == va)
 							.OrderByDescending(x => x.Date))
 						buyStack.Push(new CurBuytem { BuyOperation = o, Qty = o.Qty.Value });
@@ -936,10 +975,54 @@ namespace Invest.WebApp.Controllers
 				}
 			}
 
-			model.Operations = _builder.Operations.Where(x => x.Type == OperationType.CurSell || x.Type == OperationType.CurBuy).ToList();
+			model.Operations = Operations.Where(x => x.Type == OperationType.CurSell || x.Type == OperationType.CurBuy).ToList();
 			model.Items = sellStack;
 
 			return View(model);
+		}
+
+		protected HttpRequestMessage BuildApiRequest(string path, string content, HttpMethod httpMethod, bool useKey = true)
+		{
+			var req = new HttpRequestMessage
+			{
+				Method = httpMethod,
+				RequestUri = new Uri(Core.Settings.FileServiceApi.Url + path),
+				Content = new StringContent(content ?? "", Encoding.UTF8, "application/json")
+			};
+			if (useKey)
+				AddRequestSecretKey(req);
+            
+			return req;
+		}
+
+		protected void AddRequestSecretKey(HttpRequestMessage req)
+		{
+			req.Headers.Add("x-api-key", Core.Settings.FileServiceApi.Key);
+		}
+
+		protected string GetApiResponse(HttpRequestMessage req)
+		{
+			string response;
+			using (var client = new HttpClient())
+			using (var r = client.SendAsync(req).Result)
+			using (var content = r.Content)
+			{
+				response = Encoding.UTF8.GetString(content.ReadAsByteArrayAsync().Result);
+			}
+
+			if (string.IsNullOrEmpty(response))
+				throw new Exception("GetApiResponse(): result response from api is empty");
+
+			var result = new Common.ApiResult();
+
+			dynamic answer = JObject.Parse(response);
+			result.ErrCode = answer.errCode;
+			result.Error = answer.error;
+            
+			if (result.ErrCode != 0)
+				throw new Exception($"GetApiResponse(), api returns error: {result.Error}, code: {result.ErrCode}");
+
+			return answer.data.ToString();
 		}
 	}
 

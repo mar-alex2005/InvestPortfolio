@@ -9,9 +9,9 @@ namespace Invest.WebApp.Controllers
 {
 	public class ApiController : Controller
 	{
-		private readonly Core.Builder _builder;
+		private readonly Invest.Core.Builder _builder;
 
-		public ApiController(Core.Builder builder)
+		public ApiController(Invest.Core.Builder builder)
 		{
 			_builder = builder;
 		}

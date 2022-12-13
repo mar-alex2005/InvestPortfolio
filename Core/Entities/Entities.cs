@@ -57,141 +57,6 @@ namespace Invest.Core.Entities
     }
 
 
-	public class BaseStock
-	{
-		[JsonProperty(PropertyName = "t")]
-	    public string Ticker;
-		public string[] Isin; // array of isin`s. In order to store some isins, if company changes own fin.params
-		public string RegNum; // reg num for bonds
-		[JsonProperty(PropertyName = "type")]
-		public StockType Type;
-        public Company Company;
-        public int SortIndex;
-        [JsonProperty(PropertyName = "lot")]
-        public int LotSize;
-        public decimal? CurPrice;
-		public DateTime CurPriceUpdatedOn;
-        // Name of stock in excel (brokerName)
-        public string Name;
-        public Currency Currency;
-		/// <summary>for divs</summary>
-        public Currency DivCurrency;
-
-		public DateTime LastHistotyDate;
-
-        public Data Data;   
-        public Dictionary<int, AccountData> AccountData;
-
-        public BaseStock() { }
-        public BaseStock(string ticker) {
-            Ticker = ticker;
-        }
-
-        public List<Position> Positions { get; set; }
-
-        //public decimal? TotalFinResult(AccountType? account, Currency? cur) 
-        //{
-        //    if (account != null && cur != null)
-        //    { 
-        //        var v = Invest.Core.Core.Instance.Operations
-        //            .Where(x => x.Stock == this 
-        //                && !x.IsClosed
-        //                && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-        //                && x.AccountType == account 
-        //                && x.Stock.Currency == cur);
-
-        //        return v.Sum(x => x.FinResult);
-        //    }
-
-        //    return Data.FinResultForClosedPositions;    
-        //}
-
-        //public decimal? TotalFinResultForClosedPositions(AccountType? account, Currency? cur) 
-        //{
-        //    var v = Invest.Core.Core.Instance.Operations
-        //        .Where(x => x.Stock == this 
-        //            && x.IsClosed
-        //            && (x.Type == OperationType.Buy || x.Type == OperationType.Sell)
-        //            && (account == null || x.AccountType == account)
-        //            && (cur == null || x.Stock.Currency == cur));
-                
-        //    return v.Sum(x => x.FinResult);
-
-        //    //return Data.TotalFinResultForClosedPositions;    
-        //}
-
-		public decimal? GetCommission(int? acCode = null)
-		{
-			if (acCode != null)
-				return AccountData[acCode.Value].Commission;
-			else
-				return Data.Commission;
-		}
-
-		//public DateTime? FirstBuy(AccountType? type = null)
-		//{
-		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
-		//	                                                          && x.Stock.Ticker == Ticker
-		//	                                                          && (type == null || x.AccountType == type)
-		//		);
-		//	if (r.Any())
-		//		return r.Min(x => x.Date);
-
-  //          return null;
-  //      }
-
-		//public DateTime? LastBuy(AccountType? type = null)
-		//{
-		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
-		//	                                                          && x.Stock.Ticker == Ticker
-		//	                                                          && (type == null || x.AccountType == type)
-		//		);
-				
-		//	if (r.Any())
-		//		return r.Max(x => x.Date);
-            
-  //          return null;
-  //      }
-
-		//public DateTime? LastSell(AccountType? type = null)
-		//{
-		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Sell
-		//	                                                          && x.Stock.Ticker == Ticker
-		//	                                                          && (type == null || x.AccountType == type)
-		//		);
-
-		//	if (r.Any())
-		//		return r.Max(x => x.Date);
-            
-  //          return null;
-  //      }
-
-		//public decimal? MinBuyPrice(AccountType? type = null)
-		//{
-		//	var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Buy
-		//	                                                          && x.Stock.Ticker == Ticker
-		//	                                                          && (type == null || x.AccountType == type)
-		//		);
-
-		//	return r.Any() 
-  //              ? r.Min(x => x.Price) 
-  //              : null;
-  //      }
-
-		//public decimal? MaxSellPrice(AccountType? type = null)
-  //      {
-  //          var r = Invest.Core.Core.Instance.Operations.Where(x => x.Type == OperationType.Sell
-  //                                                                    && x.Stock.Ticker == Ticker
-  //                                                                    && (type == null || x.AccountType == type));
-
-  //          return r.Any() ? r.Max(x => x.Price) : null;
-  //      }
-	}
-
-    public class Stock : BaseStock
-    {
-    }
-
 
     public class Data
     {
@@ -571,8 +436,12 @@ namespace Invest.Core.Entities
 		public decimal? NotLossPrice;
 		public int CurrentQty;
 
+		[JsonIgnore]
 		public List<Operation> Operations;
+		[JsonIgnore]
 		public List<Position> Positions;
+
+		public AccountData(){ }
 		
 		public AccountData(BaseAccount account, BaseStock stock)
 		{
@@ -662,62 +531,6 @@ namespace Invest.Core.Entities
 		public decimal? CouponSumma;
 		public decimal? Commission;
 	}
-
-    public class Operation
-    {
-	    public BaseAccount Account;
-        public AccountType AccountType;
-        public DateTime Date;
-		public DateTime? DeliveryDate; // плановая дата поставки
-        public OperationType Type;
-		[JsonIgnore]
-        public BaseStock Stock;
-        public int? Qty;               // кол-во акций
-        public decimal? Price;
-		public decimal? PriceInRur;  // operation price in RUR if currency == usd or eur
-        public decimal? PosPrice;	 // Цена позиции (avg)
-        public int Index;
-        public decimal? Summa;
-        public decimal? RurSumma;  // operation summa in RUR if currency == usd or eur
-        public decimal FinResult;
-        public decimal TotalFinResult; // нарастающий итог
-        public bool IsClosed;
-        public int ClosedCount;         // count of closed (sell) positions of asset
-        //B3062822828
-        public string TransId;
-        public string OrderId;
-        public Currency Currency;
-        public string Comment;
-
-        public decimal? BankCommission1; // Комиссия Банка за расчет по сделке
-        public decimal? BankCommission2; // Комиссия Банка за заключение сделки
-        public int? PositionNum;
-		public decimal? Nkd;			 // coupon 
-
-        // fifo saldo for sells and buys (default value = qty)
-        public int QtySaldo;
-        // fin result for sell position
-		public FifoResult FifoResult;
-		public Position Position;
-
-		public int OffsetQty
-		{
-			get {
-				return Qty.HasValue 
-					? Type == OperationType.Buy ? Qty.Value : -Qty.Value 
-					: 0;
-			}
-		}
-
-        /// <summary>Кол-во лотов</summary>
-        public int LotCount =>
-	        Qty != null && Stock.LotSize != 0 
-		        ? Qty.Value / Stock.LotSize 
-		        : 0;
-
-        /// <summary>BankCommission1 + BankCommission2</summary>
-        public decimal? Commission => Builder.SumValues(BankCommission1, BankCommission2);
-    }
 
 	public class Period
 	{

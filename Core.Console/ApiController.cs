@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Invest.Common;
+using Invest.Core.Entities;
 
 namespace Invest.Core.Console
 {
@@ -84,6 +86,21 @@ namespace Invest.Core.Console
             {
 	            //var query = new DirectoryQuery(queryParams);
 	            result.Data = _builder.Operations;
+            }
+            else if (method == "companies")
+            {
+	            //var query = new DirectoryQuery(queryParams);
+	            result.Data = _builder.Companies;
+            }
+            else if (method == "portfolios")
+            {
+	            //var query = new DirectoryQuery(queryParams);
+	            result.Data = _builder.Portfolios;
+            }
+            else if (method == "fiforesults")
+            {
+	            //var query = new DirectoryQuery(queryParams);
+	            result.Data = _builder.FifoResults.Select(x => new KeyValuePair<Analytics, FifoResult>(x.Key, x.Value)).ToList();
             }
             else if (method == "files/checkexist")
             {

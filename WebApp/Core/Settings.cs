@@ -27,12 +27,12 @@ namespace Invest.WebApp.Core
 
         private static void ParseFileApiService(IConfiguration configuration)
         {
-            var fileServiceApi = configuration.GetSection("FileServiceApi").Get<Dictionary<string, string>>();
-            if (fileServiceApi == null || string.IsNullOrEmpty(fileServiceApi["url"]) || string.IsNullOrEmpty(fileServiceApi["key"]))
-                throw new Exception("Settings(): FileServiceApi params are wrong or empty");
+            var serviceApi = configuration.GetSection("ServiceApi").Get<Dictionary<string, string>>();
+            if (serviceApi == null || string.IsNullOrEmpty(serviceApi["url"]) || string.IsNullOrEmpty(serviceApi["key"]))
+                throw new Exception("Settings(): ServiceApi params are wrong or empty");
 
-            FileServiceApi.Url = fileServiceApi["url"];
-            FileServiceApi.Key = fileServiceApi["key"];
+            FileServiceApi.Url = serviceApi["url"];
+            FileServiceApi.Key = serviceApi["key"];
         }
 		
         public class FileServiceApiParams
