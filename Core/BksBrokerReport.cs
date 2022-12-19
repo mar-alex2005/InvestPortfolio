@@ -206,7 +206,7 @@ namespace Invest.Core
 
 	    private void ReadShareOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 	    {
-		    var index = 0;
+		    //var index = 0;
 		    var cells = map.GetMappingForSharesOpeartions();
 
 		    while (rd.Read())
@@ -302,7 +302,7 @@ namespace Invest.Core
 	    
 		private void ReadBondsOperations(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 	    {
-		    var index = 0;
+		    //var index = 0;
 		    var cells = map.GetMappingForBondsOpeartions();
 
 		    while (rd.Read())

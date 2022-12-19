@@ -1,6 +1,7 @@
 ﻿@model Invest.WebApp.Models.CacheViewModel
 @using Invest.Core.Enums
 @using Invest.WebApp
+@using Invest.WebApp.Models
 @{
 	Layout = null;
 	ViewData["Title"] = "Cache";
@@ -109,7 +110,7 @@
 										}
 										<td>@(accountCacheInTotal != null && accountCacheInTotal != 0 ? $"{accountCacheInTotal:N2}" : "")</td>
 									</tr>
-											}
+								}
 							}
 						</table><br />
 					</td>
@@ -187,7 +188,8 @@
 							</tr>
 							@foreach (var cur in (Currency[])Enum.GetValues(typeof(Currency)))
 							{
-								if (Model.GetSum(OperationType.Buy, cur) == 0) { continue; }
+								if (Model.GetSum(OperationType.Buy, cur) == 0)
+								{ continue; }
 								<tr>
 									<td class="td-name-sub">@cur:</td>
 									@foreach (var a in Model.Accounts.OrderBy(x => x.VirtualAccount.SortIndex).ThenBy(x => x.SortIndex))
@@ -571,8 +573,8 @@
 								.Where(x => x.Type == OperationType.UsdExchange)
 								.Sum(x => x.Summa);
 						}
-                        @($"{totalUsdExch:N2}")
-                    </td>
+						@($"{totalUsdExch:N2}")
+					</td>
 				</tr>
 				@{
 					var usdExchangeOps = Model.Operations
@@ -618,7 +620,7 @@
 							}
 						</td>
 					</tr>
-												}
+				}
 			</table>
 		</td>
 	</tr>

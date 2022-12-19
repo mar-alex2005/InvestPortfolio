@@ -246,6 +246,11 @@ namespace Invest.WebApp.Models
 		//public Portfolio? Portfolio;
 		public IOrderedEnumerable<StockItem> StockItems;
 		public List<string> Tickers;
+		public List<BaseStock> Stocks;
+		public List<Operation> Operations;
+		public IEnumerable<KeyValuePair<Analytics, FifoResult>> FifoResults;
+		public Dictionary<Analytics, FinIndicator> FinIndicators;
+		public List<BaseAccount> Accounts;
 
 		public class StockItem
 		{
@@ -361,5 +366,21 @@ namespace Invest.WebApp.Models
 	{
 		public int Qty;
 		public Operation BuyOperation;
+	}
+
+
+	public class HistViewModel : BaseViewModel
+	{
+		public List<Item> Items;
+
+		public class Item
+		{
+			public DateTime Date;
+			public decimal Profit, ProfitPercent;
+			public decimal BuySum;
+			public decimal SellSum;
+			public decimal StockSum;
+			public decimal CurStockSum;
+		}
 	}
 }

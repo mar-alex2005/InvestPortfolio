@@ -924,17 +924,17 @@ namespace Invest.WebApp.Controllers
 							.OrderByDescending(x => x.Date))
 						buyStack.Push(new CurBuytem { BuyOperation = o, Qty = o.Qty.Value });
 
-					if (buyStack.Any(x => x.BuyOperation.Currency == Currency.Eur))
-					{
-						var t =0;
-					}
+					//if (buyStack.Any(x => x.BuyOperation.Currency == Currency.Eur))
+					//{
+					//	var t =0;
+					//}
 
 					foreach (var sell in sellStack.Where(x => x.Cur == cur && x.VAccount == va))
 					{
-						if (cur == Currency.Usd && va.Id == "IIS" && sell.SellOperation.DeliveryDate.Value.Year == 2022)
-						{
-							var r=0;
-						}
+						//if (cur == Currency.Usd && va.Id == "IIS" && sell.SellOperation.DeliveryDate.Value.Year == 2022)
+						//{
+						//	var r=0;
+						//}
 
 						if (buyStack.Count == 0)
 						{
@@ -1042,22 +1042,5 @@ namespace Invest.WebApp.Controllers
 	//               ? field.GetValue(obj) 
 	//               : null;
 	//       }
-	//   }
-
-
-
-	//public class HistViewModel : BaseViewModel
-	//{
-	//	public List<Item> Items;
-
-	//       public class Item
-	//       {
-	//		public DateTime Date;
-	//           public decimal Profit, ProfitPercent;
-	//		public decimal BuySum;
-	//		public decimal SellSum;
-	//		public decimal StockSum;
-	//		public decimal CurStockSum;
-	//	}
-	//}
+	//   }	
 }

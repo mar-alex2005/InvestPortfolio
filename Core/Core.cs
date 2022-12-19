@@ -207,7 +207,7 @@ namespace Invest.Core
 
 	                s.Positions.AddRange(CreatePositions(stockOperations, va, null, null));
 
-					if (s.Ticker == "Газпнф1P1R") { var t =0; }
+					//if (s.Ticker == "Газпнф1P1R") { var t =0; }
 
 	                foreach (var pos in s.Positions)
 	                {
@@ -401,7 +401,7 @@ namespace Invest.Core
 
 						if (stock.Type == StockType.Bond)
 						{
-							if (stock.Ticker == "ИКС5ФинБО6") { var r=0; }
+							//if (stock.Ticker == "ИКС5ФинБО6") { var r=0; }
 							profit = stock.LotSize * (item.Operation.Price + (item.Operation.Nkd ?? 0 / item.Qty) - (opBuy.Operation.Price + ((opBuy.Operation.Nkd ?? 0) / opBuy.Qty))).Value;
 						}
 
