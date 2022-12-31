@@ -59,6 +59,36 @@ function init() {
     resize();
 	
 	window.onresize = resize;
+
+    // инициализируем роутер
+    Router.init();
+       
+    // запускаем главную страницу
+    Router.dispatch('/');
+
+    // обработчик нажатий на ссылки
+    
+    // получаем все ссылки на странице
+    //let anchors = document.querySelectorAll('a');
+       
+    // вешаем на событие onclick обработчик
+    //for( let anchor of anchors ) anchor.onclick = handler;
+}
+
+function handler(url) {
+    console.debug("event: ", event, url);
+
+    window.history.pushState(null, null, url);
+
+    // получаем запрошенный url
+    //let url1 = new URL(url);
+    //console.debug("url: ", url1);
+           
+    // запускаем роутер, предавая ему path
+    Router.dispatch(url);
+           
+    // запрещаем дальнейший переход по ссылке
+    event.preventDefault();
 }
 
 function resize() {
@@ -143,6 +173,9 @@ function openOperationsByTicker(tickerId)
 }
 
 function openTickerDetails(tickerId) {
+
+    handler("/Home/TickerDetails/" + tickerId);
+
     const params = {tickerId: tickerId};
 
     showWaitContainer();

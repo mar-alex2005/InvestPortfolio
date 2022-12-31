@@ -355,7 +355,7 @@
                     <td class="td-sell">
                         @($"{Util.GetSum(item.SellSum)}")
                     </td>
-                    <td class="td-sum-nkd" title="">
+                    <td class="td-sum-nkd" title="*">
                         @($"{item.SellSum - (item.BuySum + item.Nkd):N2}")
                     </td>
                     <td class="td-weight" title="">
@@ -366,6 +366,7 @@
                     </td>
                 </tr>
 
+			    if (s.Ticker == "Татнфт1P1") { var t = 9; }
                 company = s.Company.Name;
             }
 

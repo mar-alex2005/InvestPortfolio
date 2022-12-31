@@ -217,9 +217,9 @@ namespace Invest.Core
 							pos.CalcPosPrice();
 
 		                if (s.Type == StockType.Bond)
-							pos.CalcFinResult();
+							pos.CalcBondFinResult();
 						else 
-			                pos.CalcBondFinResult();
+			                pos.CalcFinResult();
 
 		                CalcFifoResult(pos, s, va, null); //todo: double call
 	                }
@@ -401,8 +401,10 @@ namespace Invest.Core
 
 						if (stock.Type == StockType.Bond)
 						{
-							//if (stock.Ticker == "ИКС5ФинБО6") { var r=0; }
-							profit = stock.LotSize * (item.Operation.Price + (item.Operation.Nkd ?? 0 / item.Qty) - (opBuy.Operation.Price + ((opBuy.Operation.Nkd ?? 0) / opBuy.Qty))).Value;
+							profit = stock.LotSize * (item.Operation.Summa / item.Qty  + (item.Operation.Nkd ?? 0 / item.Qty) 
+											- (opBuy.Operation.Summa / opBuy.Qty + ((opBuy.Operation.Nkd ?? 0) / opBuy.Qty))).Value;
+
+							if (stock.Ticker == "Систем1P21") { var r=0; }
 						}
 
 						var commission = (item.Commission / (item.Qty / stock.LotSize)) + (opBuy.Commission / (opBuy.Qty));

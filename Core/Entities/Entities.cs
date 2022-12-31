@@ -350,6 +350,8 @@ namespace Invest.Core.Entities
 
 				if (item.ForCalc)
 				{
+					if (item.Operation.Stock.Ticker == "Систем1P21") { var t= 0; }
+
 					item.FinResult = ((op.Price ?? 0) - item.PosPrice) * item.Qty;
 					if (Type == PositionType.Short)
 						item.FinResult *= -1;
@@ -376,7 +378,10 @@ namespace Invest.Core.Entities
 
 				if (item.ForCalc)
 				{
-					item.FinResult = ((op.Price ?? 0) - item.PosPrice) * item.Qty;
+					//item.FinResult = ((op.Price ?? 0) - item.PosPrice) * item.Qty;
+					item.FinResult = op.Summa + (op.Nkd ?? 0) - (item.PosPrice * item.Qty);
+
+					if (item.Operation.Stock.Ticker == "Систем1P21") { var t= 0; }
 					
 					totalFinResult += item.FinResult.Value;
 					item.TotalFinResult = totalFinResult;

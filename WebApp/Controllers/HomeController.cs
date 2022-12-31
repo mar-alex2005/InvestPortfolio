@@ -830,10 +830,12 @@ namespace Invest.WebApp.Controllers
 					SellQty = ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Qty) ?? 0,
 					BuySum = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Summa) ?? 0,
 					Nkd = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Nkd) ?? 0,
-					SellSum = ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Summa) ?? 0,
+					SellSum = ops.Where(x => x.Type == OperationType.Sell).Sum(x => x.Summa + (x.Nkd ?? 0)) ?? 0,
 					Coupon = ops.Where(x => x.Type == OperationType.Coupon).Sum(x => x.Summa) ?? 0,
 					Commission = ops.Where(x => x.Type == OperationType.Buy).Sum(x => x.Commission) ?? 0
 				};
+
+				if (s.Ticker == "Татнфт1P1") { var t = 9; }
 
 				model.TotalSaldo += item.CurrentQty != 0 ? (item.BuySum - item.SellSum) : 0;
 

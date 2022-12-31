@@ -189,6 +189,8 @@ namespace Invest.Core
 					op.BankCommission1 = 0;
 					op.BankCommission2 = 0;
 					op.Stock = s;
+
+					//if (s.Ticker == "Татнфт1P1") { var t = 9; }
 				}
 				else if (opType == "Дивиденды")
 				{
@@ -326,7 +328,7 @@ namespace Invest.Core
 		    }
 	    }
 
-		void ParseBondOperation(BaseStock s, IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+		private void ParseBondOperation(BaseStock s, IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 		{
 			var index = 0;
 			var cells = map.GetMappingForBondsOpeartions();
@@ -349,14 +351,29 @@ namespace Invest.Core
 				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
 				var opQty = ExcelUtil.GetCellValue(cells.BuyQty, rd);
 				var opPrice = ExcelUtil.GetCellValue(cells.BuyPrice, rd);
-				var opNkd = ExcelUtil.GetCellValue(cells.Nkd, rd);
+				var opNkd = ExcelUtil.GetCellValue(cells.BuyNkd, rd);
+				var opSumma = ExcelUtil.GetCellValue(cells.BuySumma, rd);
 				//var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+
 				if (opQty == null && ExcelUtil.GetCellValue(cells.SellQty, rd) != null)
 				{
 					opType = OperationType.Sell;
 					opQty = ExcelUtil.GetCellValue(cells.SellQty, rd);
 					opPrice = ExcelUtil.GetCellValue(cells.SellPrice, rd);
 				}
+
+				if (opType == OperationType.Sell)
+				{
+					opNkd = ExcelUtil.GetCellValue(cells.SellNkd, rd);
+					if (string.IsNullOrEmpty(opNkd) || !decimal.TryParse(opNkd, out _))
+						throw new Exception($"ParseBondOperation(), opNkd == null or empty for sell bond. {dd}");
+				}
+
+				if (opType == OperationType.Sell)
+					opSumma = ExcelUtil.GetCellValue(cells.SellSumma, rd);
+
+				if (string.IsNullOrEmpty(opSumma) || !decimal.TryParse(opSumma, out _))
+					throw new Exception($"ParseBondOperation(), opSumma == null or empty for bond. {dd}");
 
 				var op = new Operation
 				{
@@ -378,9 +395,9 @@ namespace Invest.Core
 				};
 
 				op.Price *= 10;
-				op.Summa = op.Price * op.Qty;
+				op.Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture); //op.Price * op.Qty;
 				op.Type = opType;
-					
+				
 				_builder.AddOperation(op);
 			}
 		}
@@ -406,13 +423,15 @@ namespace Invest.Core
 					opCur = Currency.Usd;
 				else if (value == "ERURUB_TOM")
 					opCur = Currency.Eur;
+				else if (value == "CNYRUB_TOM")
+					opCur = Currency.Cny;
 
 				if (opCur != null)
-					ParceCurrencyOperation(opCur.Value, rd, account, map);
+					ParseCurrencyOperation(opCur.Value, rd, account, map);
 		    }
 	    }
 
-		private void ParceCurrencyOperation(Currency cur, IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
+		private void ParseCurrencyOperation(Currency cur, IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 		{
 			var index = 0;
 			var cells = map.GetMappingForCurrencyOperations();
@@ -530,14 +549,16 @@ namespace Invest.Core
 			public string Date;
 			public string BuyPrice, SellPrice;
 			public string BuyQty, SellQty;
+			public string BuySumma, SellSumma;
 			public string Type;
 			public string BankCommission1;  // Комиссия Банка за расчет по сделке
 			public string BankCommission2;  // Комиссия Банка за заключение сделки
 			public string OrderId;          // № заявки
 			public string TransId;          // № сделки
 			public string DeliveryDate;		// плановая дата поставки
-			public string Nkd = "AF";		// 
-			public string Currency;			// 
+			public string BuyNkd = "AF";	// 
+			public string SellNkd = "";		
+			public string Currency;			
 		}
 		
 
@@ -605,15 +626,18 @@ namespace Invest.Core
 					Type = "",
 					BuyQty = "E",
 					BuyPrice = "F",
+					BuySumma = "G",
 					SellQty = "I",
 					SellPrice = "J",
+					SellSumma = "K",
 
 					BankCommission1 = "P",
 					BankCommission2 = "O",
 					OrderId = "",
 					TransId = "C",
 					DeliveryDate = "B", 
-					Nkd = "H",
+					BuyNkd = "H",
+					SellNkd = "L",
 					Currency = "N"
 				};
 			else
