@@ -10,8 +10,10 @@ namespace Invest.Core
 {
     public class Builder
     {
+	    //https://iss.moex.com/iss/engines/stock/markets/bonds/boards/TQCB/securities.xml?iss.meta=off&iss.only=securities
+	    //https://iss.moex.com/iss/engines/stock/markets/bonds/boards/TQOB/securities.xml?iss.meta=off&iss.only=securities
         protected readonly ILog Log;
-		
+
         /// <summary>Time of first operftion in portfolio</summary>
         private static DateTime _startOperationDate;
 

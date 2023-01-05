@@ -360,7 +360,22 @@ namespace Invest.Core
 
 			if (_accountCode == (int)AccountType.SBr)
 			{ 
-				if (_year == 2022)
+				if (_year == 2023)
+					m = new OperationMap {
+						Name = "E",
+						Date = "C",
+						Type = "H",
+						Qty = "I",
+						Price = "J",
+						BankCommission1 = "P",
+						BankCommission2 = "O",
+						OrderId = "",
+						TransId = "B",
+						DeliveryDate = "D", 
+						Nkd = "K",
+						Currency = "M"
+					};
+				else if (_year == 2022)
 					m = new OperationMap {
 						Name = "E",
 						Date = "C",
@@ -386,7 +401,16 @@ namespace Invest.Core
 		{
 			CacheMap m;
 
-			if (_year == 2022)
+			if (_year == 2023)
+				m = new CacheMap {
+					Date = "B",
+					Summa = "E",
+					Type = "D",
+					Comment = "I",
+					DeliveryDate = "C", 
+					Currency = "F"
+				};
+			else if (_year == 2022)
 				m = new CacheMap {
 					Date = "B",
 					Summa = "E",

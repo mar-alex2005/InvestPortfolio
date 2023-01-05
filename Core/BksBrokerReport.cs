@@ -409,7 +409,7 @@ namespace Invest.Core
 
 		    while (rd.Read())
 		    {
-			    var value = ExcelUtil.GetCellValue("B", rd);
+			    var value = ExcelUtil.GetCellValue(cells.Name, rd);
 
 				if (string.IsNullOrEmpty(value) && !isDataStarting)
 					continue;
@@ -418,16 +418,13 @@ namespace Invest.Core
 				if (string.IsNullOrEmpty(value) && isDataStarting)
 					break;
 
-			    Currency? opCur = null;
-				if (value == "USDRUB_TOM")
-					opCur = Currency.Usd;
-				else if (value == "ERURUB_TOM")
-					opCur = Currency.Eur;
-				else if (value == "CNYRUB_TOM")
-					opCur = Currency.Cny;
+				if (!value.EndsWith("_TOM"))
+					continue;
 
-				if (opCur != null)
-					ParseCurrencyOperation(opCur.Value, rd, account, map);
+				var curStr = value.Substring(0,3); // "USDRUB_TOM", "CNYRUB_TOM"
+				Currency? opCur = (Currency)Enum.Parse(typeof(Currency), curStr, true);
+
+				ParseCurrencyOperation(opCur.Value, rd, account, map);
 		    }
 	    }
 
@@ -438,23 +435,17 @@ namespace Invest.Core
 
 			while (rd.Read())
 			{
-				DateTime dd;
 				var opDDate = ExcelUtil.GetCellValue(cells.DeliveryDate, rd);
-				if (!DateTime.TryParse(opDDate, out dd)) {
+				if (!DateTime.TryParse(opDDate, out var dd))
 					break;
-				}
-
-				DateTime d;
+				
 				var opDate = ExcelUtil.GetCellValue(cells.Date, rd);
-				if (!DateTime.TryParse(opDate, out d)) {
+				if (!DateTime.TryParse(opDate, out var d))
 					continue;
-				}
 
-				TimeSpan time;
 				var opTime = ExcelUtil.GetCellValue(cells.Time, rd);
-				if (!TimeSpan.TryParse(opTime, out time)) {
+				if (!TimeSpan.TryParse(opTime, out var time))
 					continue;
-				}
 
 				var type = OperationType.CurBuy;
 				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
