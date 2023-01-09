@@ -557,7 +557,16 @@ namespace Invest.Core
 		{
 			CacheMap m;
 
-			if (_year == 2022)
+			if (_year == 2023)
+				m = new CacheMap {
+					Date = "B",
+					Type = "C",
+					DeliveryDate = "D", 
+					Currency = "P",
+					Comment = "O",
+					Summa = "G"
+				};
+			else if (_year == 2022)
 				m = new CacheMap {
 					Date = "B",
 					Type = "C",

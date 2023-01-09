@@ -220,10 +220,11 @@ namespace Invest.Core
 
 		                if (s.Type == StockType.Bond)
 							pos.CalcBondFinResult();
-						else 
-			                pos.CalcFinResult();
+						else {
+			                //pos.CalcFinResult();
+						}
 
-		                CalcFifoResult(pos, s, va, null); //todo: double call
+		                //CalcFifoResult(pos, s, va, null); //todo: double call
 	                }
 				}
 

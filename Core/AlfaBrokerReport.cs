@@ -169,7 +169,7 @@ namespace Invest.Core
 		    var fileMask = $"Брокерский+4448836+(01.01.{yy}-*.*.{yy}).xml";
 		    var xslFiles = dir.GetFiles(fileMask);
 
-		    if (xslFiles.Length == 0)
+		    if (xslFiles.Length == 0 && year == 2022)
 			    throw new Exception($"There are no xml files in directory with mask: '{fileMask}'");
 
 		    if (xslFiles.Length > 1)

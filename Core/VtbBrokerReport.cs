@@ -437,7 +437,7 @@ namespace Invest.Core
 		private void AddExtOperations(BaseAccount account, int year)
         {
 			var index = 1000000;
-			if (account.Type == AccountType.VBr) {
+			if (account.BitCode == (int)AccountType.VBr) {
 				if (year == 2021)
 				{
 					var op = new Operation {
@@ -490,12 +490,12 @@ namespace Invest.Core
 						Date = new DateTime(2021, 11, 10, 21,0,1),
 						Stock = _builder.GetStock("TSVT"),
 						Qty = 1,
-						Price = 0,
+						Price = 0, //25.84m,
 						Type = OperationType.Buy,
 						Currency = Currency.Usd,
 						DeliveryDate = new DateTime(2021, 11, 10, 21,0,1),
 						TransId = "M037531193",
-						Summa = 0,
+						Summa = 0, //51.68m,
 						PriceInRur = 0,
 						RurSumma = 0,
 						BankCommission1 = 0,

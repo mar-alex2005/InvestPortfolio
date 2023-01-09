@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Invest.Core.Enums;
-using Newtonsoft.Json;
 
 namespace Invest.Core.Entities
 {
@@ -43,14 +40,10 @@ namespace Invest.Core.Entities
 		public FifoResult FifoResult;
 		public Position Position;
 
-		public int OffsetQty
-		{
-			get {
-				return Qty.HasValue 
-					? Type == OperationType.Buy ? Qty.Value : -Qty.Value 
-					: 0;
-			}
-		}
+		public int OffsetQty =>
+			Qty.HasValue 
+				? Type == OperationType.Buy ? Qty.Value : -Qty.Value 
+				: 0;
 
 		/// <summary>Кол-во лотов</summary>
 		public int LotCount =>

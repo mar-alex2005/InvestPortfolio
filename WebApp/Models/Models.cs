@@ -243,7 +243,7 @@ namespace Invest.WebApp.Models
 
 	public class ProfitViewModel : BaseViewModel
 	{
-		//public Portfolio? Portfolio;
+		public PortfolioType? Portfolio;
 		public IOrderedEnumerable<StockItem> StockItems;
 		public List<string> Tickers;
 		public List<BaseStock> Stocks;
@@ -254,7 +254,7 @@ namespace Invest.WebApp.Models
 
 		public class StockItem
 		{
-			public Stock Stock;
+			public BaseStock Stock;
 			public int? Qty;
 			public int LotCount;
 			public int? BuyQty;

@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using log4net;
 using Invest.Core;
+using Invest.Core.Enums;
 
 namespace Invest.WebApp
 {
@@ -88,8 +85,8 @@ namespace Invest.WebApp
 	        builder.SetPortfolios(portolios);
 
 	        builder.AddCurRates(
-		        //new CbrCurrencyRate(new[]{ Currency.Usd, Currency.Eur }){ StartDate = new DateTime(2019, 1,1), EndDate = DateTime.Today }
-				new FakeCurrencyRate(new[]{ Invest.Core.Enums.Currency.Usd, Invest.Core.Enums.Currency.Eur }){ StartDate = new DateTime(2019, 12,1) }
+		        new CbrCurrencyRate(new[]{ Currency.Usd, Currency.Eur, Currency.Cny }){ StartDate = new DateTime(2019, 1,1), EndDate = DateTime.Today }
+				//new FakeCurrencyRate(new[]{ Invest.Core.Enums.Currency.Usd, Invest.Core.Enums.Currency.Eur }){ StartDate = new DateTime(2019, 12,1) }
 			);
 			
 	        builder.AddStocks(new JsonStocksLoader(fileName));

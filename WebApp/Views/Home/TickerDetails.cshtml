@@ -113,6 +113,8 @@
         <tr>
             <td>Total buy:</td>            
             <td style="text-align: right; color:red">@Util.GetSum(stock.Data.BuySum)</td>    
+            <td></td>
+            <td></td>
             @foreach (var a in Model.Accounts){ <td></td> }
             <td class="" style="text-align:right;">com b.:</td>            
             @foreach (var a in Model.Accounts) {
@@ -122,6 +124,8 @@
         </tr>
         <tr>
             <td>Total sell:</td>
+            <td></td>
+            <td></td>
             <td style="text-align: right; color: green;" class="">@Util.GetSum(stock.Data.SellSum)</td>
             @foreach (var a in Model.Accounts){ <td></td> }
             <td class="" style="text-align:right;">com s.:</td>            
@@ -132,6 +136,8 @@
         </tr>
         <tr>
             <td>saldo:</td>
+            <td></td>
+            <td></td>
             <td style="text-align: right" class="">@($"{stock.Data.SellSum - stock.Data.BuySum:N2}")</td>
             @foreach (var a in Model.Accounts){ <td></td> }
             <td style="text-align:right;">total com:</td>
