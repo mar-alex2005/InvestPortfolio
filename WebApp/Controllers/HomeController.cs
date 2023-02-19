@@ -870,8 +870,11 @@ namespace Invest.WebApp.Controllers
 			return new JsonResult(list);
 		}
 
-		public IActionResult Cur()
+		public IActionResult Cur(int? year)
 		{
+			if (year == null)
+				year = 2022;
+
 			var model = new CurrencyViewModel {
 				VirtualAccounts = _builder.VirtualAccounts,
 				Accounts = _builder.Accounts, 
@@ -880,7 +883,7 @@ namespace Invest.WebApp.Controllers
 			};
 
 			var sellStack = new List<CurSellItem>();
-			var sellsOps = _builder.Operations.Where(x => x.Type == OperationType.CurSell).ToList();
+			var sellsOps = _builder.Operations.Where(x => x.Type == OperationType.CurSell && x.DeliveryDate != null && x.DeliveryDate.Value.Year == year).ToList();
 			foreach (var o in sellsOps)
 				sellStack.Add(new CurSellItem { 
 					SellOperation = o, VAccount = o.Account.VirtualAccount, Cur = o.Currency, 

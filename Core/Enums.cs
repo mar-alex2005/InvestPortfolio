@@ -49,7 +49,9 @@ namespace Invest.Core.Enums
 		SBr = 4,
 		Ab1 = 8,
 		Rshb = 16,
-		Bks = 32
+		Bks = 32,
+		BksB = 64,
+		Iis23 = 128
 	}
 
 	[Flags]

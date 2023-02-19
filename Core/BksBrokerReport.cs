@@ -589,7 +589,27 @@ namespace Invest.Core
 		{
 			ShareOperationMap m;
 
-			if (_year == 2022)
+			if (_year == 2023)
+				m = new ShareOperationMap {
+					Name = "B",
+					Date = "M",
+					Time = "N",
+					Type = "C",
+					BuyQty = "E",
+					BuyPrice = "F",
+					SellQty = "H",
+					SellPrice = "I",
+					BankCommission1 = "P",
+					BankCommission2 = "O",
+					OrderId = "",
+					TransId = "C",
+					DeliveryDate = "B", 
+					Nkd = "K",
+					Currency = "M",
+					RegNum = "F",
+					Isin = "H",
+				};
+			else if (_year == 2022)
 				m = new ShareOperationMap {
 					Name = "B",
 					Date = "M",
@@ -618,8 +638,28 @@ namespace Invest.Core
 		public BondOperationMap GetMappingForBondsOpeartions()
 		{
 			BondOperationMap m;
+			if (_year == 2023)
+				m = new BondOperationMap {
+					Name = "B",
+					Date = "O",
+					Type = "",
+					BuyQty = "E",
+					BuyPrice = "F",
+					BuySumma = "G",
+					SellQty = "I",
+					SellPrice = "J",
+					SellSumma = "K",
 
-			if (_year == 2022)
+					BankCommission1 = "P",
+					BankCommission2 = "O",
+					OrderId = "",
+					TransId = "C",
+					DeliveryDate = "B", 
+					BuyNkd = "H",
+					SellNkd = "L",
+					Currency = "N"
+				};
+			else if (_year == 2022)
 				m = new BondOperationMap {
 					Name = "B",
 					Date = "O",
@@ -650,7 +690,23 @@ namespace Invest.Core
 		{
 			CurrencyMap m;
 
-			if (_year == 2022)
+			if (_year == 2023)
+				m = new CurrencyMap {
+					Name = "B",
+					Date = "K",
+					Time = "L",
+					DeliveryDate = "N", 
+					Currency = "P",
+					Comment = "O",
+					BuySumma = "G",
+					TransId = "C",
+					BuyQty = "F",
+					BuyPrice = "E",
+					SellQty = "I",
+					SellPrice = "H",
+					SellSumma = "J",
+				};
+			else if (_year == 2022)
 				m = new CurrencyMap {
 					Name = "B",
 					Date = "K",

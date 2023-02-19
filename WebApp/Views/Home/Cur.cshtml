@@ -1,5 +1,4 @@
 ﻿@model Invest.WebApp.Models.CurrencyViewModel
-@using Invest.Core.Enums
 @{
 	Layout = null;
 	ViewData["Title"] = "Cache";
@@ -98,7 +97,7 @@
     .tbl-usdrur .td-nalog {
         font-size: 12px;
         text-align: right;
-        color: orange;
+        color: darkorange;
     }
     .tbl-usdrur .td-total {
         font-size: 12px;
@@ -113,6 +112,7 @@
         <table class="tbl-usdrur">
         @foreach (var cur in Model.Currencies)
 		{
+		    decimal totalCurProfit = 0, totalCurNalog = 0;
 		    <tr>
                 <td colspan="8" class="cur-caption">@cur</td>
             </tr>
@@ -145,6 +145,7 @@
 					var profit = item.SellOperation.Summa.Value - item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price.Value);
 					if (profit > 0) {
 						totalProfit += profit;
+					    totalCurProfit += profit;
 					}
 
 					var profitWithoutComm =
@@ -153,6 +154,7 @@
 					decimal nalog = 0;
 					if (profit > 0) {
 						nalog = profitWithoutComm * (decimal)0.13;
+					    totalCurNalog += nalog;
 					}
 
 				    <tr>
@@ -195,8 +197,12 @@
                     <td class="td-total td-nalog">@($"{totalProfit * (decimal)0.13:N2}")</td>
                 </tr>
 		    }
+		    <tr>
+                <td colspan="8">total:</td>
+                <td class="td-total td-pofit">@($"{totalCurProfit:N2}")</td>
+                <td class="td-total td-nalog">@($"{totalCurProfit * (decimal)0.13:N2}")</td>
+            </tr>
 		}
-
         </table>
     </div>
 </div>

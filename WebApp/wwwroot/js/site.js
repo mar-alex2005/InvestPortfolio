@@ -800,10 +800,10 @@ function refreshTickers() {
     );
 }
 
-async function f() {
-	return Promise.resolve(1);
-}
+//async function f() {
+//	return Promise.resolve(1);
+//}
 
 //f().then( console.log("x")); // 1
 
-console.log( await f );
+//console.log( await f );

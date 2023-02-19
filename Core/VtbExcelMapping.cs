@@ -183,13 +183,32 @@ namespace Invest.Core
 					};
 				else if (_year == 2023)
 					m = new OperationMap {
-						BankCommission1 = "AL",
-						BankCommission2 = "AP",
-						OrderId = "BC",
-						TransId = "BH",
-						DeliveryDate = "AU",
-						Nkd = "AG",
-						Currency = "X"
+						Type = "F",
+						Qty = "J",
+						Price = "Q",
+						BankCommission1 = "AH",
+						BankCommission2 = "AK",
+						OrderId = "AW",
+						TransId = "BA",
+						DeliveryDate = "AP",
+						Nkd = "AC",
+						Currency = "U"
+					};
+			}
+			else if (_accountCode == (int)AccountType.Iis23)
+			{
+				if (_year == 2023)
+					m = new OperationMap {
+						Type = "G",
+						Qty = "K",
+						Price = "R",
+						Currency = "W",
+						Nkd = "AE",
+						BankCommission1 = "AJ",
+						BankCommission2 = "AN",
+						DeliveryDate = "AS",
+						OrderId = "BA",
+						TransId = "BE"
 					};
 			}
 			else if (_accountCode == (int)AccountType.SBr)
@@ -226,7 +245,7 @@ namespace Invest.Core
 					};
 			}
 			else
-				throw new Exception("ExcelCellsMapping(): wrong account id");
+				throw new Exception($"ExcelCellsMapping(): wrong account id (_accountCode: {_accountCode})");
 
 			return m;
 		}
@@ -284,9 +303,18 @@ namespace Invest.Core
 					};
 				else if (_year == 2023)
 					m = new CacheMap {
-						Cur = "I",
-						Type = "O",
-						Comment = "AE"
+						Cur = "J",
+						Type = "Q",
+						Comment = "AI"
+					};
+			}
+			else if (_accountCode == (int)AccountType.Iis23)
+			{ 
+				if (_year == 2023)
+					m = new CacheMap {
+						Cur = "J",
+						Type = "P",
+						Comment = "AG"
 					};
 			}
 			else if (_accountCode == (int)AccountType.SBr)

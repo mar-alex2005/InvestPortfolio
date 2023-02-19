@@ -241,10 +241,6 @@ namespace Invest.Core
         }
 
 
-		/// <summary>Load operations</summary>
-		/// <param name="rd"></param>
-		/// <param name="account"></param>
-		/// <param name="cellMapping"></param>
 		private void ReadOperations(ExcelDataReader.IExcelDataReader rd, BaseAccount account, VtbExcelMapping cellMapping)
 		{
 			var index = 0;
