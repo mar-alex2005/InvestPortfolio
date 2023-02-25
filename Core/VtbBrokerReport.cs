@@ -137,9 +137,12 @@ namespace Invest.Core
 				if (string.IsNullOrEmpty(opSumma))
 					throw new Exception($"ReadCacheOperations(): opSumma == null. a: {account.Name}, '{opDate}'");
 
+				if (string.IsNullOrEmpty(opType))
+					throw new Exception($"ReadCacheOperations(): opType == null. a: {account.Name}, '{opDate}'");
+
                 if (!string.IsNullOrEmpty(opType))
                 {
-                    OperationType? type = null;
+	                OperationType? type = null;
 
                     if (opType == "Зачисление денежных средств")
                         type = OperationType.CacheIn;
@@ -166,8 +169,13 @@ namespace Invest.Core
                             type = OperationType.Ndfl;
 					}
 
-					if (opType == "Купонный доход")
+					if (opType == "Купонный доход") {
 						type = OperationType.Coupon;
+						if (date.Year == 2022 && account.Id == "VBr")
+						{
+
+						}
+					}
 
 					if (opType == "Списание денежных средств")
 						type = OperationType.CacheOut;
@@ -211,7 +219,20 @@ namespace Invest.Core
 						op.BankCommission1 = 0;
 						op.BankCommission2 = 0;
 						op.DeliveryDate = op.Date;
-                    }
+					}
+
+                    if (op.Type == OperationType.Coupon) {
+	                    //var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond 
+	                     //       && !string.IsNullOrEmpty(x.RegNum) && x.Company != null 
+	                     //       && (op.Comment.ToLower().Contains(x.RegNum.ToLower()) 
+	                     //           || (x.Isin?[0] != null && op.Comment.ToLower().Contains(x.Isin[0].ToLower()))
+	                     //       )
+	                    //);
+
+	                    //op.Stock = s ?? throw new Exception($"ReadCacheOperations(): Vtb, not found stock by {opComment}, {opDate}");
+	                    op.BankCommission1 = 0;
+	                    op.BankCommission2 = 0;
+					}
 
                     ops.Add(op); //Instance.Operations.Add(op);
                 }                

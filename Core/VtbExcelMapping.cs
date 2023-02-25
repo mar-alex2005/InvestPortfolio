@@ -297,15 +297,15 @@ namespace Invest.Core
 					};
 				else if (_year == 2022)
 					m = new CacheMap {
-						Cur = "I",
-						Type = "O",
-						Comment = "AE"
-					};
-				else if (_year == 2023)
-					m = new CacheMap {
 						Cur = "J",
 						Type = "Q",
 						Comment = "AI"
+					};
+				else if (_year == 2023)
+					m = new CacheMap {
+						Cur = "I",
+						Type = "O",
+						Comment = "AE"
 					};
 			}
 			else if (_accountCode == (int)AccountType.Iis23)
