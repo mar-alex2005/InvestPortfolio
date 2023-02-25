@@ -154,7 +154,7 @@ namespace Invest.Core
 			    Summa = -54745.81m,
 			    Currency = Currency.Rur,
 			    Type = OperationType.CacheOut,
-			    Comment = "Перевод денежгых средств со сечтов ИИС в рамках перевода активов другим брокерам",
+			    Comment = "Перевод денежных средств со сечтов ИИС в рамках перевода активов другим брокерам",
 			    TransId="p1111"
 		    });
 	    }

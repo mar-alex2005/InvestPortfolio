@@ -45,19 +45,68 @@ namespace Invest.Core
 	    private void AddExtendedOperations()
 	    {
 		    //transfer
-		    //var a = _builder.Accounts.FirstOrDefault(x => x.Broker == "Bks");
-		    //const string comment = "Перевод ДС из АБ";
+		    var bksIis = _builder.Accounts.FirstOrDefault(x => x.Id == "BKS");
+		    var bksBr = _builder.Accounts.FirstOrDefault(x => x.Id == "BKSb");
 
-		    //_builder.AddOperation(new Operation {
-			   // Account = a,
-			   // Date = new DateTime(2022,3,21),
-			   // Summa = 10000.00m,
-			   // Currency = Currency.Rur,
-			   // Type = OperationType.CacheIn,
-			   // Comment = comment,
-			   // TransId="sb001"
-		    //});
-	    }
+			//   _builder.AddOperation(new Operation {
+			//	Account = a,
+			//	Date = new DateTime(2022, 10, 17),
+			//	Summa = 59m,
+			//	Currency = Currency.Usd,
+			//	Type = OperationType.CacheOut,
+			//	Comment = "USDCNY_TOM: Buy cny for usd",
+			//	TransId = "538108077"
+			//});
+
+			_builder.AddOperation(new Operation
+			{
+				Account = bksIis,
+				Date = new DateTime(2022, 10, 17),
+				Summa = 427.6m,
+				Currency = Currency.Cny,
+				Type = OperationType.CacheIn,
+				Comment = "USDCNY_TOM: Buy cny for usd",
+				TransId = "538108077"
+			});
+
+			_builder.AddOperation(new Operation {
+				Account = bksIis,
+				Date = new DateTime(2023,2,2),
+				Summa = 0.39m,
+				Currency = Currency.Usd,
+				Type = OperationType.CacheOut,
+				Comment = "тех. конвертация (закрытие иис)",
+				TransId="i00001"
+			});
+			_builder.AddOperation(new Operation {
+				Account = bksIis,
+				Date = new DateTime(2023,2,2),
+				Summa = 1427.6m,
+				Currency = Currency.Cny,
+				Type = OperationType.CacheOut,
+				Comment = "тех. конвертация (закрытие иис)",
+				TransId="i00002"
+			});
+
+			_builder.AddOperation(new Operation {
+				Account = bksBr,
+				Date = new DateTime(2023,2,2),
+				Summa = 0.39m,
+				Currency = Currency.Usd,
+				Type = OperationType.CacheIn,
+				Comment = "тех. конвертация (закрытие иис)",
+				TransId="i000100"
+			});
+			_builder.AddOperation(new Operation {
+				Account = bksBr,
+				Date = new DateTime(2023,2,2),
+				Summa = 1427.6m,
+				Currency = Currency.Cny,
+				Type = OperationType.CacheIn,
+				Comment = "тех. конвертация (закрытие иис)",
+				TransId="i000110"
+			});
+		}
 
 	    private void LoadReportFile(BaseAccount account, int year)
 	    {
@@ -66,25 +115,41 @@ namespace Invest.Core
 		    var dir = new DirectoryInfo(_reportDir);
 			var d = new DateTime(year,1,1);
 
-		    var fileMask = $"B_k-2657758_ALL_{d:yy}-*.xlsx";
+		    var fileMask = $"B_k-{account.Name}_ALL_{d:yy}-*.xlsx";
 		    var xslFiles = dir.GetFiles(fileMask);
 			
-		    if (xslFiles.Length == 0)
-			    throw new Exception($"BKS: There are no xsl files in directory with mask: '{fileMask}'");
+		    //if (xslFiles.Length == 0)
+			//    throw new Exception($"BKS: There are no xsl files in directory with mask: '{fileMask}'");
 
 		    //if (xslFiles.Length > 1)
 			//    throw new Exception($"BKS: There are more than one xsl file found in directory by acc {account.BitCode} and year '{year}' ('{fileMask}')");
 
 		    foreach(var file in xslFiles.OrderBy(x => x.LastWriteTime))
 		    {
+				DateTime begPeriod = ParseFileName(file.Name);
 			    using(var fs = File.Open(file.FullName, FileMode.Open, FileAccess.Read))
 			    {
-				    Parse(account, year, fs);
+				    Parse(account, year, begPeriod, fs);
 			    }
 		    }
 	    }
 
-	    private void Parse(BaseAccount account, int year, FileStream fs)
+	    private DateTime ParseFileName(string fileName)
+	    {
+		    // B_k-2657758_ALL_23-02-01-23-02-24.XLSX
+		    fileName = fileName.Replace(".XLSX", "");
+			var arr = fileName.Split("_", StringSplitOptions.RemoveEmptyEntries);
+			if (arr.Length != 4)
+				throw new Exception("ParseFileName(), arr.Length != 4");
+
+			var dArr = arr[3].Split("-", StringSplitOptions.RemoveEmptyEntries);
+			if (dArr.Length != 6)
+				throw new Exception("ParseFileName(), dArr.Length != 2");
+
+			return new DateTime(int.Parse("20" + dArr[0]), int.Parse(dArr[1]), int.Parse(dArr[2]));
+	    }
+
+	    private void Parse(BaseAccount account, int year, DateTime begPeriod, FileStream fs)
 		{
 			var map = new BksExcelMapping(account.BitCode, year);
 			const string firstColName = "B";
@@ -104,8 +169,14 @@ namespace Invest.Core
 						{
 							var b = titleCell.ToString().Trim();
 
-							if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "Рубль") //"1. Движение денежных средств")
+							//if (!string.IsNullOrEmpty(b) && titleCell.ToString() == "1.3. Начисленные сборы/штрафы (итоговые суммы):")
+							//	ReadBrokerFee(reader, account, begPeriod, map);
+
+							if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Рубль"))
 								ReadCache(reader, account, map);
+							
+							else if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("АДР"))
+								ReadShareOperations(reader, account, map);
 
 							else if (!string.IsNullOrEmpty(b) && titleCell.ToString().StartsWith("Акция"))
 								ReadShareOperations(reader, account, map);
@@ -130,15 +201,66 @@ namespace Invest.Core
 			}
 		}
 
+		private void ReadBrokerFee(IExcelDataReader rd, BaseAccount account, DateTime begPeriod, BksExcelMapping map)
+	    {
+			var emptyCell = 1;
+		    var index = 0;
+		    //var cells = map.GetMappingForCache();
+
+			while (rd.Read())
+			{
+				var type = ExcelUtil.GetCellValue("B", rd); // приход
+				if (string.IsNullOrEmpty(type))
+				{
+					if (emptyCell == 0)
+						break;
+					emptyCell--;
+					continue;
+				}
+				
+				var opType = ExcelUtil.GetCellValue("B", rd);
+				var opSumma = ExcelUtil.GetCellValue("F", rd);
+				//var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+
+				if (opType == "Вознаграждение компании" || opType == "Вознаграждение за перевод ЦБ")
+				{
+					if ((string.IsNullOrEmpty(opSumma) || opSumma == "0"))
+						throw new Exception("ReadBrokerFee(), opSumma = null and opSummaOut = null");
+
+					var op = new Operation
+					{
+						Index = ++index,
+						Account = account,
+						AccountType = (AccountType)account.BitCode,
+						Date = begPeriod.AddMonths(1).AddDays(-1),
+						Type = OperationType.BrokerFee,
+						Summa = decimal.Parse(opSumma, CultureInfo.InvariantCulture),
+						Currency = Currency.Rur,
+						Comment = opType,
+						BankCommission1 = 0,
+						BankCommission2 = 0
+					};
+					_builder.AddOperation(op);
+				}
+				else
+					continue;
+			}
+	    }
+
 		private void ReadCache(IExcelDataReader rd, BaseAccount account, BksExcelMapping map)
 	    {
+			//var emptyCell = 1;
 		    var index = 0;
 		    var cells = map.GetMappingForCache();
 
-			// "Заключенные в отчетном периоде сделки с ценными бумагами"
 			while (rd.Read())
 			{
 				var type = ExcelUtil.GetCellValue(cells.Type, rd); // приход
+				//if (string.IsNullOrEmpty(type))
+				//{
+				//	emptyCell--;
+				//	continue;
+				//}
 				if (string.IsNullOrEmpty(type))
 					break;
 				
@@ -150,7 +272,14 @@ namespace Invest.Core
 
 				var opType = ExcelUtil.GetCellValue(cells.Type, rd);
 				var opSumma = ExcelUtil.GetCellValue(cells.Summa, rd);
+				var opSummaOut = ExcelUtil.GetCellValue(cells.SummaOut, rd);
 				var opComment = ExcelUtil.GetCellValue(cells.Comment, rd);
+
+				if ((string.IsNullOrEmpty(opSumma) || opSumma == "0")  && !string.IsNullOrEmpty(opSummaOut))
+					opSumma = opSummaOut;
+
+				if ((string.IsNullOrEmpty(opSumma) || opSumma == "0") && string.IsNullOrEmpty(opSummaOut))
+					throw new Exception("ReadCache(), opSumma = null and opSummaOut = null");
 				
 				var op = new Operation
 				{
@@ -169,8 +298,21 @@ namespace Invest.Core
 					op.Type = OperationType.CacheOut;
 					op.Summa *= -1;
 				}
-				else if (opType == "Погашение купона")
+				else if (opType == "Погашение купона") {
 					op.Type = OperationType.Coupon;
+					var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond && x.Company != null 
+						&& (!string.IsNullOrEmpty(x.RegNum) && opComment.ToLower().Contains(x.RegNum.ToLower()) 
+						    || (x.Isin?[0] != null && opComment.ToLower().Contains(x.Isin[0].ToLower())))
+					);
+
+					if (s == null)
+						throw new Exception($"ReadCache(): Bks, not found stock by {opComment}, {opDate}");
+
+					op.BankCommission1 = 0;
+					op.BankCommission2 = 0;
+					op.Stock = s;
+
+				}
 				else if (opType == "Погашение облигации")
 				{
 					var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond && x.Company != null 
@@ -198,6 +340,16 @@ namespace Invest.Core
 					op.Currency = Currency.Rur;
 					op.BankCommission1 = 0;
 					op.BankCommission2 = 0;
+				}
+				else if (opType == "НДФЛ")
+				{
+					op.Type = OperationType.Ndfl;
+					op.Summa *= -1;
+				}
+				else if (opType == "Вознаграждение компании" || opType == "Вознаграждение за перевод ЦБ")
+				{
+					op.Type = OperationType.BrokerFee;
+					op.Comment = op.Comment + ". " + opType;
 				}
 				else
 					continue;
@@ -264,6 +416,9 @@ namespace Invest.Core
 				var opTransId = ExcelUtil.GetCellValue(cells.TransId, rd);
 				var opQty = ExcelUtil.GetCellValue(cells.BuyQty, rd);
 				var opPrice = ExcelUtil.GetCellValue(cells.BuyPrice, rd);
+				var opCur = ExcelUtil.GetCellValue(cells.Currency, rd);
+				if (opCur.ToLower() == "рубль")
+					opCur = "Rur";
 
 				if (opQty == null && ExcelUtil.GetCellValue(cells.SellQty, rd) != null)
 				{
@@ -282,7 +437,7 @@ namespace Invest.Core
 					DeliveryDate = dd,
 					Qty = int.Parse(opQty),
 					Price = decimal.Parse(opPrice, CultureInfo.InvariantCulture),
-					Currency = Currency.Rur,
+					Currency = (Currency)Enum.Parse(typeof(Currency), opCur, true), //Currency.Rur,
 					Stock = s,
 					//Comment = opComment
 					TransId = opTransId
@@ -516,6 +671,7 @@ namespace Invest.Core
 			public string Currency;			// 
 			public string Comment; 
 			public string Summa;
+			public string SummaOut;
 		}
 
 		public class ShareOperationMap
@@ -564,7 +720,8 @@ namespace Invest.Core
 					DeliveryDate = "D", 
 					Currency = "P",
 					Comment = "O",
-					Summa = "G"
+					Summa = "G",
+					SummaOut = "H"
 				};
 			else if (_year == 2022)
 				m = new CacheMap {
@@ -573,7 +730,8 @@ namespace Invest.Core
 					DeliveryDate = "D", 
 					Currency = "P",
 					Comment = "O",
-					Summa = "G"
+					Summa = "G",
+					SummaOut = "H"
 				};
 			else
 				throw new Exception($"BksExcelCellsMapping(): wrong account accountCode or year. {_year},{_accountCode}");
@@ -605,7 +763,7 @@ namespace Invest.Core
 					TransId = "C",
 					DeliveryDate = "B", 
 					Nkd = "K",
-					Currency = "M",
+					Currency = "L",
 					RegNum = "F",
 					Isin = "H",
 				};
@@ -625,7 +783,7 @@ namespace Invest.Core
 					TransId = "C",
 					DeliveryDate = "B", 
 					Nkd = "K",
-					Currency = "M",
+					Currency = "L",
 					RegNum = "F",
 					Isin = "H",
 				};

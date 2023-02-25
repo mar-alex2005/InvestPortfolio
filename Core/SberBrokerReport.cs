@@ -44,56 +44,57 @@ namespace Invest.Core
 	    private void AddExtendedOperations()
 	    {
 		    //transfer
-		    //var a = _builder.Accounts.FirstOrDefault(x => x.Broker == "Sber");
-		    //const string comment = "Ввод ДС";
+		    var a = _builder.Accounts.FirstOrDefault(x => x.Broker == "Sber");
+		    const string comment = "НДФЛ";
 
-		    //_builder.AddOperation(new Operation {
-			   // Account = a,
-			   // Date = new DateTime(2022,3,21),
-			   // Summa = 10000.00m,
-			   // Currency = Currency.Rur,
-			   // Type = OperationType.CacheIn,
-			   // Comment = comment,
-			   // TransId="sb001"
-		    //});
-		    //_builder.AddOperation(new Operation {
-			   // Account = a,
-			   // Date = new DateTime(2022,3,21),
-			   // Summa = 10000.00m,
-			   // Currency = Currency.Rur,
-			   // Type = OperationType.CacheIn,
-			   // Comment = comment,
-			   // TransId="sb002"
-		    //});
-		    //_builder.AddOperation(new Operation {
-			   // Account = a,
-			   // Date = new DateTime(2022,3,23),
-			   // Summa = 10000.00m,
-			   // Currency = Currency.Rur,
-			   // Type = OperationType.CacheIn,
-			   // Comment = comment,
-			   // TransId="sb003"
-		    //});
-		    //_builder.AddOperation(new Operation {
-			   // Account = a,
-			   // Date = new DateTime(2022,3,23),
-			   // Summa = 10000.00m,
-			   // Currency = Currency.Rur,
-			   // Type = OperationType.CacheIn,
-			   // Comment = comment,
-			   // TransId="sb004"
-		    //});
+			_builder.AddOperation(new Operation
+			{
+				Account = a,
+				Date = new DateTime(2022, 12, 31),
+				Summa = 328m,
+				Currency = Currency.Rur,
+				Type = OperationType.Ndfl,
+				Comment = comment,
+				TransId = "sb00000101"
+			});
+			//_builder.AddOperation(new Operation {
+			// Account = a,
+			// Date = new DateTime(2022,3,21),
+			// Summa = 10000.00m,
+			// Currency = Currency.Rur,
+			// Type = OperationType.CacheIn,
+			// Comment = comment,
+			// TransId="sb002"
+			//});
+			//_builder.AddOperation(new Operation {
+			// Account = a,
+			// Date = new DateTime(2022,3,23),
+			// Summa = 10000.00m,
+			// Currency = Currency.Rur,
+			// Type = OperationType.CacheIn,
+			// Comment = comment,
+			// TransId="sb003"
+			//});
+			//_builder.AddOperation(new Operation {
+			// Account = a,
+			// Date = new DateTime(2022,3,23),
+			// Summa = 10000.00m,
+			// Currency = Currency.Rur,
+			// Type = OperationType.CacheIn,
+			// Comment = comment,
+			// TransId="sb004"
+			//});
 
-		    //_builder.AddOperation(new Operation {
-			   // Account = a,
-			   // Date = new DateTime(2022,7,5, 9,0,0),
-			   // Summa = -17946.64m,
-			   // Currency = Currency.Rur,
-			   // Type = OperationType.CacheOut,
-			   // Comment = comment,
-			   // TransId="sb010"
-		    //});
-	    }
+			//_builder.AddOperation(new Operation {
+			// Account = a,
+			// Date = new DateTime(2022,7,5, 9,0,0),
+			// Summa = -17946.64m,
+			// Currency = Currency.Rur,
+			// Type = OperationType.CacheOut,
+			// Comment = comment,
+			// TransId="sb010"
+			//});
+		}
 
 	    private void LoadReportFile(BaseAccount account, int year)
 	    {
@@ -198,6 +199,24 @@ namespace Invest.Core
 						}
 						else if (opType == "Зачисление купона")
 							op.Type = OperationType.Coupon;
+						else if (opType == "Зачисление суммы от погашения ЦБ")
+						{
+							op.Type = OperationType.Sell;
+							var s = _builder.Stocks.FirstOrDefault(x => x.Type == StockType.Bond && x.Company != null 
+								&& (!string.IsNullOrEmpty(x.RegNum) && opComment.ToLower().Contains(x.RegNum.ToLower()) 
+								    || (x.Isin?[0] != null && opComment.ToLower().Contains(x.Isin[0].ToLower()))
+									|| (x.Ticker != null && opComment.ToLower().Contains(x.Ticker.ToLower())))
+							);
+
+							if (s == null)
+								throw new Exception($"ParseCache(): Sber, not found stock by {opComment}, {opDate}");
+							
+							op.Qty = (int?)(op.Summa / 1000);
+							op.Price = 1000;
+							op.BankCommission1 = 0;
+							op.BankCommission2 = 0;
+							op.Stock = s;
+						}
 
 						_builder.AddOperation(op);
 					}

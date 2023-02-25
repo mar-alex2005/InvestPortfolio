@@ -1,4 +1,4 @@
-﻿@model Invest.WebApp.Models.CacheViewModel
+﻿@model CacheViewModel
 @using Invest.Core.Enums
 @using Invest.WebApp
 @using Invest.WebApp.Models
@@ -19,12 +19,13 @@
 						<th>Cur</th>
 						<th>Прим.</th>
 					</tr>
-					@{
-						var lastday = DateTime.MinValue;
+                    @{
+                        var lastday = DateTime.MinValue;
 						foreach (var o in Model.Operations
 							   .Where(x => x.Type == OperationType.CacheIn
 									   || x.Type == OperationType.CacheOut
-									   || x.Type == OperationType.Ndfl)
+									   || x.Type == OperationType.Ndfl
+                                       || x.Type == OperationType.BrokerFee)
 							   .OrderByDescending(x => x.Date).ThenByDescending(x => x.Index))
 						{
 							var sColor = "black";
@@ -35,6 +36,10 @@
 							else if (o.Type == OperationType.Ndfl)
 							{
 								sColor = "orange";
+							}
+							else if (o.Type == OperationType.BrokerFee)
+							{
+							    sColor = "orange";
 							}
 
 							if (o.Date.Month != lastday.Month)
@@ -403,7 +408,10 @@
 										</td>
 									}
 									<td class="td-cache">
-										@Util.GetSum(Model.GetComm(new[] { OperationType.Buy, OperationType.Sell }, cur), "-")
+										@Util.GetSum(Model.GetComm(new[] { OperationType.Buy, OperationType.Sell }, cur)
+                                            + Model.GetCurComm(new[] { OperationType.CurBuy, OperationType.CurSell })
+                                            + Model.GetSum(OperationType.BrokerFee, cur)
+										    , "-")
 									</td>
 								</tr>
 							}
