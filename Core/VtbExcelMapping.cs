@@ -149,7 +149,7 @@ namespace Invest.Core
 						Currency = "U"
 					};
 			}
-			else if (_accountCode == (int)AccountType.VBr)
+			else if (_accountCode == (int)AccountType.VBr) //nmc
 			{
 				if (_year == 2019)
 					m = new OperationMap {
@@ -183,16 +183,16 @@ namespace Invest.Core
 					};
 				else if (_year == 2023)
 					m = new OperationMap {
-						Type = "F",
-						Qty = "J",
-						Price = "Q",
-						BankCommission1 = "AH",
-						BankCommission2 = "AK",
-						OrderId = "AW",
-						TransId = "BA",
-						DeliveryDate = "AP",
-						Nkd = "AC",
-						Currency = "U"
+						Type = "G",
+						Qty = "K",
+						Price = "S",
+						BankCommission1 = "AL",
+						BankCommission2 = "AP",
+						OrderId = "BC",
+						TransId = "BH",
+						DeliveryDate = "AU",
+						Nkd = "AG",
+						Currency = "X"
 					};
 			}
 			else if (_accountCode == (int)AccountType.Iis23)
@@ -281,7 +281,7 @@ namespace Invest.Core
 						Comment = "AD"
 					};
 			}
-			else if (_accountCode == (int)AccountType.VBr)
+			else if (_accountCode == (int)AccountType.VBr) //nmc
 			{ 
 				if (_year == 2019)
 					m = new CacheMap {
@@ -303,9 +303,9 @@ namespace Invest.Core
 					};
 				else if (_year == 2023)
 					m = new CacheMap {
-						Cur = "I",
-						Type = "O",
-						Comment = "AE"
+						Cur = "J",
+						Type = "Q",
+						Comment = "AI"
 					};
 			}
 			else if (_accountCode == (int)AccountType.Iis23)

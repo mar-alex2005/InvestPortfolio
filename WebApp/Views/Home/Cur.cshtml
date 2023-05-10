@@ -113,6 +113,7 @@
         @foreach (var cur in Model.Currencies)
 		{
 		    decimal totalCurProfit = 0, totalCurNalog = 0;
+            decimal? totalSumma = 0, totalCurQty = 0;
 		    <tr>
                 <td colspan="8" class="cur-caption">@cur</td>
             </tr>
@@ -128,7 +129,7 @@
                     <td colspan="9" class="acc-caption">@va.Name (@va.Id)</td>
                 </tr>
 		        <tr>
-                    <th>Date</th>
+                    <th>Acc</th>
                     <th>Date</th>
                     <th>Qty</th>
                     <th>Summa</th>
@@ -142,7 +143,7 @@
 
 				foreach (var item in Model.Items.Where(x => x.Cur == cur && x.VAccount == va))
 				{
-					var profit = item.SellOperation.Summa.Value - item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price.Value);
+				    var profit = item.SellOperation.Summa.Value - item.BuyOperations.Sum(x => x.Qty * x.BuyOperation.Price.Value);
 					if (profit > 0) {
 						totalProfit += profit;
 					    totalCurProfit += profit;
@@ -156,6 +157,9 @@
 						nalog = profitWithoutComm * (decimal)0.13;
 					    totalCurNalog += nalog;
 					}
+
+				    totalCurQty += item.Qty;
+				    totalSumma += item.SellOperation.Summa;
 
 				    <tr>
                         <td class="td-acc">@($"{item.SellOperation.Account.Id}")</td>
@@ -192,15 +196,18 @@
 				}
 
 		        <tr>
-                    <td colspan="8"></td>
+                    <td colspan="2"></td>
+                    <td>@($"{totalCurQty:N2}")</td>
+                    <td>@($"{totalSumma:N2}")</td>
+                    <td colspan="4"></td>
                     <td class="td-total td-pofit">@($"{totalProfit:N2}")</td>
-                    <td class="td-total td-nalog">@($"{totalProfit * (decimal)0.13:N2}")</td>
+                    <td class="td-total td-nalog">@($"{totalProfit * (decimal) 0.13:N2}")</td>
                 </tr>
 		    }
 		    <tr>
                 <td colspan="8">total:</td>
                 <td class="td-total td-pofit">@($"{totalCurProfit:N2}")</td>
-                <td class="td-total td-nalog">@($"{totalCurProfit * (decimal)0.13:N2}")</td>
+                <td class="td-total td-nalog">@($"{totalCurProfit * (decimal) 0.13:N2}")</td>
             </tr>
 		}
         </table>

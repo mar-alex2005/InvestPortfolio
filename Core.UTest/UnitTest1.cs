@@ -46,9 +46,9 @@ namespace Invest.Core.UTest
 			Assert.IsTrue(builder.Companies.Count != 0);
 			Assert.IsTrue(builder.Stocks.Count != 0);
 
-			var dir = Path.Combine(Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal)), "Downloads");
-			builder
-				.AddReport(new VtbBrokerReport(dir, builder));
+			//var dir = Path.Combine(Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal)), "Downloads");
+			//builder
+			//	.AddReport(new VtbBrokerReport(dir, builder));
 
 			//builder.AddReport(new SberBrokerReport(){});
 			//builder.AddReport(new AlfaBrokerReport(){});

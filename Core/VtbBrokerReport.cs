@@ -234,6 +234,11 @@ namespace Invest.Core
 	                    op.BankCommission2 = 0;
 					}
 
+                    if (op.Type == OperationType.Ndfl && op.Summa > 0)
+                    {
+	                    op.Type = OperationType.CacheIn;
+                    }
+
                     ops.Add(op); //Instance.Operations.Add(op);
                 }                
             }
